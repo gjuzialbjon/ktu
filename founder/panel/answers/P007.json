@@ -1,0 +1,13 @@
+{
+  "id": "P007",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "I don't look for events, they find me — a friend reposts a story and maybe I go. I'm not going to open a separate app after dinner when everything I stumble on is already in my Instagram feed.",
+  "objection": "Even if the app shows me a yoga class or a hike, I'm not showing up alone to a group of strangers I found through an app; I go where my friends are going.",
+  "would_change_my_mind": "If I could see that people I actually know are going — or if the events showed up in my Instagram stories so I stumble on them the way I always do — I'd try it for a concert ticket.",
+  "price_too_cheap": 100,
+  "price_cheap": 500,
+  "price_expensive": 1000,
+  "price_too_expensive": 1500
+}

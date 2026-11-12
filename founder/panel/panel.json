@@ -1,0 +1,97 @@
+{
+ "n": 20,
+ "seed": 718228,
+ "customer": {
+  "business": "Tirana events app: free discovery and one-tap join for community events (yoga, chess, book clubs, hikes); tickets for big commercial events sold in-app",
+  "target": "People living in or visiting Tirana who want more social life than the default cafe routine, currently finding events through Instagram stories and WhatsApp groups",
+  "segments": [
+   {
+    "name": "young professionals 24-35",
+    "share": 0.4,
+    "income": [
+     450,
+     950
+    ]
+   },
+   {
+    "name": "students 18-24",
+    "share": 0.25,
+    "income": [
+     100,
+     350
+    ]
+   },
+   {
+    "name": "returning diaspora, expats and tourists",
+    "share": 0.15,
+    "income": [
+     900,
+     2500
+    ]
+   },
+   {
+    "name": "active citizens 35-50 (incl. parents)",
+    "share": 0.2,
+    "income": [
+     500,
+     1100
+    ]
+   }
+  ],
+  "behaviours": [
+   {
+    "name": "daily Instagram scroller",
+    "share": 0.3,
+    "how": "finds events only through stories and friends' reposts; never searches, just stumbles"
+   },
+   {
+    "name": "cafe-default socializer",
+    "share": 0.2,
+    "how": "same bar, same crew, most evenings; new activities feel like effort and need a friend to come along"
+   },
+   {
+    "name": "event enthusiast",
+    "share": 0.15,
+    "how": "already goes to something most weeks, follows venue pages, annoyed at missing things announced late"
+   },
+   {
+    "name": "free-events-only deal hunter",
+    "share": 0.1,
+    "how": "joins anything free, hesitates at any ticket over pocket money, pays cash"
+   },
+   {
+    "name": "community joiner",
+    "share": 0.1,
+    "how": "in three WhatsApp groups (hiking, language exchange), trusts people over platforms"
+   },
+   {
+    "name": "cautious newcomer",
+    "share": 0.1,
+    "how": "wants to meet people but wary of showing up alone to strangers from an app"
+   },
+   {
+    "name": "early-adopter techie",
+    "share": 0.05,
+    "how": "downloads every new Albanian app the week it launches, abandons most within a month"
+   }
+  ],
+  "objections": [
+   "Everything is already on Instagram, why do I need another app",
+   "There will be three events on it and nothing for me, like the government TEA app that died",
+   "I am not going alone to a yoga class full of strangers from an app",
+   "My friends decide where we go, not an app",
+   "I pay cash, I have never bought a ticket online",
+   "Tirana events are all nightlife and I do not do clubs",
+   "Will this app still be alive in three months",
+   "Another app asking for my location and notifications, no thanks"
+  ],
+  "habits": [
+   "morning coffee at the same bar near work or faculty",
+   "checks Instagram stories after dinner",
+   "weekend day trips when someone organizes",
+   "WhatsApp is where real plans are made",
+   "salary arrives at month start, by month end budget is tight"
+  ]
+ },
+ "pitch": "A new free app for Tirana: everything happening in the city, in one place, one tap to join.\n\nSmall community events — a yoga session by the lake, a chess tournament, a book club, a group hike — are free to join and free to create, always. Anyone can post one.\n\nBig events — concerts, festivals, parties — are also listed, with tickets sold in the app at the organizer's normal price (for example, a concert ticket from around 700 Lek), no extra fee to you.\n\nThe feed is complete and curated every week: if it is happening in Tirana, it is here, with real dates, places and a way to see who else is going.\n\nYou can rate and review events after you go, so you know what is worth your evening."
+}

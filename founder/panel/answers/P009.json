@@ -1,0 +1,13 @@
+{
+  "id": "P009",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "My evenings already work: same bar, same people, and anything big enough to matter shows up on Instagram stories or in our WhatsApp group anyway. Downloading an app to find things I would then have to go to alone is effort I will not spend.",
+  "objection": "Nobody I know is on it, so even if I see a nice yoga session or a hike, I am not showing up by myself to a group of strangers.",
+  "would_change_my_mind": "If two or three of my actual friends were already using it and I could see them marked as going to something, I would download it to follow along and probably buy a concert ticket through it eventually.",
+  "price_too_cheap": 100,
+  "price_cheap": 500,
+  "price_expensive": 1000,
+  "price_too_expensive": 1500
+}

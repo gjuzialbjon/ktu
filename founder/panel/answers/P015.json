@@ -1,0 +1,13 @@
+{
+  "id": "P015",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "My plans come out of my WhatsApp groups — someone says hike Saturday and we go. I might scroll this app after dinner like I scroll stories, but I am not going to buy a concert ticket through an app none of my people are on yet.",
+  "objection": "Who is actually behind this feed? 'Complete and curated' is a promise, not a fact, and I trust the guy in my hiking group more than a new app's listings.",
+  "would_change_my_mind": "If my hiking or language-exchange group started posting our meetups there and I saw faces I know going to events, I would join through it and eventually buy a ticket there too.",
+  "price_too_cheap": 200,
+  "price_cheap": 500,
+  "price_expensive": 900,
+  "price_too_expensive": 1500
+}

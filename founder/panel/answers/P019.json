@@ -1,0 +1,13 @@
+{
+  "id": "P019",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "My evenings are already sorted — same bar, same people, and that costs me almost nothing. I'd maybe download it to scroll, but I'm not paying 700 Lek for a concert ticket when my whole going-out budget is a few drinks a week.",
+  "objection": "I've seen this before — the government TEA app had three events and died. Why would this one be full of things, and full of people I actually know?",
+  "would_change_my_mind": "If my friends were already on it and I saw a specific event with people from my crew going, I'd join a free one — and after a couple of good free evenings I might trust it with ticket money.",
+  "price_too_cheap": 100,
+  "price_cheap": 400,
+  "price_expensive": 800,
+  "price_too_expensive": 1500
+}

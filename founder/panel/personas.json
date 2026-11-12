@@ -1,0 +1,222 @@
+[
+ {
+  "id": "P001",
+  "name": "Grace",
+  "age": 39,
+  "segment": "returning diaspora, expats and tourists",
+  "income": 1000,
+  "behaviour": "daily Instagram scroller",
+  "behaviour_how": "finds events only through stories and friends' reposts; never searches, just stumbles",
+  "objection": "Another app asking for my location and notifications, no thanks",
+  "habit": "weekend day trips when someone organizes"
+ },
+ {
+  "id": "P002",
+  "name": "Emil",
+  "age": 33,
+  "segment": "students 18-24",
+  "income": 0,
+  "behaviour": "daily Instagram scroller",
+  "behaviour_how": "finds events only through stories and friends' reposts; never searches, just stumbles",
+  "objection": "Tirana events are all nightlife and I do not do clubs",
+  "habit": "weekend day trips when someone organizes"
+ },
+ {
+  "id": "P003",
+  "name": "Jonah",
+  "age": 26,
+  "segment": "young professionals 24-35",
+  "income": 1000,
+  "behaviour": "cafe-default socializer",
+  "behaviour_how": "same bar, same crew, most evenings; new activities feel like effort and need a friend to come along",
+  "objection": "Another app asking for my location and notifications, no thanks",
+  "habit": "checks Instagram stories after dinner"
+ },
+ {
+  "id": "P004",
+  "name": "Celine",
+  "age": 36,
+  "segment": "young professionals 24-35",
+  "income": 1000,
+  "behaviour": "daily Instagram scroller",
+  "behaviour_how": "finds events only through stories and friends' reposts; never searches, just stumbles",
+  "objection": "Everything is already on Instagram, why do I need another app",
+  "habit": "weekend day trips when someone organizes"
+ },
+ {
+  "id": "P005",
+  "name": "Freya",
+  "age": 37,
+  "segment": "students 18-24",
+  "income": 0,
+  "behaviour": "early-adopter techie",
+  "behaviour_how": "downloads every new Albanian app the week it launches, abandons most within a month",
+  "objection": "I pay cash, I have never bought a ticket online",
+  "habit": "salary arrives at month start, by month end budget is tight"
+ },
+ {
+  "id": "P006",
+  "name": "Amara",
+  "age": 31,
+  "segment": "students 18-24",
+  "income": 0,
+  "behaviour": "daily Instagram scroller",
+  "behaviour_how": "finds events only through stories and friends' reposts; never searches, just stumbles",
+  "objection": "Tirana events are all nightlife and I do not do clubs",
+  "habit": "checks Instagram stories after dinner"
+ },
+ {
+  "id": "P007",
+  "name": "Jasper",
+  "age": 39,
+  "segment": "returning diaspora, expats and tourists",
+  "income": 1000,
+  "behaviour": "daily Instagram scroller",
+  "behaviour_how": "finds events only through stories and friends' reposts; never searches, just stumbles",
+  "objection": "I am not going alone to a yoga class full of strangers from an app",
+  "habit": "checks Instagram stories after dinner"
+ },
+ {
+  "id": "P008",
+  "name": "Eli",
+  "age": 29,
+  "segment": "young professionals 24-35",
+  "income": 1000,
+  "behaviour": "daily Instagram scroller",
+  "behaviour_how": "finds events only through stories and friends' reposts; never searches, just stumbles",
+  "objection": "Another app asking for my location and notifications, no thanks",
+  "habit": "checks Instagram stories after dinner"
+ },
+ {
+  "id": "P009",
+  "name": "Jade",
+  "age": 37,
+  "segment": "active citizens 35-50 (incl. parents)",
+  "income": 1000,
+  "behaviour": "cafe-default socializer",
+  "behaviour_how": "same bar, same crew, most evenings; new activities feel like effort and need a friend to come along",
+  "objection": "Everything is already on Instagram, why do I need another app",
+  "habit": "morning coffee at the same bar near work or faculty"
+ },
+ {
+  "id": "P010",
+  "name": "Noor",
+  "age": 37,
+  "segment": "young professionals 24-35",
+  "income": 1000,
+  "behaviour": "event enthusiast",
+  "behaviour_how": "already goes to something most weeks, follows venue pages, annoyed at missing things announced late",
+  "objection": "Everything is already on Instagram, why do I need another app",
+  "habit": "weekend day trips when someone organizes"
+ },
+ {
+  "id": "P011",
+  "name": "Ines",
+  "age": 42,
+  "segment": "young professionals 24-35",
+  "income": 0,
+  "behaviour": "cafe-default socializer",
+  "behaviour_how": "same bar, same crew, most evenings; new activities feel like effort and need a friend to come along",
+  "objection": "There will be three events on it and nothing for me, like the government TEA app that died",
+  "habit": "WhatsApp is where real plans are made"
+ },
+ {
+  "id": "P012",
+  "name": "Alma",
+  "age": 30,
+  "segment": "young professionals 24-35",
+  "income": 1000,
+  "behaviour": "event enthusiast",
+  "behaviour_how": "already goes to something most weeks, follows venue pages, annoyed at missing things announced late",
+  "objection": "Will this app still be alive in three months",
+  "habit": "weekend day trips when someone organizes"
+ },
+ {
+  "id": "P013",
+  "name": "Dev",
+  "age": 36,
+  "segment": "returning diaspora, expats and tourists",
+  "income": 1000,
+  "behaviour": "cautious newcomer",
+  "behaviour_how": "wants to meet people but wary of showing up alone to strangers from an app",
+  "objection": "I am not going alone to a yoga class full of strangers from an app",
+  "habit": "salary arrives at month start, by month end budget is tight"
+ },
+ {
+  "id": "P014",
+  "name": "Lena",
+  "age": 30,
+  "segment": "students 18-24",
+  "income": 0,
+  "behaviour": "event enthusiast",
+  "behaviour_how": "already goes to something most weeks, follows venue pages, annoyed at missing things announced late",
+  "objection": "My friends decide where we go, not an app",
+  "habit": "checks Instagram stories after dinner"
+ },
+ {
+  "id": "P015",
+  "name": "Noah",
+  "age": 31,
+  "segment": "active citizens 35-50 (incl. parents)",
+  "income": 1000,
+  "behaviour": "community joiner",
+  "behaviour_how": "in three WhatsApp groups (hiking, language exchange), trusts people over platforms",
+  "objection": "My friends decide where we go, not an app",
+  "habit": "checks Instagram stories after dinner"
+ },
+ {
+  "id": "P016",
+  "name": "Victor",
+  "age": 27,
+  "segment": "active citizens 35-50 (incl. parents)",
+  "income": 1000,
+  "behaviour": "free-events-only deal hunter",
+  "behaviour_how": "joins anything free, hesitates at any ticket over pocket money, pays cash",
+  "objection": "Tirana events are all nightlife and I do not do clubs",
+  "habit": "morning coffee at the same bar near work or faculty"
+ },
+ {
+  "id": "P017",
+  "name": "Olivia",
+  "age": 25,
+  "segment": "young professionals 24-35",
+  "income": 1000,
+  "behaviour": "community joiner",
+  "behaviour_how": "in three WhatsApp groups (hiking, language exchange), trusts people over platforms",
+  "objection": "I am not going alone to a yoga class full of strangers from an app",
+  "habit": "checks Instagram stories after dinner"
+ },
+ {
+  "id": "P018",
+  "name": "Sofia",
+  "age": 26,
+  "segment": "students 18-24",
+  "income": 0,
+  "behaviour": "cautious newcomer",
+  "behaviour_how": "wants to meet people but wary of showing up alone to strangers from an app",
+  "objection": "Will this app still be alive in three months",
+  "habit": "morning coffee at the same bar near work or faculty"
+ },
+ {
+  "id": "P019",
+  "name": "Chloe",
+  "age": 26,
+  "segment": "active citizens 35-50 (incl. parents)",
+  "income": 1000,
+  "behaviour": "cafe-default socializer",
+  "behaviour_how": "same bar, same crew, most evenings; new activities feel like effort and need a friend to come along",
+  "objection": "There will be three events on it and nothing for me, like the government TEA app that died",
+  "habit": "checks Instagram stories after dinner"
+ },
+ {
+  "id": "P020",
+  "name": "Tess",
+  "age": 29,
+  "segment": "young professionals 24-35",
+  "income": 1000,
+  "behaviour": "free-events-only deal hunter",
+  "behaviour_how": "joins anything free, hesitates at any ticket over pocket money, pays cash",
+  "objection": "There will be three events on it and nothing for me, like the government TEA app that died",
+  "habit": "weekend day trips when someone organizes"
+ }
+]

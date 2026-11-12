@@ -1,0 +1,154 @@
+{
+ "business": "Tirana events app: free discovery and one-tap join for community events (yoga, chess, book clubs, hikes); tickets for big commercial events sold in-app",
+ "seed": 718228,
+ "dealt": 20,
+ "answered": 20,
+ "skipped": [],
+ "buys": 3,
+ "passes": 17,
+ "buy_rate": 0.15,
+ "by_segment": [
+  [
+   "young professionals 24-35",
+   8,
+   0.25
+  ],
+  [
+   "students 18-24",
+   5,
+   0.2
+  ],
+  [
+   "returning diaspora, expats and tourists",
+   3,
+   0.0
+  ],
+  [
+   "active citizens 35-50 (incl. parents)",
+   4,
+   0.0
+  ]
+ ],
+ "by_behaviour": [
+  [
+   "event enthusiast",
+   3,
+   1.0
+  ],
+  [
+   "daily Instagram scroller",
+   6,
+   0.0
+  ],
+  [
+   "cafe-default socializer",
+   4,
+   0.0
+  ],
+  [
+   "early-adopter techie",
+   1,
+   0.0
+  ],
+  [
+   "cautious newcomer",
+   2,
+   0.0
+  ],
+  [
+   "community joiner",
+   2,
+   0.0
+  ],
+  [
+   "free-events-only deal hunter",
+   2,
+   0.0
+  ]
+ ],
+ "by_income": [
+  [
+   "under $1,000",
+   6,
+   0.16666666666666666
+  ],
+  [
+   "$1,000 and up",
+   14,
+   0.14285714285714285
+  ]
+ ],
+ "why_not": [
+  [
+   "habit",
+   12,
+   [
+    "I don't look for events, they find me through stories and friends reposting. I'm not going to open a separate app to browse a feed when my feed already shows me what my people are doing.",
+    "I never go looking for events, they find me through stories and friends' reposts. I would not open a separate app to browse a feed, and I have no money for concert tickets anyway."
+   ],
+   [
+    "P001",
+    "P002"
+   ]
+  ],
+  [
+   "trust",
+   3,
+   [
+    "I would download it because it is free and I do want to know what is happening in Tirana, but I would not actually join or pay for anything yet. Scrolling a feed is one thing; walking alone into a yoga class or a party full of strangers from an app is another, and by the end of the month I don't have 700 Lek spare anyway.",
+    "I already find things through my WhatsApp groups, and I go because I know who is going. A feed of events full of strangers does not fix the actual problem, which is that I am not showing up to a yoga class alone."
+   ],
+   [
+    "P013",
+    "P017"
+   ]
+  ],
+  [
+   "price",
+   2,
+   [
+    "I would download it and join the free stuff for sure, the yoga and the hikes are exactly what I want instead of clubs. But buy a ticket? 700 Lek is my coffee money for a week, so the paid part of this app is not for me.",
+    "I would download it because the small events are free and that is all I ever join anyway, but buying a 700 Lek concert ticket through an app is not something I do — that is real money for me and I pay cash when I pay at all."
+   ],
+   [
+    "P016",
+    "P020"
+   ]
+  ]
+ ],
+ "why_yes": [
+  [
+   "convenience",
+   3,
+   [
+    "I already go out most weeks and I am sick of finding out about things two days late on someone's story. If it is actually all in one place with real dates, I will use it, and I would buy one concert ticket through it if the price really is the same 700 Lek.",
+    "I already go out most weeks and I am sick of finding out about things two days late on someone's story. If everything is actually in one place with real dates, I will use it, and if a concert ticket costs the same 700 Lek as at the door, I would buy it there once to see it works."
+   ],
+   [
+    "P010",
+    "P012"
+   ]
+  ]
+ ],
+ "flip": [
+  "Seeing the app's events reposted in my friends' Instagram stories with people I actually know marked as going — if the group starts organizing through it, I'd follow them in.",
+  "If my friends started sharing events from the app into Instagram stories or our WhatsApp group and I saw who of them was going, I would join the free hikes and chess stuff through it.",
+  "If a couple of my actual friends were on it and I could see them joining something — or a concert we already wanted went on sale there cheaper or easier than the usual way.",
+  "If my friends were actually on it and I saw their names under an event, like a day trip someone already organized, I would join through it instead of the WhatsApp group.",
+  "Let me reserve in the app and pay cash at the entrance, or pay with Easypay or at a kiosk — the first time has to not need a card.",
+  "If the app had its own Instagram with story posts of the free events that my friends would repost, so I stumble on it the way I stumble on everything else, I would probably show up to a free yoga or book club thing and go from there.",
+  "If I could see that people I actually know are going — or if the events showed up in my Instagram stories so I stumble on them the way I always do — I'd try it for a concert ticket.",
+  "If the app's events showed up inside my Instagram feed anyway — like friends reposting a 'who else is going' story from it — and I saw people I actually know going, I'd install it to grab a ticket once.",
+  "If two or three of my actual friends were already using it and I could see them marked as going to something, I would download it to follow along and probably buy a concert ticket through it eventually.",
+  "If my actual friends were on it and I could see people I know marked as going to something — or if the WhatsApp group I already use started sharing links from it.",
+  "If I could see that someone I already know from my WhatsApp groups is going, or join as part of a small newcomers group so I am not arriving alone, I would try one free event first and maybe buy a ticket later.",
+  "If my hiking or language-exchange group started posting our meetups there and I saw faces I know going to events, I would join through it and eventually buy a ticket there too.",
+  "Student or last-minute discounted tickets, say 300-400 Lek, or a way to reserve in the app and pay cash at the entrance.",
+  "If my existing groups, like my hiking or language exchange chats, started posting their events there and I could see people I actually know attending, I would download it and probably buy a concert ticket through it eventually.",
+  "Seeing that people I know, or at least a lot of real girls my age, are already going to events on it, with honest reviews, so joining alone does not feel like a gamble.",
+  "If my friends were already on it and I saw a specific event with people from my crew going, I'd join a free one — and after a couple of good free evenings I might trust it with ticket money.",
+  "If I opened it and the free feed was actually full — hikes, chess, book clubs happening this weekend with people visibly joining — and there was a way to pay cash at the door for the rare big event, I might eventually buy one ticket."
+ ],
+ "purchases_first_month_per_buyer": 1.0,
+ "price_answers": 20
+}

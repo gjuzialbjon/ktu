@@ -1,0 +1,13 @@
+{
+  "id": "P020",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "price",
+  "reason": "I would download it because the small events are free and that is all I ever join anyway, but buying a 700 Lek concert ticket through an app is not something I do — that is real money for me and I pay cash when I pay at all.",
+  "objection": "I have seen this before — an app launches, there are three events on it and nothing for me, like the government TEA app that died. Why would I check it instead of the Instagram stories and WhatsApp groups that already work?",
+  "would_change_my_mind": "If I opened it and the free feed was actually full — hikes, chess, book clubs happening this weekend with people visibly joining — and there was a way to pay cash at the door for the rare big event, I might eventually buy one ticket.",
+  "price_too_cheap": 100,
+  "price_cheap": 300,
+  "price_expensive": 700,
+  "price_too_expensive": 1000
+}

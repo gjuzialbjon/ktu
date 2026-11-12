@@ -1,0 +1,13 @@
+{
+  "id": "P003",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "My evenings are already sorted — same bar, same people, and whatever's happening comes to me through Instagram stories and the WhatsApp group anyway. I'm not downloading another app that wants my location and notifications to do what my friends already do for free.",
+  "objection": "It's one more app asking for permissions, and even if the events are real, I'm not showing up to a yoga session or a chess night alone. Nothing in it gets my crew to come with me.",
+  "would_change_my_mind": "If a couple of my actual friends were on it and I could see them joining something — or a concert we already wanted went on sale there cheaper or easier than the usual way.",
+  "price_too_cheap": 100,
+  "price_cheap": 500,
+  "price_expensive": 1000,
+  "price_too_expensive": 1500
+}

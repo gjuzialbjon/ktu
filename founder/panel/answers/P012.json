@@ -1,0 +1,13 @@
+{
+  "id": "P012",
+  "buys": true,
+  "purchases_first_month": 1,
+  "reason_code": "convenience",
+  "reason": "I already go out most weeks and I am sick of finding out about things two days late on someone's story. If everything is actually in one place with real dates, I will use it, and if a concert ticket costs the same 700 Lek as at the door, I would buy it there once to see it works.",
+  "objection": "Will this app still be alive in three months? Every Tirana app starts loud and dies quiet, and 'complete feed' is a big promise — the first week I open it and half the events I know about are missing, I delete it.",
+  "would_change_my_mind": "Nothing to flip me to no right now, but to keep me: the feed has to really be complete for two or three weeks in a row, and I need to see people I know going.",
+  "price_too_cheap": 100,
+  "price_cheap": 500,
+  "price_expensive": 900,
+  "price_too_expensive": 1500
+}

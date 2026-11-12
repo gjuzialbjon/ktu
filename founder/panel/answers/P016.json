@@ -1,0 +1,13 @@
+{
+  "id": "P016",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "price",
+  "reason": "I would download it and join the free stuff for sure, the yoga and the hikes are exactly what I want instead of clubs. But buy a ticket? 700 Lek is my coffee money for a week, so the paid part of this app is not for me.",
+  "objection": "I pay cash for everything, and I do not trust putting my card in a new app to buy a ticket I could probably get cheaper at the door or through a friend.",
+  "would_change_my_mind": "Student or last-minute discounted tickets, say 300-400 Lek, or a way to reserve in the app and pay cash at the entrance.",
+  "price_too_cheap": 100,
+  "price_cheap": 300,
+  "price_expensive": 600,
+  "price_too_expensive": 1000
+}

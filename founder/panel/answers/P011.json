@@ -1,0 +1,13 @@
+{
+  "id": "P011",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "My evenings are already sorted: same bar, same people, plans made on WhatsApp. I might download it out of curiosity, but downloading is not going, and I am not buying a concert ticket through an app I opened once.",
+  "objection": "I have seen this before with the TEA app — it launches, there are three events on it, nobody I know is on it, and it dies. An empty feed of strangers' yoga sessions does not replace my crew.",
+  "would_change_my_mind": "If my actual friends were on it and I could see people I know marked as going to something — or if the WhatsApp group I already use started sharing links from it.",
+  "price_too_cheap": 200,
+  "price_cheap": 500,
+  "price_expensive": 1000,
+  "price_too_expensive": 2000
+}

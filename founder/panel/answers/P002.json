@@ -1,0 +1,13 @@
+{
+  "id": "P002",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "I never go looking for events, they find me through stories and friends' reposts. I would not open a separate app to browse a feed, and I have no money for concert tickets anyway.",
+  "objection": "I only end up at things because someone I know reposts it or organizes the day trip. An app full of listings is just another thing to ignore unless my friends are already on it.",
+  "would_change_my_mind": "If my friends started sharing events from the app into Instagram stories or our WhatsApp group and I saw who of them was going, I would join the free hikes and chess stuff through it.",
+  "price_too_cheap": 200,
+  "price_cheap": 500,
+  "price_expensive": 900,
+  "price_too_expensive": 1200
+}

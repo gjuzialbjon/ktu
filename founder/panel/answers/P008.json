@@ -1,0 +1,13 @@
+{
+  "id": "P008",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "I already find out what's happening from stories and friends' reposts without lifting a finger. Downloading an app and opening it on purpose is exactly the kind of thing I never do, and it will want my location and notifications.",
+  "objection": "Another app to install, another thing asking for permissions, when Instagram already brings events to me for free while I scroll.",
+  "would_change_my_mind": "If the app's events showed up inside my Instagram feed anyway — like friends reposting a 'who else is going' story from it — and I saw people I actually know going, I'd install it to grab a ticket once.",
+  "price_too_cheap": 100,
+  "price_cheap": 400,
+  "price_expensive": 900,
+  "price_too_expensive": 1500
+}

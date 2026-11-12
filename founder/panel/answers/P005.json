@@ -1,0 +1,13 @@
+{
+  "id": "P005",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "I will download it the week it launches like I download everything, and I will use the free events because that costs nothing. But I have never paid for a ticket online in my life — if I want the concert, I pay cash at the door or at the kiosk like always.",
+  "objection": "Putting my card into an Albanian app I found last week. I pay cash for everything, and by the end of the month there is no money left anyway.",
+  "would_change_my_mind": "Let me reserve in the app and pay cash at the entrance, or pay with Easypay or at a kiosk — the first time has to not need a card.",
+  "price_too_cheap": 200,
+  "price_cheap": 500,
+  "price_expensive": 1000,
+  "price_too_expensive": 1500
+}
