@@ -12,7 +12,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
 import { useI18n } from '../../lib/i18n';
@@ -25,6 +25,7 @@ import { FaqItem } from '../../lib/types';
 
 export default function EventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const { t, lang } = useI18n();
   const { events, people, profile, rsvps, join, cancel, comments, addComment } = useStore();
   const [draft, setDraft] = useState('');
@@ -99,7 +100,13 @@ export default function EventDetail() {
             </View>
           </View>
 
-          <TagRow tags={event.tags} />
+          <TagRow
+            tags={event.tags}
+            onTagPress={(tag) => {
+              track('tag_filtered', { tag, source: 'detail' });
+              router.push({ pathname: '/', params: { tag } });
+            }}
+          />
 
           <View style={styles.infoBox}>
             <Row label={t.when} value={when} />

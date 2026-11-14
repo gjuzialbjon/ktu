@@ -66,7 +66,13 @@ export function EventCard({ event }: { event: EventItem }) {
           />
         </View>
         <Text style={styles.venue}>📍 {event.venueName}</Text>
-        <TagRow tags={event.tags.slice(0, 4)} />
+        <TagRow
+          tags={event.tags.slice(0, 4)}
+          onTagPress={(tag) => {
+            track('tag_filtered', { tag, source: 'card' });
+            router.push({ pathname: '/', params: { tag } });
+          }}
+        />
         <View style={styles.footer}>
           <AvatarStack users={going} follows={profile.follows} />
           <Text style={[styles.going, joined && { color: colors.green, fontWeight: '700' }]}>
