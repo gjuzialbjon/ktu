@@ -21,7 +21,7 @@ interface StoreCtx {
   toggleFollow: (userId: string) => void;
   setName: (name: string) => void;
   submitDraft: (
-    e: Pick<EventItem, 'title' | 'description' | 'venueName' | 'tags' | 'startsAt'> & {
+    e: Pick<EventItem, 'title' | 'description' | 'venueName' | 'tags' | 'startsAt' | 'neighborhood'> & {
       ticketPriceLek?: number;
       /** data-URL or file URI from the image picker; falls back to a placeholder */
       coverImage?: string;
@@ -52,7 +52,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         ]);
         if (r) setRsvps(JSON.parse(r));
         if (p) setProfile(JSON.parse(p));
-        if (d) setDrafts(JSON.parse(d));
+        if (d) {
+          const parsed = JSON.parse(d) as EventItem[];
+          // drafts saved before neighbourhoods existed
+          setDrafts(parsed.map((x) => ({ ...x, neighborhood: x.neighborhood ?? 'qendra' })));
+        }
         if (c) setUserComments(JSON.parse(c));
       } catch {
         // first run / storage unavailable: keep defaults
@@ -157,6 +161,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       tags: e.tags,
       venueName: e.venueName,
       address: e.venueName,
+      neighborhood: e.neighborhood,
       startsAt: e.startsAt,
       coverImage: e.coverImage ?? `https://picsum.photos/seed/${encodeURIComponent(e.title)}/900/560`,
       priceType: e.ticketPriceLek ? 'ticketed' : 'free',

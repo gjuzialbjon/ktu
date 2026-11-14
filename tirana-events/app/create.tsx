@@ -4,11 +4,12 @@ import { Stack, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useI18n } from '../lib/i18n';
 import { useStore } from '../lib/store';
-import { colors, radius } from '../lib/theme';
-import { Button } from '../components/ui';
+import { makeStyles, radius, useTheme } from '../lib/theme';
+import { NEIGHBORHOODS, Neighborhood } from '../lib/types';
+import { Button, Chip, Emoji } from '../components/ui';
 import { DateTimeField } from '../components/DateTimeField';
 
-type FieldName = 'title' | 'venue' | 'date' | 'tags' | 'price';
+type FieldName = 'title' | 'venue' | 'hood' | 'date' | 'tags' | 'price';
 type Errors = Partial<Record<FieldName, string>>;
 
 function parseTags(input: string): string[] {
@@ -20,20 +21,21 @@ function parseTags(input: string): string[] {
 
 export default function CreateEvent() {
   const { t } = useI18n();
+  const s = useStyles();
   const { submitDraft } = useStore();
   const router = useRouter();
 
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
   const [venue, setVenue] = useState('');
+  const [hood, setHood] = useState<Neighborhood | null>(null);
   const [when, setWhen] = useState<Date | null>(null);
   const [tags, setTags] = useState('');
   const [price, setPrice] = useState('');
   const [photo, setPhoto] = useState<string | null>(null);
   const [errors, setErrors] = useState<Errors>({});
 
-  const clearError = (f: FieldName) =>
-    setErrors((e) => (e[f] ? { ...e, [f]: undefined } : e));
+  const clearError = (f: FieldName) => setErrors((e) => (e[f] ? { ...e, [f]: undefined } : e));
 
   const pickPhoto = async () => {
     const res = await ImagePicker.launchImageLibraryAsync({
@@ -56,13 +58,14 @@ export default function CreateEvent() {
     }
   };
 
-  const validate = (): { startsAt: string; tagList: string[]; priceNum?: number } | null => {
+  const validate = (): { startsAt: string; tagList: string[]; priceNum?: number; hood: Neighborhood } | null => {
     const next: Errors = {};
 
     if (!title.trim()) next.title = t.err_required;
     else if (title.trim().length < 5) next.title = t.err_title_short;
 
     if (!venue.trim()) next.venue = t.err_required;
+    if (!hood) next.hood = t.err_required;
 
     let startsAt: string | null = null;
     if (!when) next.date = t.err_required;
@@ -80,8 +83,8 @@ export default function CreateEvent() {
     }
 
     setErrors(next);
-    if (Object.values(next).some(Boolean) || !startsAt) return null;
-    return { startsAt, tagList, priceNum };
+    if (Object.values(next).some(Boolean) || !startsAt || !hood) return null;
+    return { startsAt, tagList, priceNum, hood };
   };
 
   const onSubmit = () => {
@@ -94,6 +97,7 @@ export default function CreateEvent() {
       title: title.trim(),
       description: desc.trim(),
       venueName: venue.trim(),
+      neighborhood: ok.hood,
       startsAt: ok.startsAt,
       tags: ok.tagList.slice(0, 6),
       ticketPriceLek: ok.priceNum,
@@ -106,26 +110,55 @@ export default function CreateEvent() {
   return (
     <>
       <Stack.Screen options={{ title: t.create_event }} />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <Text style={styles.hint}>{t.create_hint}</Text>
+      <ScrollView style={s.scroll} contentContainerStyle={s.content}>
+        <Text style={s.hint}>{t.create_hint}</Text>
 
-        <Text style={styles.label}>{t.ev_photo}</Text>
-        <Pressable style={styles.photoBox} onPress={pickPhoto}>
+        <Text style={s.label}>{t.ev_photo}</Text>
+        <Pressable
+          style={s.photoBox}
+          onPress={pickPhoto}
+          accessibilityRole="button"
+          accessibilityLabel={photo ? t.ev_photo : t.ev_photo_hint}
+        >
           {photo ? (
-            <Image source={{ uri: photo }} style={styles.photo} />
+            <Image source={{ uri: photo }} style={s.photo} />
           ) : (
-            <Text style={styles.photoHint}>📷 {t.ev_photo_hint}</Text>
+            <View style={s.photoEmpty}>
+              <Emoji size={22}>📷</Emoji>
+              <Text style={s.photoHint}>{t.ev_photo_hint}</Text>
+            </View>
           )}
         </Pressable>
         {photo && (
-          <Pressable onPress={() => setPhoto(null)}>
-            <Text style={styles.photoRemove}>{t.ev_photo_remove}</Text>
+          <Pressable onPress={() => setPhoto(null)} accessibilityRole="button" hitSlop={10}>
+            <Text style={s.photoRemove}>{t.ev_photo_remove}</Text>
           </Pressable>
         )}
 
         <Field label={t.ev_title} value={title} onChange={(v) => { setTitle(v); clearError('title'); }} required error={errors.title} />
         <Field label={t.ev_desc} value={desc} onChange={setDesc} multiline />
         <Field label={t.ev_venue} value={venue} onChange={(v) => { setVenue(v); clearError('venue'); }} required error={errors.venue} />
+
+        <Text style={s.label}>
+          {t.ev_hood}
+          <Text style={s.req}> *</Text>
+        </Text>
+        <View style={s.hoodRow}>
+          {NEIGHBORHOODS.map((h) => (
+            <View key={h} style={{ marginBottom: 8 }}>
+              <Chip
+                label={t[`hood_${h}` as const]}
+                active={hood === h}
+                onPress={() => {
+                  setHood(h);
+                  clearError('hood');
+                }}
+              />
+            </View>
+          ))}
+        </View>
+        {errors.hood ? <Text style={s.errorText}>{errors.hood}</Text> : null}
+
         <DateTimeField
           dateLabel={t.ev_date}
           timeLabel={t.ev_time}
@@ -137,7 +170,7 @@ export default function CreateEvent() {
         <Field label={t.ev_tags} value={tags} onChange={(v) => { setTags(v); clearError('tags'); }} required error={errors.tags} placeholder="yoga, outdoor" />
         <Field label={t.ev_price} value={price} onChange={(v) => { setPrice(v); clearError('price'); }} keyboard="numeric" error={errors.price} placeholder="700" />
 
-        <View style={{ height: 10 }} />
+        <View style={{ height: 14 }} />
         <Button label={t.submit} onPress={onSubmit} />
       </ScrollView>
     </>
@@ -163,60 +196,64 @@ function Field({
   error?: string;
   placeholder?: string;
 }) {
+  const theme = useTheme();
+  const s = useStyles();
   return (
     <>
-      <Text style={styles.label}>
+      <Text style={s.label}>
         {label}
-        {required && <Text style={styles.req}> *</Text>}
+        {required && <Text style={s.req}> *</Text>}
       </Text>
       <TextInput
-        style={[
-          styles.input,
-          multiline && { minHeight: 90, textAlignVertical: 'top' },
-          !!error && styles.inputError,
-        ]}
+        style={[s.input, multiline && { minHeight: 96, textAlignVertical: 'top' }, !!error && s.inputError]}
         value={value}
         onChangeText={onChange}
         multiline={multiline}
         keyboardType={keyboard}
         placeholder={placeholder}
-        placeholderTextColor={colors.textDim}
+        placeholderTextColor={theme.c.textDim}
+        accessibilityLabel={required ? `${label}, *` : label}
       />
-      {error ? <Text style={styles.errorText}>⚠ {error}</Text> : null}
+      {error ? <Text style={s.errorText}>{error}</Text> : null}
     </>
   );
 }
 
-const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: 16, paddingBottom: 48, maxWidth: 640, width: '100%', alignSelf: 'center' },
-  hint: { color: colors.textDim, fontSize: 14, marginBottom: 8 },
-  label: { color: colors.textDim, fontSize: 13, fontWeight: '700', marginTop: 14, marginBottom: 6, textTransform: 'uppercase' },
-  req: { color: colors.accent, fontSize: 13, fontWeight: '900' },
-  input: {
-    backgroundColor: colors.card,
-    borderColor: colors.border,
-    borderWidth: 1,
-    borderRadius: radius.md,
-    color: colors.text,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  inputError: { borderColor: colors.accent, borderWidth: 1.5 },
-  errorText: { color: colors.accent, fontSize: 13, fontWeight: '600', marginBottom: 4 },
-  photoBox: {
-    backgroundColor: colors.card,
-    borderColor: colors.border,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderRadius: radius.md,
-    height: 160,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  photo: { width: '100%', height: '100%' },
-  photoHint: { color: colors.textDim, fontSize: 15 },
-  photoRemove: { color: colors.accent, fontSize: 13, fontWeight: '700', marginTop: 6 },
-});
+const useStyles = makeStyles((t) =>
+  StyleSheet.create({
+    scroll: { flex: 1, backgroundColor: t.c.bg },
+    content: { padding: 16, paddingBottom: 48, maxWidth: 640, width: '100%', alignSelf: 'center' },
+    hint: { color: t.c.textDim, fontSize: 15, marginBottom: 8 },
+    label: { color: t.c.text, fontSize: 14, fontWeight: '700', marginTop: 16, marginBottom: 7 },
+    req: { color: t.c.danger, fontSize: 14, fontWeight: '800' },
+    input: {
+      backgroundColor: t.c.surface,
+      borderColor: t.c.border,
+      borderWidth: t.outline,
+      borderRadius: radius.md,
+      color: t.c.text,
+      padding: 12,
+      fontSize: 16,
+      minHeight: 48,
+      marginBottom: 4,
+    },
+    inputError: { borderColor: t.c.danger, borderWidth: 2 },
+    errorText: { color: t.c.danger, fontSize: 14, fontWeight: '600', marginBottom: 4 },
+    hoodRow: { flexDirection: 'row', flexWrap: 'wrap' },
+    photoBox: {
+      backgroundColor: t.c.surface,
+      borderColor: t.c.border,
+      borderWidth: t.outline,
+      borderStyle: 'dashed',
+      borderRadius: radius.md,
+      height: 160,
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden',
+    },
+    photo: { width: '100%', height: '100%' },
+    photoEmpty: { alignItems: 'center', gap: 6 },
+    photoHint: { color: t.c.textDim, fontSize: 15 },
+    photoRemove: { color: t.c.text, fontSize: 14, fontWeight: '700', marginTop: 8, textDecorationLine: 'underline' },
+  }),
+);

@@ -2,14 +2,14 @@ import { Comment, EventItem, PublicUser } from './types';
 
 // Demo people used for "who's going" social proof until real users exist.
 export const SEED_PEOPLE: PublicUser[] = [
-  { id: 'u1', name: 'Arber K.' },
-  { id: 'u2', name: 'Elisa M.' },
-  { id: 'u3', name: 'Gent B.' },
-  { id: 'u4', name: 'Sara H.' },
-  { id: 'u5', name: 'Klajdi T.' },
-  { id: 'u6', name: 'Rea P.' },
-  { id: 'u7', name: 'Drini L.' },
-  { id: 'u8', name: 'Megi S.' },
+  { id: 'u1', name: 'Arber K.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u1' },
+  { id: 'u2', name: 'Elisa M.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u2' },
+  { id: 'u3', name: 'Gent B.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u3' },
+  { id: 'u4', name: 'Sara H.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u4' },
+  { id: 'u5', name: 'Klajdi T.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u5' },
+  { id: 'u6', name: 'Rea P.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u6' },
+  { id: 'u7', name: 'Drini L.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u7' },
+  { id: 'u8', name: 'Megi S.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u8' },
 ];
 
 const img = (seed: string) => `https://picsum.photos/seed/${seed}/900/560`;
@@ -24,7 +24,69 @@ const at = (daysFromNow: number, hour: number, minute = 0): string => {
 
 const ago = (hours: number): string => new Date(Date.now() - hours * 3600_000).toISOString();
 
+/** Later today, on the hour, so "tonight" always has something whenever the demo runs. */
+const laterToday = (hoursAhead: number): string => {
+  const d = new Date(Date.now() + hoursAhead * 3600_000);
+  d.setMinutes(0, 0, 0);
+  const today = new Date();
+  if (d.getDate() !== today.getDate()) {
+    // too close to midnight: keep it today, a few minutes out
+    const late = new Date(Date.now() + 20 * 60_000);
+    return late.toISOString();
+  }
+  return d.toISOString();
+};
+
 export const SEED_EVENTS: EventItem[] = [
+  {
+    id: 'e11',
+    title: 'Aperitivo te Pazari i Ri',
+    description:
+      'Mbledhje e lirshme pas pune në tarracën sipër tregut: pije lokale, meze dhe njerëz të rinj. Ejani vetëm ose me shoqëri — grupi është miqësor dhe gjithmonë dikush prezanton.',
+    category: 'food',
+    tags: ['aperitivo', 'meet-people', 'after-work', 'social'],
+    faq: [
+      { q: 'Duhet të rezervoj?', a: 'Jo, thjesht eja. Trokit "Po vij" që të dimë sa vende të mbajmë.' },
+    ],
+    goodToKnow: ['Pa hyrje, paguan çfarë porosit', 'Tarraca mbi tregun, shkallët anash'],
+    venueName: 'Tarraca e Pazarit',
+    address: 'Pazari i Ri',
+    neighborhood: 'pazari',
+    lat: 41.3301,
+    lng: 19.8222,
+    startsAt: laterToday(2),
+    endsAt: laterToday(4),
+    coverImage: img('aperitivotir'),
+    priceType: 'free',
+    source: 'curated',
+    status: 'published',
+    isSponsored: false,
+    organizer: { id: 'o10', name: 'Tirana After Work', instagram: 'tiranaafterwork', verified: true },
+    goingUserIds: ['u2', 'u5', 'u6', 'u8'],
+  },
+  {
+    id: 'e12',
+    title: 'Karaoke në Bllok',
+    description:
+      'Natë karaoke me këngë shqip, italisht dhe anglisht. Lista e këngëve hapet në 21:30 — regjistrohu te DJ-ja sa mbërrin.',
+    category: 'nightlife',
+    tags: ['karaoke', 'nightlife', 'singing', 'english-friendly'],
+    goodToKnow: ['Hyrja falas', 'Lista e këngëve te DJ-ja', 'Mbaron rreth 01:00'],
+    venueName: 'Radio Bar',
+    address: 'Rruga Ismail Qemali',
+    neighborhood: 'blloku',
+    lat: 41.3195,
+    lng: 19.8158,
+    startsAt: laterToday(4),
+    endsAt: laterToday(7),
+    coverImage: img('karaoketir'),
+    priceType: 'free',
+    source: 'curated',
+    status: 'published',
+    isSponsored: false,
+    organizer: { id: 'o11', name: 'Radio Bar', verified: false },
+    goingUserIds: ['u1', 'u3', 'u7'],
+  },
   {
     id: 'e1',
     title: 'Yoga në Liqen — Sunrise Flow',
@@ -40,6 +102,7 @@ export const SEED_EVENTS: EventItem[] = [
     goodToKnow: ['Falas, gjithmonë', 'Takimi te Diga, hyrja kryesore', 'Zgjat 60–75 min', 'Pas: kafe te kioska (opsionale)'],
     venueName: 'Parku i Madh, hyrja te Diga',
     address: 'Parku i Madh i Tiranës',
+    neighborhood: 'liqeni',
     lat: 41.3081,
     lng: 19.8218,
     startsAt: at(1, 7, 30),
@@ -66,6 +129,7 @@ export const SEED_EVENTS: EventItem[] = [
     goodToKnow: ['Regjistrimi 15 min para', 'Tabelat i vë klubi', '5 raunde × 15 min'],
     venueName: 'Klubi i Shahut Tirana',
     address: 'Rruga e Bogdanëve',
+    neighborhood: 'qendra',
     lat: 41.3322,
     lng: 19.8135,
     startsAt: at(2, 17, 0),
@@ -93,6 +157,7 @@ export const SEED_EVENTS: EventItem[] = [
     goodToKnow: ['Dyert 20:00, muzika 21:00', 'Cash te dera — 700 Lekë', 'Rezervimi mbahet deri 21:30', 'Kapaciteti 180'],
     venueName: 'Tulla — Culture Center',
     address: 'Rruga Jul Variboba',
+    neighborhood: 'qendra',
     lat: 41.3246,
     lng: 19.8144,
     startsAt: at(2, 20, 0),
@@ -121,6 +186,7 @@ export const SEED_EVENTS: EventItem[] = [
     goodToKnow: ['Në shqip', 'Kafja e librarisë -10% për pjesëmarrësit', 'Grup i vogël, max 15'],
     venueName: 'Librari E Përshtatshme',
     address: 'Rruga Pjetër Bogdani',
+    neighborhood: 'blloku',
     lat: 41.3225,
     lng: 19.8169,
     startsAt: at(3, 18, 30),
@@ -149,6 +215,7 @@ export const SEED_EVENTS: EventItem[] = [
     goodToKnow: ['Këpucë hiking ose atlete me tabane', '1.5L ujë minimum', 'Car-pooling në WhatsApp', 'Kthimi ~14:00'],
     venueName: 'Dajti — nisja nga Surreli',
     address: 'Surrel, Tiranë',
+    neighborhood: 'periferia',
     lat: 41.3419,
     lng: 19.8702,
     startsAt: at(5, 9, 0),
@@ -174,6 +241,7 @@ export const SEED_EVENTS: EventItem[] = [
     goodToKnow: ['Regjistrim i detyrueshëm', 'Networking me pije pas', 'Në shqip, slides në anglisht'],
     venueName: 'Innospace',
     address: 'Rruga e Kavajës',
+    neighborhood: 'qendra',
     lat: 41.3261,
     lng: 19.8095,
     startsAt: at(4, 18, 0),
@@ -201,6 +269,7 @@ export const SEED_EVENTS: EventItem[] = [
     goodToKnow: ['500 Lekë cash te dera', 'Sunset rreth 19:30 — ejani herët', 'Smart casual'],
     venueName: 'Sky Terrace',
     address: 'Qendra, Tiranë',
+    neighborhood: 'blloku',
     lat: 41.3285,
     lng: 19.8178,
     startsAt: at(6, 18, 0),
@@ -230,6 +299,7 @@ export const SEED_EVENTS: EventItem[] = [
     goodToKnow: ['Rezervimi falas, menyja paguhet vetë', 'Max 6 vetë', 'Telefonat në kuti 📵'],
     venueName: 'Oda Garden',
     address: 'Pazari i Ri',
+    neighborhood: 'pazari',
     lat: 41.3308,
     lng: 19.8216,
     startsAt: at(4, 20, 0),
@@ -253,6 +323,7 @@ export const SEED_EVENTS: EventItem[] = [
     goodToKnow: ['~300 Lekë për person, cash', 'Atlete fushe, jo me thumba metalikë', '2 ndeshje × 45 min'],
     venueName: 'Fushat Kombinat',
     address: 'Kombinat, Tiranë',
+    neighborhood: 'periferia',
     lat: 41.3105,
     lng: 19.7762,
     startsAt: at(1, 19, 0),
@@ -279,6 +350,7 @@ export const SEED_EVENTS: EventItem[] = [
     goodToKnow: ['Hyrja e lirë', 'Sillni cash', '25+ shitës lokalë', 'DJ set nga ora 15:00'],
     venueName: 'Tulla — oborri',
     address: 'Rruga Jul Variboba',
+    neighborhood: 'qendra',
     lat: 41.3243,
     lng: 19.8147,
     startsAt: at(6, 11, 0),

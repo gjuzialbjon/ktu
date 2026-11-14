@@ -10,6 +10,10 @@ export type Category =
 
 export type PriceType = 'free' | 'ticketed';
 
+export type Neighborhood = 'qendra' | 'blloku' | 'liqeni' | 'pazari' | 'periferia';
+
+export const NEIGHBORHOODS: Neighborhood[] = ['qendra', 'blloku', 'liqeni', 'pazari', 'periferia'];
+
 export interface Organizer {
   id: string;
   name: string;
@@ -45,6 +49,7 @@ export interface EventItem {
   goodToKnow?: string[];
   venueName: string;
   address: string;
+  neighborhood: Neighborhood;
   lat?: number;
   lng?: number;
   startsAt: string; // ISO
@@ -74,6 +79,7 @@ export interface Rsvp {
 export interface PublicUser {
   id: string;
   name: string;
+  avatarUrl?: string;
 }
 
 export interface Profile {

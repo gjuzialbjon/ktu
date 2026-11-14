@@ -1,123 +1,146 @@
 import React from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { EventItem } from '../lib/types';
-import { CATEGORY_META, colors, radius } from '../lib/theme';
+import { CATEGORY_EMOJI, makeStyles, radius, useTheme } from '../lib/theme';
 import { useI18n } from '../lib/i18n';
 import { useStore } from '../lib/store';
-import { formatWhen } from '../lib/format';
-import { AvatarStack, Chip, TagRow } from './ui';
+import { firstName, formatWhen, joinNames, lekToEur } from '../lib/format';
+import { AvatarStack, Chip, Display, Emoji, TagRow } from './ui';
 import { track } from '../lib/analytics';
 
-export function EventCard({ event }: { event: EventItem }) {
+/** Turnout below this reads as negative social proof, so it is hidden. */
+const MIN_COUNT_SHOWN = 3;
+
+export function EventCard({ event, popular }: { event: EventItem; popular?: boolean }) {
   const router = useRouter();
+  const theme = useTheme();
+  const s = useStyles();
   const { t, lang } = useI18n();
   const { people, profile, rsvps } = useStore();
+
   const going = people.filter((p) => event.goingUserIds.includes(p.id));
+  const friends = going.filter((p) => profile.follows.includes(p.id));
   const joined = !!rsvps[event.id];
-  const meta = CATEGORY_META[event.category];
-  const d = new Date(event.startsAt);
-  const popular = going.length >= 4;
+  const hood = t[`hood_${event.neighborhood}` as const];
+  const when = formatWhen(event.startsAt, lang, t.today, t.tomorrow);
 
   return (
-    <Pressable
-      style={({ pressed }) => [styles.card, { transform: [{ scale: pressed ? 0.98 : 1 }] }]}
-      onPress={() => {
-        track('event_viewed', { eventId: event.id, source: 'feed', tags: event.tags });
-        router.push(`/event/${event.id}`);
-      }}
+    <Link
+      href={`/event/${event.id}`}
+      asChild
+      onPress={() => track('event_viewed', { eventId: event.id, source: 'feed', tags: event.tags })}
     >
-      <View>
-        <Image source={{ uri: event.coverImage }} style={styles.img} />
-        <LinearGradient colors={['transparent', 'rgba(14,17,22,0.9)']} style={styles.fade} />
+      <Pressable
+        accessibilityRole="link"
+        accessibilityLabel={`${event.title}, ${when}, ${event.venueName}`}
+        style={({ pressed }) => [s.card, { transform: [{ scale: pressed ? 0.985 : 1 }] }]}
+      >
+        <View>
+          <Image source={{ uri: event.coverImage }} style={s.img} accessibilityIgnoresInvertColors />
+          <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.72)']} style={s.fade} />
 
-        {/* date block */}
-        <View style={styles.dateBlock}>
-          <Text style={styles.dateDay}>{d.getDate()}</Text>
-          <Text style={styles.dateMonth}>
-            {d.toLocaleDateString(lang === 'sq' ? 'sq-AL' : 'en-GB', { month: 'short' })}
-          </Text>
+          <View style={s.topRow}>
+            <View style={[s.catBubble, { backgroundColor: theme.cat[event.category] }]}>
+              <Emoji size={17}>{CATEGORY_EMOJI[event.category]}</Emoji>
+            </View>
+            {event.isSponsored && <Chip label={t.sponsored} tone="sponsored" />}
+            {popular && <Chip label={t.popular} tone="sponsored" />}
+            <View style={{ flex: 1 }} />
+            <Chip
+              label={event.priceType === 'free' ? t.free : `${event.ticketPriceLek} L`}
+              tone={event.priceType === 'free' ? 'free' : 'default'}
+            />
+          </View>
+
+          {friends.length > 0 && !joined && (
+            <View style={s.friendsOnPhoto}>
+              <AvatarStack users={friends} follows={profile.follows} size={26} />
+              <View style={[s.friendsPill, { backgroundColor: theme.c.social }]}>
+                <Text style={[s.friendsText, { color: theme.c.onSocial }]} numberOfLines={1}>
+                  {t.friends_going_short(joinNames(friends.map((f) => firstName(f.name)), t.and_word), friends.length)}
+                </Text>
+              </View>
+            </View>
+          )}
+          {joined && (
+            <View style={s.friendsOnPhoto}>
+              <View style={[s.friendsPill, { backgroundColor: theme.c.free }]}>
+                <Text style={[s.friendsText, { color: theme.c.onFree }]}>{t.youre_going}</Text>
+              </View>
+            </View>
+          )}
         </View>
 
-        <View style={styles.badges}>
-          {event.isSponsored && <Chip label={t.sponsored} tone="sponsored" />}
-          {popular && <Chip label={t.popular} tone="default" active />}
-        </View>
-
-        <View style={styles.overImg}>
-          <Text style={[styles.catLine, { color: meta.color }]}>
-            {meta.emoji} {t[`cat_${event.category}` as const].toUpperCase()}
-          </Text>
-          <Text style={styles.title} numberOfLines={2}>
+        <View style={s.body}>
+          <Text style={s.when}>{when}</Text>
+          <Display size={20} numberOfLines={2}>
             {event.title}
-          </Text>
-        </View>
-      </View>
-
-      <View style={[styles.stripe, { backgroundColor: meta.color }]} />
-
-      <View style={styles.body}>
-        <View style={styles.metaRow}>
-          <Text style={styles.when}>{formatWhen(event.startsAt, lang, t.today, t.tomorrow)}</Text>
-          <Chip
-            label={event.priceType === 'free' ? t.free : `${event.ticketPriceLek} Lekë`}
-            tone={event.priceType === 'free' ? 'free' : 'default'}
+          </Display>
+          <View style={s.metaRow}>
+            <View style={[s.dot, { backgroundColor: theme.cat[event.category] }]} />
+            <Text style={s.meta} numberOfLines={1}>
+              {event.venueName}, {hood}
+            </Text>
+          </View>
+          {event.priceType === 'ticketed' && event.ticketPriceLek ? (
+            <Text style={s.meta}>
+              {t.price_door(event.ticketPriceLek)}
+              {lang === 'en' ? `  ${t.eur_hint(lekToEur(event.ticketPriceLek))}` : ''}
+            </Text>
+          ) : null}
+          <TagRow
+            tags={event.tags.slice(0, 3)}
+            onTagPress={(tag) => {
+              track('tag_filtered', { tag, source: 'card' });
+              router.push({ pathname: '/', params: { tag } });
+            }}
           />
+          {friends.length === 0 && going.length >= MIN_COUNT_SHOWN && (
+            <View style={s.countRow}>
+              <AvatarStack users={going} follows={profile.follows} size={24} />
+              <Text style={s.count}>{t.going_count(going.length)}</Text>
+            </View>
+          )}
         </View>
-        <Text style={styles.venue}>📍 {event.venueName}</Text>
-        <TagRow
-          tags={event.tags.slice(0, 4)}
-          onTagPress={(tag) => {
-            track('tag_filtered', { tag, source: 'card' });
-            router.push({ pathname: '/', params: { tag } });
-          }}
-        />
-        <View style={styles.footer}>
-          <AvatarStack users={going} follows={profile.follows} />
-          <Text style={[styles.going, joined && { color: colors.green, fontWeight: '700' }]}>
-            {joined ? t.youre_going : t.going_count(going.length)}
-          </Text>
-        </View>
-      </View>
-    </Pressable>
+      </Pressable>
+    </Link>
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.card,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    overflow: 'hidden',
-    marginBottom: 18,
-  },
-  img: { width: '100%', height: 190, backgroundColor: colors.cardAlt },
-  fade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 110 },
-  dateBlock: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: 'rgba(14,17,22,0.85)',
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    alignItems: 'center',
-  },
-  dateDay: { color: colors.text, fontSize: 20, fontWeight: '900', lineHeight: 24 },
-  dateMonth: { color: colors.textDim, fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
-  badges: { position: 'absolute', top: 12, left: 12, flexDirection: 'row' },
-  overImg: { position: 'absolute', left: 14, right: 14, bottom: 10 },
-  catLine: { fontSize: 11, fontWeight: '900', letterSpacing: 1.5, marginBottom: 2 },
-  title: { color: colors.text, fontSize: 20, fontWeight: '900' },
-  stripe: { height: 3, width: '100%' },
-  body: { padding: 14, gap: 8 },
-  metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  when: { color: colors.accent, fontSize: 14, fontWeight: '800' },
-  venue: { color: colors.textDim, fontSize: 14 },
-  footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
-  going: { color: colors.textDim, fontSize: 13 },
-});
+const useStyles = makeStyles((t) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: t.c.surface,
+      borderRadius: radius.lg,
+      borderWidth: t.outline,
+      borderColor: t.c.border,
+      overflow: 'hidden',
+      marginBottom: 18,
+    },
+    img: { width: '100%', height: 180, backgroundColor: t.c.surfaceAlt },
+    fade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 90 },
+    topRow: { position: 'absolute', top: 10, left: 10, right: 2, flexDirection: 'row', alignItems: 'center' },
+    catBubble: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 8,
+      borderWidth: t.outline,
+      borderColor: t.id === 'fasadat' ? t.c.text : 'transparent',
+    },
+    friendsOnPhoto: { position: 'absolute', left: 12, right: 12, bottom: 10, flexDirection: 'row', alignItems: 'center', gap: 8 },
+    friendsPill: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, flexShrink: 1 },
+    friendsText: { fontSize: 13, fontWeight: '700' },
+    body: { padding: 14, gap: 7 },
+    when: { color: t.c.text, fontSize: 14, fontWeight: '700' },
+    metaRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+    dot: { width: 8, height: 8, borderRadius: 4 },
+    meta: { color: t.c.textDim, fontSize: 14, flexShrink: 1 },
+    countRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 },
+    count: { color: t.c.textDim, fontSize: 13 },
+  }),
+);

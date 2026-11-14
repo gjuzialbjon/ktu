@@ -1,39 +1,56 @@
 import React from 'react';
-import { ColorValue, Text } from 'react-native';
+import { Text } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
-import { colors } from '../../lib/theme';
+import { useTheme } from '../../lib/theme';
 
-function TabIcon({ glyph, color }: { glyph: string; color: ColorValue }) {
-  return <Text style={{ fontSize: 20, color }}>{glyph}</Text>;
+/** Emoji ignore tint colors, so the active tab also gets size and full opacity. */
+function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
+  return (
+    <Text
+      accessible={false}
+      importantForAccessibility="no-hide-descendants"
+      style={{ fontSize: focused ? 23 : 20, opacity: focused ? 1 : 0.55 }}
+    >
+      {emoji}
+    </Text>
+  );
 }
 
 export default function TabsLayout() {
   const { t } = useI18n();
+  const theme = useTheme();
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.border },
-        tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.textDim,
+        tabBarStyle: {
+          backgroundColor: theme.c.surface,
+          borderTopColor: theme.c.border,
+          borderTopWidth: theme.outline,
+          height: 64,
+          paddingTop: 6,
+        },
+        tabBarActiveTintColor: theme.c.text,
+        tabBarInactiveTintColor: theme.c.textDim,
+        tabBarLabelStyle: { fontWeight: '700', fontSize: 11 },
       }}
     >
       <Tabs.Screen
         name="index"
-        options={{ title: t.feed_title, tabBarIcon: ({ color }) => <TabIcon glyph="⌂" color={color} /> }}
+        options={{ title: t.feed_title, tabBarIcon: ({ focused }) => <TabIcon emoji="🏙️" focused={focused} /> }}
       />
       <Tabs.Screen
         name="map"
-        options={{ title: t.map, tabBarIcon: ({ color }) => <TabIcon glyph="⌖" color={color} /> }}
+        options={{ title: t.map, tabBarIcon: ({ focused }) => <TabIcon emoji="🗺️" focused={focused} /> }}
       />
       <Tabs.Screen
         name="my-events"
-        options={{ title: t.my_events, tabBarIcon: ({ color }) => <TabIcon glyph="✓" color={color} /> }}
+        options={{ title: t.my_events, tabBarIcon: ({ focused }) => <TabIcon emoji="🎟️" focused={focused} /> }}
       />
       <Tabs.Screen
         name="profile"
-        options={{ title: t.profile, tabBarIcon: ({ color }) => <TabIcon glyph="◉" color={color} /> }}
+        options={{ title: t.profile, tabBarIcon: ({ focused }) => <TabIcon emoji="😎" focused={focused} /> }}
       />
     </Tabs>
   );

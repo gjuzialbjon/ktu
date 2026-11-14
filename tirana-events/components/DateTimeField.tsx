@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { colors, radius } from '../lib/theme';
+import { Theme, makeStyles, radius, useTheme } from '../lib/theme';
 import { useI18n } from '../lib/i18n';
 
 /**
@@ -31,18 +31,18 @@ if (Platform.OS === 'web') {
   createDomElement = require('react-native-web').unstable_createElement;
 }
 
-const domInputStyle = {
-  backgroundColor: colors.card,
-  color: colors.text,
-  border: `1px solid ${colors.border}`,
+const domInputStyle = (t: Theme) => ({
+  backgroundColor: t.c.surface,
+  color: t.c.text,
+  border: `1px solid ${t.c.border}`,
   borderRadius: 14,
   padding: 12,
   fontSize: 16,
   fontFamily: 'inherit',
-  colorScheme: 'dark', // dark calendar/time popups in the browser
+  colorScheme: t.dark ? 'dark' : 'light', // browser calendar/time popups follow the theme
   width: '100%',
   boxSizing: 'border-box',
-};
+});
 
 export function DateTimeField({
   dateLabel,
@@ -63,6 +63,8 @@ export function DateTimeField({
   requiredMark?: boolean;
 }) {
   const { lang } = useI18n();
+  const t = useTheme();
+  const styles = useStyles();
   const [androidShow, setAndroidShow] = useState<'date' | 'time' | null>(null);
   const current = value ?? defaultStart();
 
@@ -111,7 +113,7 @@ export function DateTimeField({
               picked.setFullYear(y, m - 1, d);
               setDatePart(picked);
             },
-            style: { ...domInputStyle, borderColor: errorDate ? colors.accent : colors.border },
+            style: { ...domInputStyle(t), borderColor: errorDate ? t.c.danger : t.c.border },
           })}
           {errorDate ? <Text style={styles.errorText}>⚠ {errorDate}</Text> : null}
         </View>
@@ -127,7 +129,7 @@ export function DateTimeField({
               picked.setHours(h, min, 0, 0);
               setTimePart(picked);
             },
-            style: { ...domInputStyle, borderColor: errorTime ? colors.accent : colors.border },
+            style: { ...domInputStyle(t), borderColor: errorTime ? t.c.danger : t.c.border },
           })}
           {errorTime ? <Text style={styles.errorText}>⚠ {errorTime}</Text> : null}
         </View>
@@ -147,7 +149,7 @@ export function DateTimeField({
               mode="date"
               display="compact"
               minimumDate={new Date()}
-              themeVariant="dark"
+              themeVariant={t.dark ? 'dark' : 'light'}
               onChange={(_e, d) => d && setDatePart(d)}
             />
           </View>
@@ -160,7 +162,7 @@ export function DateTimeField({
               value={current}
               mode="time"
               display="compact"
-              themeVariant="dark"
+              themeVariant={t.dark ? 'dark' : 'light'}
               onChange={(_e, d) => d && setTimePart(d)}
             />
           </View>
@@ -218,35 +220,37 @@ export function DateTimeField({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) =>
+  StyleSheet.create({
   rowWrap: { flexDirection: 'row', gap: 12 },
   col: { flex: 1 },
   label: {
-    color: colors.textDim,
+    color: t.c.textDim,
     fontSize: 13,
     fontWeight: '700',
     marginTop: 14,
     marginBottom: 6,
     textTransform: 'uppercase',
   },
-  req: { color: colors.accent, fontSize: 13, fontWeight: '900' },
+  req: { color: t.c.danger, fontSize: 13, fontWeight: '900' },
   iosBox: {
-    backgroundColor: colors.card,
-    borderColor: colors.border,
+    backgroundColor: t.c.surface,
+    borderColor: t.c.border,
     borderWidth: 1,
     borderRadius: radius.md,
     padding: 6,
     alignItems: 'flex-start',
   },
   pickBox: {
-    backgroundColor: colors.card,
-    borderColor: colors.border,
+    backgroundColor: t.c.surface,
+    borderColor: t.c.border,
     borderWidth: 1,
     borderRadius: radius.md,
     padding: 12,
   },
-  boxError: { borderColor: colors.accent, borderWidth: 1.5 },
-  pickText: { color: colors.text, fontSize: 16 },
-  pickPlaceholder: { color: colors.textDim, fontSize: 16 },
-  errorText: { color: colors.accent, fontSize: 13, fontWeight: '600', marginTop: 4 },
-});
+  boxError: { borderColor: t.c.danger, borderWidth: 1.5 },
+  pickText: { color: t.c.text, fontSize: 16 },
+  pickPlaceholder: { color: t.c.textDim, fontSize: 16 },
+  errorText: { color: t.c.danger, fontSize: 13, fontWeight: '600', marginTop: 4 },
+}),
+);
