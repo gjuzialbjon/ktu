@@ -50,6 +50,9 @@ export const CATEGORY_EMOJI: Record<Category, string> = {
 
 export const radius = { sm: 10, md: 16, lg: 22 } as const;
 
+/** 4-unit spacing scale: tight inside groups, generous between sections. */
+export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48 } as const;
+
 export const THEMES: Record<ThemeId, Theme> = {
   // Night out: dark violet city, lit windows. Yellow drives actions, pink is only for people.
   nata: {
@@ -167,7 +170,9 @@ export const THEMES: Record<ThemeId, Theme> = {
   },
 };
 
-export const THEME_ORDER: ThemeId[] = ['nata', 'liqeni', 'fasadat'];
+/** Liqeni is the lead identity; the other two are optional extras. */
+export const DEFAULT_THEME: ThemeId = 'liqeni';
+export const THEME_ORDER: ThemeId[] = ['liqeni', 'nata', 'fasadat'];
 
 interface ThemeCtx extends Theme {
   setThemeId: (id: ThemeId) => void;
@@ -177,14 +182,18 @@ interface ThemeCtx extends Theme {
 const Ctx = createContext<ThemeCtx | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [id, setId] = useState<ThemeId>('nata');
+  const [id, setId] = useState<ThemeId>(DEFAULT_THEME);
+  // Hold the first paint until the saved theme is known, so a Nata or Fasadat
+  // user never sees a flash of the default palette.
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem('theme')
       .then((v) => {
         if (v === 'nata' || v === 'liqeni' || v === 'fasadat') setId(v);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setReady(true));
   }, []);
 
   const value = useMemo<ThemeCtx>(() => {
@@ -199,6 +208,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     };
   }, [id]);
 
+  if (!ready) return null;
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

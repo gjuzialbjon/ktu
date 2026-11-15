@@ -27,9 +27,8 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: theme.c.surface,
           borderTopColor: theme.c.border,
+          // no fixed height: React Navigation adds the home-indicator safe-area inset itself
           borderTopWidth: theme.outline,
-          height: 64,
-          paddingTop: 6,
         },
         tabBarActiveTintColor: theme.c.text,
         tabBarInactiveTintColor: theme.c.textDim,

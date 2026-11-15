@@ -1,5 +1,6 @@
 import React from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { makeStyles, radius, useTheme } from '../lib/theme';
 import { initials } from '../lib/format';
 import { PublicUser } from '../lib/types';
@@ -16,6 +17,15 @@ export function Emoji({ children, size = 16 }: { children: string; size?: number
     >
       {children}
     </Text>
+  );
+}
+
+/** Drawn chevron for disclosure controls; points down when closed, up when open. */
+export function Chevron({ open, color, size = 12 }: { open: boolean; color: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 12 12" style={{ transform: [{ rotate: open ? '180deg' : '0deg' }] }}>
+      <Path d="M2.5 4.5 L6 8 L9.5 4.5" stroke={color} strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
   );
 }
 

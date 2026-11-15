@@ -28,6 +28,9 @@
       "@react-native-community/datetimepicker",
       "expo-font"
     ],
-    "scheme": "tiranaevents"
+    "scheme": "tiranaevents",
+    "experiments": {
+      "baseUrl": "/ktu"
+    }
   }
 }

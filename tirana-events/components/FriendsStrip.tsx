@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useStore } from '../lib/store';
 import { useI18n } from '../lib/i18n';
-import { makeStyles, radius, useTheme } from '../lib/theme';
+import { makeStyles, radius } from '../lib/theme';
 import { firstName, formatWhen } from '../lib/format';
 import { Avatar, Display } from './ui';
 import { track } from '../lib/analytics';
@@ -16,7 +16,6 @@ import { useNow } from '../lib/useNow';
  */
 export function FriendsStrip() {
   const { t, lang } = useI18n();
-  const theme = useTheme();
   const s = useStyles();
   const router = useRouter();
   const { events, people, profile } = useStore();
@@ -69,7 +68,7 @@ export function FriendsStrip() {
               <Text style={s.event} numberOfLines={2}>
                 {event.title}
               </Text>
-              <Text style={[s.when, { color: theme.c.social }]} numberOfLines={1}>
+              <Text style={s.when} numberOfLines={1}>
                 {formatWhen(event.startsAt, lang, t.today, t.tomorrow)}
               </Text>
             </Pressable>
@@ -96,7 +95,7 @@ const useStyles = makeStyles((t) =>
     },
     name: { color: t.c.text, fontSize: 15, fontWeight: '700', marginTop: 6 },
     event: { color: t.c.textDim, fontSize: 13, lineHeight: 17, minHeight: 34 },
-    when: { fontSize: 12, fontWeight: '700' },
+    when: { color: t.c.text, fontSize: 12, fontWeight: '700' },
     empty: {
       backgroundColor: t.c.surface,
       borderColor: t.c.border,

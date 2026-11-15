@@ -9,7 +9,7 @@ import { Fraunces_700Bold } from '@expo-google-fonts/fraunces/700Bold';
 import { Unbounded_700Bold } from '@expo-google-fonts/unbounded/700Bold';
 import { I18nProvider } from '../lib/i18n';
 import { StoreProvider } from '../lib/store';
-import { ThemeProvider, useTheme } from '../lib/theme';
+import { DEFAULT_THEME, THEMES, ThemeProvider, useTheme } from '../lib/theme';
 
 function ThemedStack() {
   const t = useTheme();
@@ -43,7 +43,7 @@ export default function RootLayout() {
   // Hold the first paint until the heading faces are ready (or failed: then the
   // system font is used rather than blocking the app).
   if (!fontsLoaded && !fontError) {
-    return <View style={{ flex: 1, backgroundColor: '#140F24' }} />;
+    return <View style={{ flex: 1, backgroundColor: THEMES[DEFAULT_THEME].c.bg }} />;
   }
 
   return (
