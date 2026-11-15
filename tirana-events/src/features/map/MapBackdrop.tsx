@@ -21,7 +21,7 @@ export function MapBackdrop({
   waterLabel?: string;
 }) {
   const m = theme.map;
-  const roadW = theme.id === 'fasadat' ? 3 : 7;
+  const roadW = 7;
   return (
     <>
       <Rect x={0} y={0} width={W} height={H} fill={m.ground} />

@@ -66,6 +66,73 @@ export function Display({
   );
 }
 
+/**
+ * Handwritten words, for key words in app copy (never event copy). Use sparingly:
+ * one per screen region at most, so it still feels like a note someone left.
+ */
+export function Hand({
+  children,
+  size = 22,
+  color,
+  style,
+}: {
+  children: React.ReactNode;
+  size?: number;
+  color?: string;
+  style?: object;
+}) {
+  const t = useTheme();
+  return (
+    <Text
+      maxFontSizeMultiplier={1.3}
+      style={[{ fontFamily: t.hand, fontSize: size, lineHeight: Math.round(size * 1.1), color: color ?? t.c.text }, style]}
+    >
+      {children}
+    </Text>
+  );
+}
+
+/**
+ * A handwritten note on a slip of coloured paper, a little crooked, like a sticker
+ * stuck on by hand. `tone` picks the paper from the theme's sticker colours.
+ */
+export function Sticker({
+  children,
+  tone = 0,
+  tilt = -3,
+  size = 20,
+  style,
+}: {
+  children: React.ReactNode;
+  tone?: number;
+  tilt?: number;
+  size?: number;
+  style?: object;
+}) {
+  const t = useTheme();
+  return (
+    <View
+      style={[
+        {
+          alignSelf: 'flex-start',
+          backgroundColor: t.sticker[tone % t.sticker.length],
+          paddingHorizontal: 10,
+          paddingTop: 1,
+          paddingBottom: 3,
+          borderRadius: 6,
+          transform: [{ rotate: `${tilt}deg` }],
+          boxShadow: '0 1px 0 rgba(0,0,0,0.06), 0 3px 8px rgba(40,30,60,0.10)',
+        },
+        style,
+      ]}
+    >
+      <Hand size={size} color="#2A2233">
+        {children}
+      </Hand>
+    </View>
+  );
+}
+
 export function Chip({
   label,
   active,

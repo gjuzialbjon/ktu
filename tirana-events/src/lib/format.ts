@@ -52,6 +52,18 @@ export function formatWhen(iso: string, lang: Lang, todayWord: string, tomorrowW
   return `${day.charAt(0).toUpperCase()}${day.slice(1)}, ${time}`;
 }
 
+/** "Today", "Tomorrow" or "Saturday, 21 Nov": the day without the time (for events that keep their time hidden). */
+export function formatDay(iso: string, lang: Lang, todayWord: string, tomorrowWord: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
+  if (sameDay(d, now)) return todayWord;
+  if (sameDay(d, tomorrow)) return tomorrowWord;
+  const day = d.toLocaleDateString(lang === 'sq' ? 'sq-AL' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
+  return `${day.charAt(0).toUpperCase()}${day.slice(1)}`;
+}
+
 export function initials(name: string): string {
   return name
     .split(' ')

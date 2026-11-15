@@ -7,13 +7,15 @@ import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
 import { CATEGORY_EMOJI, makeStyles, radius, useTheme } from '@/lib/theme';
 import { Category, EventItem } from '@/data/types';
-import { formatWhen } from '@/lib/format';
 import { track } from '@/lib/analytics';
 import { Display, Emoji } from '@/components/ui';
 import { useNow } from '@/hooks/useNow';
 import { MAP_H, MAP_W, project } from '@/features/map/project';
 import { MapBackdrop } from '@/features/map/MapBackdrop';
-import { CITIES, areaName, cityName } from '@/data/cities';
+import { CITIES, cityName } from '@/data/cities';
+import { canSeeDetails } from '@/data/access';
+import { useEventFacts } from '@/features/event/useEventFacts';
+import { TopBar } from '@/components/TopBar';
 
 const W = MAP_W;
 const H = MAP_H;
@@ -23,7 +25,7 @@ export default function MapScreen() {
   const { t, lang } = useI18n();
   const theme = useTheme();
   const s = useStyles();
-  const { cityEvents: events, profile } = useStore();
+  const { cityEvents: events, profile, rsvps } = useStore();
   const city = CITIES[profile.city];
   const router = useRouter();
   const { width } = useWindowDimensions();
@@ -33,9 +35,16 @@ export default function MapScreen() {
   const pins = useMemo(
     () =>
       events
-        .filter((e) => e.lat != null && e.lng != null && new Date(e.startsAt).getTime() > now - 3600_000)
+        // ask-to-join events keep their spot to themselves until you are in: no pin
+        .filter(
+          (e) =>
+            e.lat != null &&
+            e.lng != null &&
+            new Date(e.startsAt).getTime() > now - 3600_000 &&
+            canSeeDetails(e, rsvps[e.id]),
+        )
         .map((e) => ({ event: e, ...project(e.lat as number, e.lng as number, city.bounds) })),
-    [events, now, city.bounds],
+    [events, now, city.bounds, rsvps],
   );
 
   const selected = pins.find((p) => p.event.id === selectedId)?.event ?? null;
@@ -48,7 +57,8 @@ export default function MapScreen() {
     <SafeAreaView style={s.safe} edges={['top']}>
       <ScrollView contentContainerStyle={s.content}>
         <View style={s.headerBlock}>
-          <Display size={30}>{t.map}</Display>
+          <TopBar />
+          <Display size={30} style={{ marginTop: 8 }}>{t.map}</Display>
           <Text style={s.sub}>{t.map_subtitle}</Text>
         </View>
 
@@ -72,7 +82,7 @@ export default function MapScreen() {
                     cy={y}
                     r={isSel ? 12 : 10}
                     fill={color}
-                    stroke={theme.id === 'fasadat' ? theme.c.text : m.ground}
+                    stroke={m.ground}
                     strokeWidth={2.5}
                   />
                   <SvgText x={x} y={y + 3.5} fontSize={isSel ? 11 : 9} textAnchor="middle">
@@ -104,7 +114,6 @@ export default function MapScreen() {
         {selected && (
           <MapPreviewCard
             event={selected}
-            when={formatWhen(selected.startsAt, lang, t.today, t.tomorrow)}
             onOpen={() => {
               track('event_viewed', { eventId: selected.id, source: 'map', tags: selected.tags });
               router.push(`/event/${selected.id}`);
@@ -125,10 +134,11 @@ export default function MapScreen() {
   );
 }
 
-function MapPreviewCard({ event, when, onOpen }: { event: EventItem; when: string; onOpen: () => void }) {
+function MapPreviewCard({ event, onOpen }: { event: EventItem; onOpen: () => void }) {
   const theme = useTheme();
   const s = useStyles();
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
+  const { when, where } = useEventFacts(event);
   return (
     <Pressable
       accessibilityRole="link"
@@ -142,7 +152,7 @@ function MapPreviewCard({ event, when, onOpen }: { event: EventItem; when: strin
       </View>
       <Display size={19}>{event.title}</Display>
       <Text style={s.previewMeta}>
-        {event.venueName}, {areaName(event.city, event.neighborhood, lang)}. {event.priceType === 'free' ? t.free : `${event.ticketPriceLek} Lekë`}
+        {where}. {event.priceType === 'free' ? t.free : `${event.ticketPriceLek} Lekë`}
       </Text>
     </Pressable>
   );

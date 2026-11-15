@@ -4,7 +4,8 @@ import { useRouter } from 'expo-router';
 import { useStore } from '@/data/store';
 import { useI18n } from '@/lib/i18n';
 import { makeStyles, radius } from '@/lib/theme';
-import { firstName, formatWhen } from '@/lib/format';
+import { firstName } from '@/lib/format';
+import { useEventFacts } from '@/features/event/useEventFacts';
 import { Avatar, Display } from '@/components/ui';
 import { track } from '@/lib/analytics';
 import { EventItem, PublicUser } from '@/data/types';
@@ -15,7 +16,7 @@ import { useNow } from '@/hooks/useNow';
  * Seeing friends is the main reason people go, so this leads the home screen.
  */
 export function FriendsStrip() {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const s = useStyles();
   const router = useRouter();
   // your city only: a friend's plan in another city is not something to join tonight
@@ -52,31 +53,39 @@ export function FriendsStrip() {
       ) : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.row}>
           {items.map(({ person, event }) => (
-            <Pressable
-              key={person.id}
-              accessibilityRole="link"
-              accessibilityLabel={`${person.name}: ${event.title}, ${formatWhen(event.startsAt, lang, t.today, t.tomorrow)}`}
-              onPress={() => {
-                track('event_viewed', { eventId: event.id, source: 'friends_strip', tags: event.tags });
-                router.push(`/event/${event.id}`);
-              }}
-              style={({ pressed }) => [s.item, pressed && { transform: [{ scale: 0.97 }] }]}
-            >
-              <Avatar user={person} highlight size={58} />
-              <Text style={s.name} numberOfLines={1}>
-                {firstName(person.name)}
-              </Text>
-              <Text style={s.event} numberOfLines={2}>
-                {event.title}
-              </Text>
-              <Text style={s.when} numberOfLines={1}>
-                {formatWhen(event.startsAt, lang, t.today, t.tomorrow)}
-              </Text>
-            </Pressable>
+            <CrewItem key={person.id} person={person} event={event} />
           ))}
         </ScrollView>
       )}
     </View>
+  );
+}
+
+function CrewItem({ person, event }: { person: PublicUser; event: EventItem }) {
+  const s = useStyles();
+  const router = useRouter();
+  const { when } = useEventFacts(event);
+  return (
+    <Pressable
+      accessibilityRole="link"
+      accessibilityLabel={`${person.name}: ${event.title}, ${when}`}
+      onPress={() => {
+        track('event_viewed', { eventId: event.id, source: 'friends_strip', tags: event.tags });
+        router.push(`/event/${event.id}`);
+      }}
+      style={({ pressed }) => [s.item, pressed && { transform: [{ scale: 0.97 }] }]}
+    >
+      <Avatar user={person} highlight size={58} />
+      <Text style={s.name} numberOfLines={1}>
+        {firstName(person.name)}
+      </Text>
+      <Text style={s.event} numberOfLines={2}>
+        {event.title}
+      </Text>
+      <Text style={s.when} numberOfLines={1}>
+        {when}
+      </Text>
+    </Pressable>
   );
 }
 

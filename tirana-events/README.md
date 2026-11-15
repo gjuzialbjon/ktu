@@ -42,17 +42,22 @@ Payments, ratings/reviews, chat, recommendations, organizer analytics.
 ```
 src/
   app/          routes only (Expo Router). Thin screens that compose features.
-                (tabs)/ feed · map · plans · profile, event/[id], create (modal), +not-found
+                (tabs)/ feed · map · [+ create] · perks · plans; profile (top right), event/[id], create (modal)
   features/     one folder per area; pure logic sits next to the UI that uses it
-    feed/       buildFeed.ts (pure: sections, filters, popular), useFeedFilters, FilterBar
-    event/      ActionBar, Comments, FaqList, actions.ts (share, open in maps)
+    feed/       buildFeed.ts (pure: sections, filters, popular, category rails), useFeedFilters, FilterBar,
+                TodayTimeline, EventRail, sky.ts + SkyBackdrop (the background warms as today's events get later)
+    event/      ActionBar, Comments, FaqList, LikeSave, actions.ts (share, open in maps),
+                useEventFacts (the ONE place that decides what time/place an event shows)
+    weather/    weather.ts (pure: Open-Meteo parsing, tips), useWeather (fetch + 30 min cache), WeatherChip + sheet
     create/     validateDraft.ts (pure), Field, PhotoField
     map/        project.ts (lat/lng → canvas per city), MapBackdrop (Tirana hand-drawn, others from data)
     city/       CityPicker sheet, countByCity.ts
     dev/        DevTools panel (development builds only)
-  components/   shared UI: ui.tsx primitives, EventCard, StoryCard, EventPhoto, CityBand, CrashScreen
+  components/   shared UI: ui.tsx primitives (Display, Hand, Sticker, Chip…), Sheet, TopBar, EventCard, StoryCard,
+                EventPhoto, CityBand, CrashScreen
   data/         cities.ts (every city: areas, map bounds, water), store.tsx (state; the Supabase swap boundary),
-                events.ts (pure rules),
+                events.ts (pure rules), access.ts (pure: who sees what, ask-to-join, for-you, similar),
+                partners.ts (partners, offers, stamp card),
                 storage.ts (versioned device storage), seed.ts, types.ts
   hooks/        useNow, useHoverLift, useKeyboardVisible, useReducedMotion
   lib/          theme, i18n, format, log, analytics, haptics
@@ -66,6 +71,25 @@ Rules of thumb:
 - **Cities are data.** Adding one is an entry in `data/cities.ts` plus events; a test checks every seed event sits in a real area of its city and inside its map.
 - **Copy lives in `lib/i18n.tsx`** in both languages. A test fails if a key is missing in one language or the two disagree on arguments.
 - **Never put non-route files or tests in `src/app/`**: Expo Router treats every file there as a screen.
+
+## Look and feel
+
+- **Light, always.** Three themes, none dark: Agimi (early morning, default), Muzgu (sunset), Liqeni (lake). Evening is a warmer sky, not black.
+- **Two typefaces.** Bricolage Grotesque for headings; Caveat (handwritten) only on a few key words of app copy, usually as a `Sticker`. Never on event copy. Body text uses the phone's own font for readability.
+- **One orchestrated moment per screen**, interruptible, and reduced-motion aware (the greeting sticker on home, the dice roll). Routine taps respond within 90–480 ms.
+- **The sky.** On home, the background follows today's events from early to late as you scroll (`features/feed/sky.ts`). Keep it subtle.
+
+## Copy is a core value
+
+Copy makes the app feel personal, so it has rules. Every new string, in both languages, should pass these:
+
+1. **Correct.** Real Albanian, spelled the way people actually text (the casual voice drops ë/ç on purpose in app copy; event copy written by organizers keeps them).
+2. **Nobody left out.** Gender-neutral by default: "tajfa" (your crew) rather than "shoket"; "njerez" rather than "djem/cupa". No assumptions about drinking, couples, religion, body, money or where someone is from.
+3. **Warm, never creepy.** The app never claims to know you. Say why something is shown in plain words ("Based on the interests you picked"), not "we know you love…".
+4. **No pressure.** No streaks, guilt or countdowns that are not real. "Can't make it" is always one tap and never punished.
+5. **Say what happens.** Buttons name the action ("Ask to join"), and the result uses the same words ("Request sent").
+
+When unsure about a phrase, ask a second native speaker before shipping it.
 
 ## Quality and debugging
 

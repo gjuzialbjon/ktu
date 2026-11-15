@@ -3,6 +3,7 @@ import type { Comment, EventItem, Profile, PublicUser, Rsvp } from './types';
 import { SEED_COMMENTS, SEED_EVENTS, SEED_PEOPLE } from './seed';
 import { DraftInput, eventsForCity, makeComment, makeDraftEvent, makeRsvp, orderFeedEvents } from './events';
 import { CityId, DEFAULT_CITY, isCityId } from './cities';
+import { DEMO_APPROVE_AFTER_MS, visibleInFeed } from './access';
 import { KEYS, asArray, asRecord, clearStorage, migrateStorage, readJson, writeJson } from './storage';
 import { track } from '@/lib/analytics';
 import { createLogger } from '@/lib/log';
@@ -17,7 +18,7 @@ const log = createLogger('store');
 interface StoreCtx {
   /** every published event, all cities (event pages, plans) */
   events: EventItem[];
-  /** published events in the profile's city, sponsored pinned (feed, map, dice) */
+  /** published events in the profile's city that this person may see in a feed, sponsored pinned (feed, map, dice) */
   cityEvents: EventItem[];
   people: PublicUser[];
   rsvps: Record<string, Rsvp>;
@@ -29,6 +30,16 @@ interface StoreCtx {
   toggleFollow: (userId: string) => void;
   setName: (name: string) => void;
   setCity: (city: CityId, source: 'home' | 'profile') => void;
+  toggleInterest: (tag: string) => void;
+  /** ask the host; approved after a short delay in the demo */
+  requestJoin: (eventId: string) => void;
+  likes: Record<string, true>;
+  saved: Record<string, true>;
+  toggleLike: (eventId: string) => void;
+  toggleSave: (eventId: string) => void;
+  /** partner id → first check-in time */
+  stamps: Record<string, string>;
+  collectStamp: (partnerId: string) => void;
   submitDraft: (input: DraftInput) => void;
   /** Debug only: wipe device data and return to first-run state. */
   resetLocalData: () => Promise<void>;
@@ -36,14 +47,27 @@ interface StoreCtx {
 
 const Ctx = createContext<StoreCtx | null>(null);
 
-const DEFAULT_PROFILE: Profile = { name: '', follows: ['u2', 'u3'], city: DEFAULT_CITY };
+/** A few starter interests so private events have something to match before the user picks their own. */
+export const DEFAULT_INTERESTS = ['meet-people', 'outdoor', 'books'];
+const DEFAULT_PROFILE: Profile = { name: '', follows: ['u2', 'u3'], city: DEFAULT_CITY, interests: DEFAULT_INTERESTS };
 
 /** Accepts older or partly broken profiles: keeps what is valid, defaults the rest. */
 const asProfile = (x: unknown): Profile | null => {
   const p = asRecord<Partial<Profile>>(x);
   if (!p || typeof p.name !== 'string' || !Array.isArray(p.follows)) return null;
-  return { name: p.name, follows: p.follows, city: isCityId(p.city) ? p.city : DEFAULT_CITY };
+  return {
+    name: p.name,
+    follows: p.follows,
+    city: isCityId(p.city) ? p.city : DEFAULT_CITY,
+    interests: Array.isArray(p.interests) ? p.interests.filter((x) => typeof x === 'string') : DEFAULT_INTERESTS,
+  };
 };
+
+/** Adds `id` to a set-like record, or removes it if present. */
+function toggleKey(set: Record<string, true>, id: string): Record<string, true> {
+  const { [id]: had, ...rest } = set;
+  return had ? rest : { ...rest, [id]: true };
+}
 
 /** Persist `value` under `key` whenever it changes, but only after the first load finished. */
 function usePersist(key: (typeof KEYS)[keyof typeof KEYS], value: unknown, hydrated: boolean) {
@@ -57,6 +81,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [drafts, setDrafts] = useState<EventItem[]>([]);
   const [profile, setProfile] = useState<Profile>(DEFAULT_PROFILE);
   const [userComments, setUserComments] = useState<Comment[]>([]);
+  const [likes, setLikes] = useState<Record<string, true>>({});
+  const [saved, setSaved] = useState<Record<string, true>>({});
+  const [stamps, setStamps] = useState<Record<string, string>>({});
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -64,13 +91,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       await migrateStorage();
       // each key loads on its own: one corrupt value cannot wipe the others
-      const [r, p, d, c] = await Promise.all([
+      const [r, p, d, c, l, sv, st] = await Promise.all([
         readJson(KEYS.rsvps, {}, asRecord<Record<string, Rsvp>>),
         readJson(KEYS.profile, DEFAULT_PROFILE, asProfile),
         readJson(KEYS.drafts, [], asArray<EventItem>),
         readJson(KEYS.comments, [], asArray<Comment>),
+        readJson(KEYS.likes, {}, asRecord<Record<string, true>>),
+        readJson(KEYS.saved, {}, asRecord<Record<string, true>>),
+        readJson(KEYS.stamps, {}, asRecord<Record<string, string>>),
       ]);
       if (!alive) return;
+      setLikes(l);
+      setSaved(sv);
+      setStamps(st);
       setRsvps(r);
       setProfile(p);
       setDrafts(d);
@@ -87,9 +120,42 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   usePersist(KEYS.profile, profile, hydrated);
   usePersist(KEYS.drafts, drafts, hydrated);
   usePersist(KEYS.comments, userComments, hydrated);
+  usePersist(KEYS.likes, likes, hydrated);
+  usePersist(KEYS.saved, saved, hydrated);
+  usePersist(KEYS.stamps, stamps, hydrated);
 
   const events = useMemo(() => orderFeedEvents([...SEED_EVENTS, ...drafts]), [drafts]);
-  const cityEvents = useMemo(() => eventsForCity([...SEED_EVENTS, ...drafts], profile.city), [drafts, profile.city]);
+  const cityEvents = useMemo(
+    () => eventsForCity([...SEED_EVENTS, ...drafts], profile.city).filter((e) => visibleInFeed(e, profile, rsvps[e.id])),
+    [drafts, profile, rsvps],
+  );
+
+  // Demo host: a pending request is accepted a few seconds after it was sent (also on the
+  // next app start, if the app closed while waiting). A backend replaces this with real answers.
+  const pendingIds = Object.values(rsvps)
+    .filter((r) => r.status === 'requested')
+    .map((r) => r.eventId)
+    .join(',');
+  useEffect(() => {
+    if (!pendingIds) return;
+    const timer = setInterval(() => {
+      const nowMs = Date.now();
+      setRsvps((prev) => {
+        let changed = false;
+        const next = { ...prev };
+        for (const r of Object.values(prev)) {
+          if (r.status !== 'requested' || nowMs - new Date(r.createdAt).getTime() < DEMO_APPROVE_AFTER_MS) continue;
+          const ev = SEED_EVENTS.find((e) => e.id === r.eventId);
+          if (!ev) continue;
+          next[r.eventId] = makeRsvp(ev, new Date(nowMs).toISOString());
+          changed = true;
+          track('join_request_approved', { eventId: r.eventId });
+        }
+        return changed ? next : prev;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [pendingIds]);
 
   const comments = useMemo(
     () => [...SEED_COMMENTS, ...userComments].sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
@@ -133,6 +199,37 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const toggleInterest = useCallback(
+    (tag: string) =>
+      setProfile((p) => ({
+        ...p,
+        interests: p.interests.includes(tag) ? p.interests.filter((x) => x !== tag) : [...p.interests, tag],
+      })),
+    [],
+  );
+
+  const requestJoin = useCallback((eventId: string) => {
+    setRsvps((prev) => ({ ...prev, [eventId]: { eventId, status: 'requested', createdAt: new Date().toISOString() } }));
+    track('join_requested', { eventId });
+  }, []);
+
+  const toggleLike = useCallback((id: string) => {
+    track('event_liked', { eventId: id });
+    setLikes((prev) => toggleKey(prev, id));
+  }, []);
+  const toggleSave = useCallback((id: string) => {
+    track('event_saved', { eventId: id });
+    setSaved((prev) => toggleKey(prev, id));
+  }, []);
+
+  const collectStamp = useCallback((partnerId: string) => {
+    setStamps((prev) => {
+      if (prev[partnerId]) return prev;
+      track('partner_stamp', { partnerId });
+      return { ...prev, [partnerId]: new Date().toISOString() };
+    });
+  }, []);
+
   const addComment = useCallback(
     (eventId: string, text: string) => {
       const c = makeComment(eventId, text, profile.name.trim() || 'Ti', 'uc' + Date.now(), new Date().toISOString());
@@ -154,6 +251,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setDrafts([]);
     setProfile(DEFAULT_PROFILE);
     setUserComments([]);
+    setLikes({});
+    setSaved({});
+    setStamps({});
   }, []);
 
   // memoised so screens only re-render when something they read actually changed
@@ -171,10 +271,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       toggleFollow,
       setName,
       setCity,
+      toggleInterest,
+      requestJoin,
+      likes,
+      saved,
+      toggleLike,
+      toggleSave,
+      stamps,
+      collectStamp,
       submitDraft,
       resetLocalData,
     }),
     [
+      toggleInterest,
+      requestJoin,
+      likes,
+      saved,
+      toggleLike,
+      toggleSave,
+      stamps,
+      collectStamp,
       events,
       cityEvents,
       rsvps,

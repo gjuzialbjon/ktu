@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import type { EventItem } from '@/data/types';
 import { useI18n } from '@/lib/i18n';
-import { formatWhen } from '@/lib/format';
+import { useEventFacts } from '@/features/event/useEventFacts';
 import { hapticTap } from '@/lib/haptics';
 import { makeStyles, radius, useTheme } from '@/lib/theme';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -64,7 +64,8 @@ export function DiceRoll({
   /** called exactly once, by the auto-tap or a skip */
   onOpen: (event: EventItem) => void;
 }) {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
+  const facts = useEventFacts(event);
   const theme = useTheme();
   const s = useStyles();
   const reduceMotion = useReducedMotion();
@@ -217,12 +218,12 @@ export function DiceRoll({
           <View style={s.card}>
             <EventPhoto event={event} style={s.photo} emojiSize={44} />
             <View style={s.body}>
-              <Text style={s.when}>{formatWhen(event.startsAt, lang, t.today, t.tomorrow)}</Text>
+              <Text style={s.when}>{facts.when}</Text>
               <Display size={22} numberOfLines={2}>
                 {event.title}
               </Display>
               <Text style={s.venue} numberOfLines={1}>
-                {event.venueName}
+                {facts.where}
               </Text>
             </View>
           </View>
@@ -259,7 +260,7 @@ const useStyles = makeStyles((t) =>
       flexWrap: 'wrap',
       backgroundColor: t.c.primary,
       borderWidth: Math.max(t.outline, 1.5),
-      borderColor: t.id === 'fasadat' ? t.c.text : t.c.primary,
+      borderColor: t.c.primary,
       boxShadow: '0 10px 24px rgba(0,0,0,0.22)',
     },
     cell: { width: '33.33%', height: '33.33%', alignItems: 'center', justifyContent: 'center' },

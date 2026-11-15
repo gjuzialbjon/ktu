@@ -18,6 +18,10 @@ export const KEYS = {
   comments: 'comments',
   theme: 'theme',
   lang: 'lang',
+  likes: 'likes',
+  saved: 'saved',
+  /** partner id → ISO time of the first check-in */
+  stamps: 'stamps',
 } as const;
 export type StorageKey = (typeof KEYS)[keyof typeof KEYS];
 

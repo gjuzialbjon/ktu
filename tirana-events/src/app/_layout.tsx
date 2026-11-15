@@ -5,8 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 // Per-weight subpaths: importing the package root bundles every weight (~30 files).
 import { BricolageGrotesque_800ExtraBold } from '@expo-google-fonts/bricolage-grotesque/800ExtraBold';
-import { Fraunces_700Bold } from '@expo-google-fonts/fraunces/700Bold';
-import { Unbounded_700Bold } from '@expo-google-fonts/unbounded/700Bold';
+import { Caveat_700Bold } from '@expo-google-fonts/caveat/700Bold';
 import { I18nProvider } from '@/lib/i18n';
 import { StoreProvider } from '@/data/store';
 import { DEFAULT_THEME, THEMES, ThemeProvider, useTheme } from '@/lib/theme';
@@ -31,6 +30,7 @@ function ThemedStack() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="event/[id]" options={{ title: '' }} />
         <Stack.Screen name="create" options={{ title: '', presentation: 'modal' }} />
+        <Stack.Screen name="profile" options={{ title: '' }} />
         <Stack.Screen name="+not-found" options={{ title: '' }} />
       </Stack>
     </>
@@ -40,8 +40,7 @@ function ThemedStack() {
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     BricolageGrotesque_800ExtraBold,
-    Fraunces_700Bold,
-    Unbounded_700Bold,
+    Caveat_700Bold,
   });
 
   // Hold the first paint until the heading faces are ready (or failed: then the

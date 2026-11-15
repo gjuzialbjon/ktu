@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Stack } from 'expo-router';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
 import { THEMES, THEME_ORDER, ThemeId, makeStyles, radius, useTheme } from '@/lib/theme';
@@ -12,16 +12,23 @@ export default function Profile() {
   const { t, lang, setLang } = useI18n();
   const theme = useTheme();
   const s = useStyles();
-  const { people, profile, toggleFollow, setName, setCity } = useStore();
+  const { events, people, profile, toggleFollow, setName, setCity, toggleInterest } = useStore();
+  // every tag in use, most common first, plus anything the user picked that is no longer in use
+  const tagChoices = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const e of events) for (const tag of e.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    const common = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([tag]) => tag).slice(0, 24);
+    return [...new Set([...profile.interests, ...common])];
+  }, [events, profile.interests]);
 
-  const themeName = (id: ThemeId) => (id === 'nata' ? t.theme_nata : id === 'liqeni' ? t.theme_liqeni : t.theme_fasadat);
-  const themeDesc = (id: ThemeId) =>
-    id === 'nata' ? t.theme_desc_nata : id === 'liqeni' ? t.theme_desc_liqeni : t.theme_desc_fasadat;
+  const themeName = (id: ThemeId) => t[`theme_${id}` as const];
+  const themeDesc = (id: ThemeId) => t[`theme_desc_${id}` as const];
 
   return (
-    <SafeAreaView style={s.safe} edges={['top']}>
+    <View style={s.safe}>
+      <Stack.Screen options={{ title: t.profile }} />
       <ScrollView contentContainerStyle={s.content}>
-        <Display size={30}>{t.profile}</Display>
+        <Display size={30}>{profile.name.trim() || t.profile}</Display>
 
         <Text style={s.label}>{t.your_name}</Text>
         <TextInput
@@ -39,6 +46,18 @@ export default function Profile() {
           {CITY_ORDER.map((c) => (
             <View key={c} style={{ marginBottom: 8 }}>
               <Chip label={cityName(c, lang)} active={profile.city === c} onPress={() => setCity(c, 'profile')} />
+            </View>
+          ))}
+        </View>
+
+        <View style={s.labelRow}>
+          <Text style={[s.label, { marginTop: 0, marginBottom: 0 }]}>{t.interests}</Text>
+        </View>
+        <Text style={s.hint}>{t.interests_hint}</Text>
+        <View style={s.wrapRow}>
+          {tagChoices.map((tag) => (
+            <View key={tag} style={{ marginBottom: 8 }}>
+              <Chip label={`#${tag}`} active={profile.interests.includes(tag)} onPress={() => toggleInterest(tag)} />
             </View>
           ))}
         </View>
@@ -67,7 +86,7 @@ export default function Profile() {
                       key={i}
                       style={[
                         s.swatch,
-                        { backgroundColor: col, height: 16 + ((i * 7) % 16), borderColor: th.id === 'fasadat' ? th.c.text : 'transparent' },
+                        { backgroundColor: col, height: 16 + ((i * 7) % 16), borderColor: 'transparent' },
                       ]}
                     />
                   ))}
@@ -105,7 +124,7 @@ export default function Profile() {
         {/* development builds only: never reaches the store */}
         {__DEV__ && <DevTools />}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -130,6 +149,7 @@ const useStyles = makeStyles((t) =>
     swatch: { width: 12, borderWidth: 1 },
     row: { flexDirection: 'row' },
     wrapRow: { flexDirection: 'row', flexWrap: 'wrap' },
+    labelRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 24, marginBottom: 10 },
     hint: { color: t.c.textDim, fontSize: 14, marginTop: -4, marginBottom: 10 },
     personRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     personLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },

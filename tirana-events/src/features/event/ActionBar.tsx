@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Share2 from 'lucide-react-native/icons/share-2';
 import type { EventItem, Rsvp } from '@/data/types';
+import { isIn, joinModeOf } from '@/data/access';
 import { useI18n } from '@/lib/i18n';
 import { lekToEur } from '@/lib/format';
 import { makeStyles, useTheme } from '@/lib/theme';
@@ -20,12 +21,15 @@ export function ActionBar({
   rsvp,
   onShare,
   onJoin,
+  onAsk,
   onCancel,
 }: {
   event: EventItem;
   rsvp: Rsvp | undefined;
   onShare: () => void;
   onJoin: () => void;
+  /** ask-to-join events: send a request instead of joining */
+  onAsk: () => void;
   onCancel: () => void;
 }) {
   const { t, lang } = useI18n();
@@ -50,15 +54,15 @@ export function ActionBar({
         </Pressable>
         {rsvp ? (
           <>
-            <Text style={s.status} numberOfLines={1}>
-              {t.youre_going}
+            <Text style={s.status} numberOfLines={2}>
+              {isIn(rsvp) ? t.youre_going : `${t.requested} ⏳`}
             </Text>
             <Pressable
               accessibilityRole="button"
               onPress={onCancel}
               style={({ pressed }) => [s.ghost, pressed && { opacity: 0.7 }]}
             >
-              <Text style={s.ghostText}>{t.cancel_rsvp}</Text>
+              <Text style={s.ghostText}>{isIn(rsvp) ? t.cancel_rsvp : t.withdraw}</Text>
             </Pressable>
           </>
         ) : (
@@ -67,7 +71,11 @@ export function ActionBar({
               {price}
             </Text>
             <View style={s.cta}>
-              <Button label={event.priceType === 'free' ? t.im_going : t.reserve} onPress={onJoin} />
+              {joinModeOf(event) === 'open' ? (
+                <Button label={event.priceType === 'free' ? t.im_going : t.reserve} onPress={onJoin} />
+              ) : (
+                <Button label={t.ask_to_join} onPress={onAsk} />
+              )}
             </View>
           </>
         )}

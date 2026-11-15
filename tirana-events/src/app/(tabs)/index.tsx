@@ -1,19 +1,24 @@
-import React, { useMemo, useRef, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import Plus from 'lucide-react-native/icons/plus';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, Platform, Pressable, RefreshControl, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
-import { makeStyles, radius, space, useTheme } from '@/lib/theme';
+import { CATEGORY_EMOJI, makeStyles, radius, space, useTheme } from '@/lib/theme';
 import { EventCard } from '@/components/EventCard';
-import { StoryCard } from '@/components/StoryCard';
 import { FriendsStrip } from '@/components/FriendsStrip';
 import { CityBand } from '@/components/CityBand';
-import { Chevron, Display, Emoji } from '@/components/ui';
+import { Chevron, Display, Emoji, Hand, Sticker } from '@/components/ui';
+import { TopBar } from '@/components/TopBar';
 import { track } from '@/lib/analytics';
 import { useNow } from '@/hooks/useNow';
-import { FeedSection, buildFeed, isFiltering } from '@/features/feed/buildFeed';
+import { FeedSection, buildFeed, isFiltering, railsByCategory } from '@/features/feed/buildFeed';
+import { TodayTimeline } from '@/features/feed/TodayTimeline';
+import { EventRail } from '@/features/feed/EventRail';
+import { SkyBackdrop } from '@/features/feed/SkyBackdrop';
+import { latenessOf, skyStops } from '@/features/feed/sky';
+import { forYou, isIn } from '@/data/access';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedFilters } from '@/features/feed/useFeedFilters';
 import { FilterBar } from '@/features/feed/FilterBar';
 import { CityPicker } from '@/features/city/CityPicker';
@@ -36,15 +41,16 @@ function useFeedGrid() {
 }
 
 /**
- * Reading order: greeting → question → city → friends → today → filter bar
- * (sticky) → the rest of the week. Filters apply to what sits below them; the
- * today row above is a highlight, so nothing appears twice.
+ * Reading order: weather · city · you → greeting → question → crew → today (earliest
+ * to latest, the sky warming as you go) → for you → by vibe → filter bar (sticky) →
+ * the rest of the week. Filters apply to what sits below them.
  */
 export default function Home() {
-  const { t, lang, setLang } = useI18n();
+  const { t, lang } = useI18n();
   const theme = useTheme();
   const s = useStyles();
-  const { cityEvents: events, profile } = useStore();
+  const { cityEvents: events, profile, rsvps, events: allEvents } = useStore();
+  const { height: viewportH } = useWindowDimensions();
   const [cityOpen, setCityOpen] = useState(false);
   const router = useRouter();
   const filterState = useFeedFilters(profile.city);
@@ -70,6 +76,58 @@ export default function Home() {
   const greetWord = hour < 12 ? t.greet_morning : hour < 18 ? t.greet_day : t.greet_evening;
   const name = profile.name.trim().split(' ')[0];
   const todayTitle = hour >= TONIGHT_FROM_HOUR ? t.sec_today : t.sec_today_day;
+
+  // for you: your picked interests plus the tags of what you joined before
+  const suggested = useMemo(() => {
+    const joinedTags = allEvents.filter((e) => isIn(rsvps[e.id])).flatMap((e) => e.tags);
+    const todayIds = new Set(feed.today.map((e) => e.id));
+    return forYou(
+      feed.upcoming.filter((e) => !todayIds.has(e.id) && !isIn(rsvps[e.id])),
+      profile.interests,
+      joinedTags,
+    );
+  }, [allEvents, rsvps, feed.upcoming, feed.today, profile.interests]);
+  const rails = useMemo(() => {
+    const todayIds = new Set(feed.today.map((e) => e.id));
+    return railsByCategory(feed.upcoming.filter((e) => !todayIds.has(e.id)));
+  }, [feed.upcoming, feed.today]);
+
+  // --- the sky: scroll position → how late it feels (see features/feed/sky.ts)
+  const [scrollY] = useState(() => new Animated.Value(0));
+  const [todayTop, setTodayTop] = useState<{ section: number; list: number } | null>(null);
+  const [rowCenters, setRowCenters] = useState<Record<string, number>>({});
+  const onRowLayout = useCallback((id: string, y: number) => setRowCenters((m) => (m[id] === y ? m : { ...m, [id]: y })), []);
+  const nowLateness = latenessOf(now);
+  const lateness = useMemo(() => {
+    const base = todayTop ? todayTop.section + todayTop.list : null;
+    const rows =
+      base == null
+        ? []
+        : feed.today
+            .filter((e) => rowCenters[e.id] != null)
+            .map((e) => ({ center: base + rowCenters[e.id], lateness: latenessOf(new Date(e.startsAt)) }));
+    const stops = skyStops(nowLateness, rows, viewportH);
+    return scrollY.interpolate({
+      inputRange: stops.map((p) => p.at),
+      outputRange: stops.map((p) => p.lateness),
+      extrapolate: 'clamp',
+    });
+  }, [todayTop, rowCenters, feed.today, nowLateness, viewportH, scrollY]);
+  const onScroll = useMemo(
+    () => Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: Platform.OS !== 'web' }),
+    [scrollY],
+  );
+
+  // one orchestrated moment: the greeting sticker is pressed on when home first appears
+  const reduceMotion = useReducedMotion();
+  const [stick] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    if (reduceMotion) {
+      stick.setValue(1);
+      return;
+    }
+    Animated.spring(stick, { toValue: 1, friction: 6, tension: 90, useNativeDriver: Platform.OS !== 'web' }).start();
+  }, [stick, reduceMotion]);
 
   // The dice roll: pick first, then animate from the button and open the pick.
   const diceRef = useRef<React.ComponentRef<typeof View>>(null);
@@ -97,8 +155,11 @@ export default function Home() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      <ScrollView
+      <SkyBackdrop lateness={lateness} />
+      <Animated.ScrollView
         stickyHeaderIndices={[1]}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         contentContainerStyle={s.scroll}
         refreshControl={
           <RefreshControl
@@ -113,43 +174,40 @@ export default function Home() {
         {/* 0 — lead: who and what is happening now */}
         <View>
           <View style={[s.column, column]}>
-            <View style={s.topBar}>
-              <Text style={s.greet}>
-                {greetWord}
-                {name ? `, ${name}` : ''}
-              </Text>
-              <View style={s.iconRow}>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={t.a11y_lang}
-                  onPress={() => setLang(lang === 'sq' ? 'en' : 'sq')}
-                  style={({ pressed }) => [s.iconBtn, pressed && { opacity: 0.8 }]}
-                >
-                  <Text style={s.iconText}>{t.lang_toggle}</Text>
-                </Pressable>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={t.a11y_create}
-                  onPress={() => router.push('/create')}
-                  style={({ pressed }) => [s.iconBtn, s.iconBtnFilled, pressed && { opacity: 0.8 }]}
-                >
-                  <Plus color={theme.c.onPrimary} size={22} strokeWidth={2.4} />
-                </Pressable>
-              </View>
-            </View>
+            <TopBar>
+              {/* the city everything below is about; tap to switch */}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t.a11y_city(cityName(profile.city, lang))}
+                onPress={() => setCityOpen(true)}
+                hitSlop={6}
+                style={({ pressed }) => [s.cityPill, pressed && { opacity: 0.8 }]}
+              >
+                <MapPin color={theme.c.text} size={16} strokeWidth={2.2} />
+                <Text style={s.cityText} numberOfLines={1}>
+                  {cityName(profile.city, lang)}
+                </Text>
+                <Chevron open={false} color={theme.c.text} />
+              </Pressable>
+            </TopBar>
 
-            {/* the city everything below is about; tap to switch */}
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t.a11y_city(cityName(profile.city, lang))}
-              onPress={() => setCityOpen(true)}
-              hitSlop={6}
-              style={({ pressed }) => [s.cityPill, pressed && { opacity: 0.8 }]}
+            <Animated.View
+              style={[
+                s.greetWrap,
+                {
+                  opacity: stick,
+                  transform: [
+                    { scale: stick.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) },
+                    { rotate: stick.interpolate({ inputRange: [0, 1], outputRange: ['-9deg', '0deg'] }) },
+                  ],
+                },
+              ]}
             >
-              <MapPin color={theme.c.text} size={16} strokeWidth={2.2} />
-              <Text style={s.cityText}>{cityName(profile.city, lang)}</Text>
-              <Chevron open={false} color={theme.c.text} />
-            </Pressable>
+              <Sticker tone={0} tilt={-3} size={22}>
+                {greetWord}
+                {name ? `, ${name}` : ''} 👋
+              </Sticker>
+            </Animated.View>
 
             <Display size={wide ? 52 : 38} style={s.hero}>
               {t.hero_q}
@@ -178,25 +236,54 @@ export default function Home() {
           {!filters.tag && (
             <View style={[s.column, column]}>
               <FriendsStrip />
+            </View>
+          )}
 
-              {feed.today.length > 0 && (
-                <View style={s.today}>
-                  <View style={s.sectionHead}>
-                    <Display size={wide ? 30 : 26}>{todayTitle}</Display>
-                    <Text style={s.sectionCount}>{t.results(feed.today.length)}</Text>
-                  </View>
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    style={s.rail}
-                    contentContainerStyle={s.railContent}
-                  >
-                    {feed.today.map((e) => (
-                      <StoryCard key={e.id} event={e} source="today_rail" />
-                    ))}
-                  </ScrollView>
+          {!filters.tag && feed.today.length > 0 && (
+            <View
+              style={[s.column, column, s.today]}
+              onLayout={(e) => {
+                const section = e.nativeEvent.layout.y;
+                setTodayTop((p) => (p?.section === section ? p : { section, list: p?.list ?? 0 }));
+              }}
+            >
+              <View style={s.sectionHead}>
+                <Display size={wide ? 30 : 26}>{todayTitle}</Display>
+                <Hand size={20} color={theme.c.textDim}>
+                  {t.today_note} ↓
+                </Hand>
+              </View>
+              <View
+                onLayout={(e) => {
+                  const list = e.nativeEvent.layout.y;
+                  setTodayTop((p) => (p?.list === list ? p : { section: p?.section ?? 0, list }));
+                }}
+              >
+                <TodayTimeline events={feed.today} onRowLayout={onRowLayout} />
+              </View>
+            </View>
+          )}
+
+          {!filters.tag && (
+            <View style={[s.column, column, s.rails]}>
+              <EventRail title={t.for_you_title} note={t.for_you_hint} events={suggested} source="for_you" />
+              {rails.length > 0 && (
+                <View style={s.vibeHead}>
+                  <Display size={wide ? 30 : 26}>{t.by_vibe}</Display>
+                  <Hand size={20} color={theme.c.textDim}>
+                    {t.vibe_note} →
+                  </Hand>
                 </View>
               )}
+              {rails.map(({ cat, items }) => (
+                <EventRail
+                  key={cat}
+                  title={t[`cat_${cat}` as const]}
+                  emoji={CATEGORY_EMOJI[cat]}
+                  events={items}
+                  source={`rail_${cat}`}
+                />
+              ))}
             </View>
           )}
         </View>
@@ -237,7 +324,7 @@ export default function Home() {
             ))
           )}
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
       <CityPicker visible={cityOpen} onClose={() => setCityOpen(false)} />
       {roll && <DiceRoll key={roll.key} event={roll.event} origin={roll.origin} onOpen={openRolled} />}
     </SafeAreaView>
@@ -246,40 +333,26 @@ export default function Home() {
 
 const useStyles = makeStyles((t) =>
   StyleSheet.create({
+    // the sky sits behind the scroll view, so the screen itself stays see-through
     safe: { flex: 1, backgroundColor: t.c.bg },
+    greetWrap: { alignSelf: 'flex-start', marginTop: space.md },
     scroll: { paddingBottom: space.xxxl },
     column: { width: '100%', alignSelf: 'center', paddingHorizontal: space.lg },
 
-    topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: space.sm },
-    greet: { color: t.c.textDim, fontSize: 15, fontWeight: '600', flexShrink: 1 },
-    iconRow: { flexDirection: 'row', gap: space.sm },
-    iconBtn: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: t.c.surface,
-      borderWidth: t.outline,
-      borderColor: t.c.border,
-    },
-    iconBtnFilled: { backgroundColor: t.c.primary, borderColor: t.c.primary },
-    iconText: { color: t.c.text, fontSize: 13, fontWeight: '800' },
 
     cityPill: {
       flexDirection: 'row',
       alignItems: 'center',
-      alignSelf: 'flex-start',
       gap: 6,
-      minHeight: 40,
+      minHeight: 44,
+      maxWidth: '100%',
       paddingHorizontal: space.md,
-      marginTop: space.sm,
       borderRadius: 999,
       backgroundColor: t.c.surface,
       borderWidth: t.outline,
       borderColor: t.c.border,
     },
-    cityText: { color: t.c.text, fontSize: 15, fontWeight: '700' },
+    cityText: { color: t.c.text, fontSize: 15, fontWeight: '700', flexShrink: 1 },
     hero: { marginTop: space.md },
     heroMeta: {
       flexDirection: 'row',
@@ -295,14 +368,14 @@ const useStyles = makeStyles((t) =>
     band: { marginTop: space.sm, marginBottom: space.xl },
 
     today: { marginTop: space.xs, marginBottom: space.xl, gap: space.md },
-    rail: { flexGrow: 0, marginHorizontal: -space.lg },
-    railContent: { paddingHorizontal: space.lg },
+    rails: { gap: space.md, marginBottom: space.md },
+    vibeHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: space.md, marginTop: space.md },
 
 
     results: { paddingTop: space.md },
     count: { color: t.c.textDim, fontSize: 14, fontWeight: '600' },
     section: { marginTop: space.xl, gap: space.md },
-    sectionHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: space.md },
+    sectionHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: space.md, flexWrap: 'wrap' },
     sectionCount: { color: t.c.textDim, fontSize: 14 },
     grid: { flexDirection: 'row', flexWrap: 'wrap' },
 

@@ -13,6 +13,16 @@ export type Category =
 
 export type PriceType = 'free' | 'ticketed';
 
+/**
+ * Who can find an event, and how you get in.
+ * - public + open: in everyone's feed, details visible, join in one tap.
+ * - public + ask:  in everyone's feed, but the host says yes first; exact place and time stay hidden until then.
+ * - private + ask: only in feeds whose interests match (or where people you follow are going); details hidden.
+ * - private + invite: never in the feed; reachable by link only.
+ */
+export type Visibility = 'public' | 'private';
+export type JoinMode = 'open' | 'ask' | 'invite';
+
 
 export interface Organizer {
   id: string;
@@ -66,7 +76,18 @@ export interface EventItem {
   priceType: PriceType;
   ticketPriceLek?: number;
   capacity?: number;
-  source: 'curated' | 'organizer';
+  /** platform = an event the app set up itself from what people are into, run by a facilitator */
+  source: 'curated' | 'organizer' | 'platform';
+  /** default public */
+  visibility?: Visibility;
+  /** default open */
+  joinMode?: JoinMode;
+  /** PublicUser id of the person who takes care of the small things on the day */
+  facilitatorId?: string;
+  /** a partner offer every participant gets (see data/partners) */
+  offerId?: string;
+  /** seeded likes for the demo */
+  likeCount?: number;
   status: 'draft' | 'published' | 'cancelled';
   isSponsored: boolean;
   sponsoredLabel?: string;
@@ -75,7 +96,8 @@ export interface EventItem {
   goingUserIds: string[];
 }
 
-export type RsvpStatus = 'going' | 'reserved' | 'cancelled';
+/** requested = asked to join, waiting on the host */
+export type RsvpStatus = 'going' | 'reserved' | 'cancelled' | 'requested';
 
 export interface Rsvp {
   eventId: string;
@@ -88,6 +110,10 @@ export interface PublicUser {
   id: string;
   name: string;
   avatarUrl?: string;
+  /** what they are into; drives "people like you are going" */
+  interests?: string[];
+  /** has facilitated events; shown as a badge */
+  facilitator?: boolean;
 }
 
 export interface Profile {
@@ -96,4 +122,6 @@ export interface Profile {
   follows: string[];
   /** default city: the feed, map and dice show this city's events */
   city: CityId;
+  /** tags the user picked; private events only reach feeds whose interests overlap */
+  interests: string[];
 }

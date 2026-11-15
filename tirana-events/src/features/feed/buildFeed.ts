@@ -83,3 +83,12 @@ export function buildFeed(events: EventItem[], f: FeedFilters, now: Date): Feed 
 
   return { upcoming, today, list, sections, popularIds, weekCount };
 }
+
+/** One rail per category that has something coming up, fullest first; ties keep a fixed order. */
+export function railsByCategory(events: EventItem[]): { cat: Category; items: EventItem[] }[] {
+  const by = new Map<Category, EventItem[]>();
+  for (const e of events) by.set(e.category, [...(by.get(e.category) ?? []), e]);
+  return [...by.entries()]
+    .map(([cat, items]) => ({ cat, items }))
+    .sort((a, b) => b.items.length - a.items.length || a.cat.localeCompare(b.cat));
+}

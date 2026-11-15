@@ -5,12 +5,11 @@ import { useTheme } from '@/lib/theme';
 
 /**
  * The app's signature: a Tirana skyline of apartment blocks with the Pyramid,
- * painted per theme (lit windows at night, soft blocks by the lake, the city's
- * painted facades). Purely decorative, so it is hidden from screen readers.
+ * painted in the theme's soft morning or sunset colours. Purely decorative, so it is hidden from screen readers.
  */
 
 type Shape =
-  | { kind: 'block'; x: number; w: number; h: number; fill: string; stripe?: string; windows: { x: number; y: number; lit: boolean }[] }
+  | { kind: 'block'; x: number; w: number; h: number; fill: string; windows: { x: number; y: number; lit: boolean }[] }
   | { kind: 'pyramid'; x: number; w: number; h: number; fill: string };
 
 /** Deterministic PRNG so the skyline is stable across renders. */
@@ -36,7 +35,7 @@ export function CityBand({ height = 92 }: { height?: number }) {
     let placedPyramid = false;
     let x = 0;
     let i = 0;
-    const litChance = t.id === 'nata' ? 0.3 : t.id === 'fasadat' ? 0.55 : 0.4;
+    const litChance = 0.4;
     while (x < width) {
       if (!placedPyramid && x >= pyramidAt) {
         const pw = Math.min(78, height * 0.95);
@@ -57,14 +56,12 @@ export function CityBand({ height = 92 }: { height?: number }) {
           windows.push({ x: x + 5 + col * 7, y: top + 7 + row * 9, lit: r() < litChance });
         }
       }
-      const stripe =
-        t.id === 'fasadat' && r() < 0.45 ? t.band.blocks[(i + 3) % t.band.blocks.length] : undefined;
-      out.push({ kind: 'block', x, w, h, fill, stripe, windows });
-      x += w + (t.id === 'fasadat' ? 2 : 3);
+      out.push({ kind: 'block', x, w, h, fill, windows });
+      x += w + 3;
       i++;
     }
     return out;
-  }, [width, t.id, t.band, groundY, height]);
+  }, [width, t.band, groundY, height]);
 
   return (
     <View
@@ -87,8 +84,8 @@ export function CityBand({ height = 92 }: { height?: number }) {
                   key={`p${idx}`}
                   d={`M${s.x} ${groundY} L${s.x + s.w * 0.5} ${top} L${s.x + s.w} ${groundY} Z`}
                   fill={s.fill}
-                  stroke={t.id === 'fasadat' ? t.c.text : 'none'}
-                  strokeWidth={t.id === 'fasadat' ? 2 : 0}
+                  stroke="none"
+                  strokeWidth={0}
                 />
               );
             }
@@ -101,10 +98,9 @@ export function CityBand({ height = 92 }: { height?: number }) {
                   width={s.w}
                   height={s.h}
                   fill={s.fill}
-                  stroke={t.id === 'fasadat' ? t.c.text : 'none'}
-                  strokeWidth={t.id === 'fasadat' ? 1.5 : 0}
+                  stroke="none"
+                  strokeWidth={0}
                 />
-                {s.stripe ? <Rect x={s.x} y={top + s.h * 0.55} width={s.w} height={s.h * 0.18} fill={s.stripe} /> : null}
                 {s.windows.map((w, wi) => (
                   <Rect
                     key={wi}

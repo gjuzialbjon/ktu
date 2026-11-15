@@ -4,7 +4,7 @@ import type { Category } from '@/data/types';
 import { CITIES, CityId, areaName, cityName } from '@/data/cities';
 import type { WhenFilter } from '@/lib/format';
 import { useI18n } from '@/lib/i18n';
-import { CATEGORY_EMOJI, makeStyles, space, useTheme } from '@/lib/theme';
+import { CATEGORY_EMOJI, makeStyles, space, useTheme, withAlpha } from '@/lib/theme';
 import { Chevron, Chip } from '@/components/ui';
 import { extraFilterCount } from './buildFeed';
 import type { FeedFiltersState } from './useFeedFilters';
@@ -154,7 +154,8 @@ const useStyles = makeStyles((t) =>
   StyleSheet.create({
     column: { width: '100%', alignSelf: 'center', paddingHorizontal: space.lg },
     barWrap: {
-      backgroundColor: t.c.bg,
+      // mostly opaque, so the sky behind the feed still tints it a little
+      backgroundColor: withAlpha(t.c.surface, 0.88),
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: t.c.border,
       paddingVertical: space.sm,

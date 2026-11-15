@@ -6,7 +6,8 @@ import { EventItem } from '@/data/types';
 import { CATEGORY_EMOJI, makeStyles, radius, useTheme } from '@/lib/theme';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
-import { firstName, formatWhen, joinNames } from '@/lib/format';
+import { firstName, joinNames } from '@/lib/format';
+import { useEventFacts } from '@/features/event/useEventFacts';
 import { Emoji } from '@/components/ui';
 import { track } from '@/lib/analytics';
 import { useHoverLift } from '@/hooks/useHoverLift';
@@ -17,10 +18,10 @@ export function StoryCard({ event, source }: { event: EventItem; source: string 
   const theme = useTheme();
   const s = useStyles();
   const hover = useHoverLift();
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const { people, profile } = useStore();
   const friends = people.filter((p) => event.goingUserIds.includes(p.id) && profile.follows.includes(p.id));
-  const when = formatWhen(event.startsAt, lang, t.today, t.tomorrow);
+  const { when, askToJoin } = useEventFacts(event);
 
   return (
     <Link
@@ -53,7 +54,11 @@ export function StoryCard({ event, source }: { event: EventItem; source: string 
               <View style={[s.bubble, { backgroundColor: theme.cat[event.category] }]}>
                 <Emoji size={18}>{CATEGORY_EMOJI[event.category]}</Emoji>
               </View>
-              {event.priceType === 'free' && (
+              {askToJoin ? (
+                <View style={[s.badge, { backgroundColor: theme.sticker[1] }]}>
+                  <Text style={[s.badgeText, { color: '#2A2233' }]}>{t.badge_ask}</Text>
+                </View>
+              ) : event.priceType === 'free' && (
                 <View style={[s.badge, { backgroundColor: theme.c.free }]}>
                   <Text style={[s.badgeText, { color: theme.c.onFree }]}>{t.free}</Text>
                 </View>

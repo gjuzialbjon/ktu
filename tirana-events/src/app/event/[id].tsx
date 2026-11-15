@@ -6,11 +6,17 @@ import QRCode from 'react-native-qrcode-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
-import { areaName, cityName } from '@/data/cities';
 import { spotsLeft } from '@/data/events';
 import { CATEGORY_EMOJI, makeStyles, radius, useTheme } from '@/lib/theme';
-import { firstName, formatWhen, joinNames } from '@/lib/format';
-import { Avatar, Button, Chip, Display, Emoji, TagRow } from '@/components/ui';
+import { firstName, joinNames } from '@/lib/format';
+import { isIn, sharedInterests, similarEvents } from '@/data/access';
+import { findOffer, findPartner } from '@/data/partners';
+import { useEventFacts } from '@/features/event/useEventFacts';
+import { LikeSave } from '@/features/event/LikeSave';
+import { StoryCard } from '@/components/StoryCard';
+import { useNow } from '@/hooks/useNow';
+import type { EventItem } from '@/data/types';
+import { Avatar, Button, Chip, Display, Emoji, Hand, Sticker, TagRow } from '@/components/ui';
 import { EventPhoto } from '@/components/EventPhoto';
 import { track } from '@/lib/analytics';
 import { hapticSuccess } from '@/lib/haptics';
@@ -22,36 +28,54 @@ import { openInMaps, shareEvent } from '@/features/event/actions';
 
 export default function EventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { events } = useStore();
+
+  const event = events.find((e) => e.id === id);
+  if (!event) return <Missing />;
+  return <EventPage event={event} />;
+}
+
+function Missing() {
+  const router = useRouter();
+  const s = useStyles();
+  const { t } = useI18n();
+  // stale share link, or an event that was taken down
+  return (
+    <View style={s.missing}>
+      <Stack.Screen options={{ title: '' }} />
+      <Display size={26}>{t.not_found_title}</Display>
+      <Text style={s.missingText}>{t.not_found_body}</Text>
+      <Button label={t.go_home} onPress={() => router.replace('/')} />
+    </View>
+  );
+}
+
+function EventPage({ event }: { event: EventItem }) {
   const router = useRouter();
   const theme = useTheme();
   const s = useStyles();
   const { t, lang } = useI18n();
-  const { events, people, profile, rsvps, join, cancel, comments, addComment } = useStore();
+  const { events, people, profile, rsvps, join, requestJoin, cancel, comments, addComment } = useStore();
   const insets = useSafeAreaInsets();
   const keyboardOpen = useKeyboardVisible();
-
-  const event = events.find((e) => e.id === id);
-  if (!event) {
-    // stale share link, or an event that was taken down
-    return (
-      <View style={s.missing}>
-        <Stack.Screen options={{ title: '' }} />
-        <Display size={26}>{t.not_found_title}</Display>
-        <Text style={s.missingText}>{t.not_found_body}</Text>
-        <Button label={t.go_home} onPress={() => router.replace('/')} />
-      </View>
-    );
-  }
+  const nowMs = useNow();
+  const facts = useEventFacts(event);
 
   const rsvp = rsvps[event.id];
   const going = people.filter((p) => event.goingUserIds.includes(p.id));
   const friendsGoing = going.filter((p) => profile.follows.includes(p.id));
-  const when = formatWhen(event.startsAt, lang, t.today, t.tomorrow);
+  const youreIn = isIn(rsvp);
+  const { when, hidden } = facts;
   // name the city too: plans and shared links can point at events outside your city
-  const hood = `${areaName(event.city, event.neighborhood, lang)}, ${cityName(event.city, lang)}`;
+  const where = hidden ? t.hidden_where(facts.areaWithCity) : `${event.venueName}, ${facts.areaWithCity}`;
   const eventComments = comments.filter((c) => c.eventId === event.id);
-  const totalGoing = going.length + (rsvp ? 1 : 0);
-  const spots = spotsLeft(event, !!rsvp);
+  const totalGoing = going.length + (youreIn ? 1 : 0);
+  const spots = spotsLeft(event, youreIn);
+  const shared = facts.askToJoin ? sharedInterests(event, profile.interests) : [];
+  const host = event.facilitatorId ? people.find((p) => p.id === event.facilitatorId) : undefined;
+  const offer = findOffer(event.offerId);
+  const partner = offer ? findPartner(offer.partnerId) : undefined;
+  const similar = similarEvents(event, events, nowMs);
 
   return (
     <>
@@ -71,6 +95,11 @@ export default function EventDetail() {
                 <Emoji size={19}>{CATEGORY_EMOJI[event.category]}</Emoji>
               </View>
               {event.isSponsored && <Chip label={t.sponsored} tone="sponsored" />}
+              {facts.askToJoin && (
+                <Sticker tone={1} tilt={-4} size={19}>
+                  {facts.isPrivate ? t.badge_private : t.badge_ask}
+                </Sticker>
+              )}
               <View style={{ flex: 1 }} />
               <Chip
                 label={event.priceType === 'free' ? t.free : `${event.ticketPriceLek} L`}
@@ -82,6 +111,9 @@ export default function EventDetail() {
           {event.photoCredit ? <Text style={s.credit}>{event.photoCredit}</Text> : null}
           <Text style={s.whenTop}>{when}</Text>
           <Display size={30}>{event.title}</Display>
+          <View style={s.titleActions}>
+            <LikeSave event={event} size={22} />
+          </View>
 
           {friendsGoing.length > 0 && (
             <View style={[s.friendsPill, { backgroundColor: theme.c.social }]}>
@@ -109,13 +141,46 @@ export default function EventDetail() {
 
           <View style={s.infoBox}>
             <Row label={t.when} value={when} />
-            <Row label={t.where} value={`${event.venueName}, ${hood}`} link={t.open_map} onLink={() => openInMaps(event)} />
+            <Row
+              label={t.where}
+              value={where}
+              link={hidden ? undefined : t.open_map}
+              onLink={hidden ? undefined : () => openInMaps(event)}
+            />
             <Row label={t.organizer} value={event.organizer.name + (event.organizer.verified ? ' ✓' : '')} />
+            {host && <Row label={t.host} value={`${host.name} ✦`} />}
             {spots != null && <Row label="" value={t.capacity_left(spots)} />}
+            {hidden && <Text style={s.hiddenNote}>🔒 {t.hidden_note}</Text>}
           </View>
 
+          {shared.length > 0 && !youreIn && (
+            <Text style={s.shared}>{t.shared_interests(shared.map((x) => `#${x}`).join(', '))}</Text>
+          )}
+
+          {event.source === 'platform' && (
+            <View style={s.platform}>
+              {host ? <Avatar user={host} highlight size={40} /> : null}
+              <Text style={s.platformText}>{t.platform_note}</Text>
+            </View>
+          )}
+
+          {offer && partner && (
+            <View style={s.offerBox}>
+              <Hand size={22}>{t.offer_title}</Hand>
+              <Text style={s.offerText}>
+                🎁 {offer.text[lang]} {t.offer_at(partner.name)}
+              </Text>
+            </View>
+          )}
+
           {/* once you're going, the pass (QR for ticketed events) lives in the page; actions live in the bar */}
-          {rsvp && (
+          {rsvp && !youreIn && (
+            <View style={[s.rsvpBox, s.pendingBox, { marginTop: 16 }]}>
+              <Text style={s.rsvpTitle}>{t.requested} ⏳</Text>
+              <Text style={s.payNote}>{t.request_sent_note}</Text>
+            </View>
+          )}
+          {youreIn && rsvp && (
             <View style={[s.rsvpBox, { marginTop: 16 }]}>
               <Text style={s.rsvpTitle}>{t.youre_going}</Text>
               {rsvp.reservationCode && (
@@ -169,6 +234,19 @@ export default function EventDetail() {
             </>
           )}
 
+          {similar.length > 0 && (
+            <>
+              <Display size={20} style={s.section}>
+                {t.similar_title}
+              </Display>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.rail}>
+                {similar.map((e) => (
+                  <StoryCard key={e.id} event={e} source="similar" />
+                ))}
+              </ScrollView>
+            </>
+          )}
+
           <Comments comments={eventComments} onSend={(text) => addComment(event.id, text)} />
         </ScrollView>
 
@@ -177,9 +255,13 @@ export default function EventDetail() {
           <ActionBar
             event={event}
             rsvp={rsvp}
-            onShare={() => shareEvent(event, t.share_msg(event.title, when, event.venueName))}
+            onShare={() => shareEvent(event, t.share_msg(event.title, when, hidden ? facts.area : event.venueName))}
             onJoin={() => {
               join(event.id);
+              hapticSuccess();
+            }}
+            onAsk={() => {
+              requestJoin(event.id);
               hapticSuccess();
             }}
             onCancel={() => cancel(event.id)}
@@ -263,6 +345,30 @@ const useStyles = makeStyles((t) =>
       padding: 16,
       gap: 12,
     },
+    titleActions: { flexDirection: 'row', marginTop: 4, marginLeft: -4 },
+    hiddenNote: { color: t.c.textDim, fontSize: 13, lineHeight: 18, marginTop: 2 },
+    shared: { color: t.c.social, fontSize: 14, fontWeight: '700', marginTop: 12 },
+    platform: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginTop: 16,
+      padding: 14,
+      borderRadius: radius.md,
+      backgroundColor: t.c.surfaceAlt,
+    },
+    platformText: { color: t.c.text, fontSize: 14, lineHeight: 20, flex: 1 },
+    offerBox: {
+      marginTop: 16,
+      padding: 14,
+      borderRadius: radius.md,
+      backgroundColor: t.c.sponsored,
+      gap: 4,
+      transform: [{ rotate: '-0.6deg' }],
+    },
+    offerText: { color: t.c.onSponsored, fontSize: 15, fontWeight: '700', lineHeight: 21 },
+    pendingBox: { borderColor: t.c.border, borderStyle: 'dashed' },
+    rail: { marginHorizontal: -16, paddingLeft: 16 },
     rsvpTitle: { color: t.c.text, fontWeight: '700', fontSize: 17 },
     qrBox: { alignItems: 'center', gap: 8, paddingVertical: 4 },
     qrWrap: { backgroundColor: '#FFFFFF', padding: 10, borderRadius: radius.sm },
