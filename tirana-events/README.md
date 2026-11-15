@@ -39,16 +39,47 @@ Payments, ratings/reviews, chat, recommendations, multi-city, organizer analytic
 
 ## Architecture
 
-- `app/` — Expo Router screens: `(tabs)/` feed · my events · profile; `event/[id]`; `create` (modal)
-- `lib/store.tsx` — **the swap boundary**: local-first (AsyncStorage) now, same method names move to Supabase later
-- `lib/analytics.ts` — event logging boundary (console now → PostHog later); logs tag views/joins for future recommendations
-- `lib/seed.ts` — 10 realistic Tirana events + demo people for social proof
-- `lib/i18n.tsx` — sq/en dictionaries
+```
+src/
+  app/          routes only (Expo Router). Thin screens that compose features.
+                (tabs)/ feed · map · plans · profile, event/[id], create (modal), +not-found
+  features/     one folder per area; pure logic sits next to the UI that uses it
+    feed/       buildFeed.ts (pure: sections, filters, popular), useFeedFilters, FilterBar
+    event/      ActionBar, Comments, FaqList, actions.ts (share, open in maps)
+    create/     validateDraft.ts (pure), Field, PhotoField
+    map/        project.ts (lat/lng → canvas)
+    dev/        DevTools panel (development builds only)
+  components/   shared UI: ui.tsx primitives, EventCard, StoryCard, EventPhoto, CityBand, CrashScreen
+  data/         store.tsx (state; the Supabase swap boundary), events.ts (pure rules),
+                storage.ts (versioned device storage), seed.ts, types.ts
+  hooks/        useNow, useHoverLift, useKeyboardVisible, useReducedMotion
+  lib/          theme, i18n, format, log, analytics, haptics
+  test-utils/   fixtures (fixed NOW, makeEvent) and the Jest setup
+```
+
+Rules of thumb:
+
+- **Import with `@/`** (`@/data/store`), never `../../`.
+- **Business rules are pure functions** (`data/events.ts`, `features/*/build*.ts`, `validate*.ts`) that take `now` and ids as arguments. Screens call them; tests call them directly. Nothing in them reads the clock, storage or React.
+- **Copy lives in `lib/i18n.tsx`** in both languages. A test fails if a key is missing in one language or the two disagree on arguments.
+- **Never put non-route files or tests in `src/app/`**: Expo Router treats every file there as a screen.
+
+## Quality and debugging
+
+```bash
+npm run check      # lint + typecheck + tests (also runs before every deploy)
+npm test           # Jest only; npm run test:watch while working
+```
+
+- **Logs** go through `createLogger('scope')` from `lib/log.ts`, never bare `console`, so the dev console can be filtered by scope (`[store]`, `[storage]`, `[event]`…). `log.error` is the single hook for a crash reporter later.
+- **Crashes** show `CrashScreen` with a retry button (with the stack in development) instead of a blank app.
+- **Device data** is read through `data/storage.ts`: a corrupt key is dropped and logged on its own, never taking the rest down. Changing a stored shape means bumping `SCHEMA_VERSION` and adding a migration step.
+- **Dev panel**: in development builds, Profile ends with a panel showing the build, storage version, theme and language, plus a button that resets local data to a fresh install.
 
 ## Next steps (from founder/board.md conditions)
 
-1. Supabase backend behind `lib/store.tsx` (schema in `founder/build-prompt.md`)
+1. Supabase backend behind `src/data/store.tsx` (schema in `founder/build-prompt.md`)
 2. Phone OTP auth
-3. PostHog behind `lib/analytics.ts` (week-2 retention is the gate metric)
+3. PostHog behind `src/lib/analytics.ts` (week-2 retention is the gate metric)
 4. Story-card image generator (view-shot) replacing text share
 5. Admin quick-add web route for the curator

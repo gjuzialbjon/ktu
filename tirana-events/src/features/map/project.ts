@@ -1,0 +1,18 @@
+/**
+ * Stylized vector map of central Tirana (not to scale). Real lat/lng are
+ * projected onto a fixed canvas, so pins sit roughly where the events are.
+ */
+export const MAP_BOUNDS = { latMin: 41.3, latMax: 41.345, lngMin: 19.77, lngMax: 19.875 };
+export const MAP_W = 360;
+export const MAP_H = 420;
+/** pins never sit closer than this to the canvas edge, so they stay fully visible */
+export const MAP_EDGE = 14;
+
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+export function project(lat: number, lng: number): { x: number; y: number } {
+  const b = MAP_BOUNDS;
+  const x = ((lng - b.lngMin) / (b.lngMax - b.lngMin)) * MAP_W;
+  const y = MAP_H - ((lat - b.latMin) / (b.latMax - b.latMin)) * MAP_H;
+  return { x: clamp(x, MAP_EDGE, MAP_W - MAP_EDGE), y: clamp(y, MAP_EDGE, MAP_H - MAP_EDGE) };
+}
