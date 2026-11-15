@@ -1,5 +1,6 @@
 import {
   MAX_PINNED_SPONSORED,
+  eventsForCity,
   makeComment,
   makeDraftEvent,
   makeRsvp,
@@ -25,6 +26,18 @@ describe('orderFeedEvents', () => {
     expect(ids.slice(0, 2)).toEqual([s1.id, s2.id]);
     // the third sponsored event falls back into time order
     expect(ids.slice(2)).toEqual([early.id, s3.id, late.id]);
+  });
+});
+
+describe('eventsForCity', () => {
+  it('shows one city only, with its own sponsored slots', () => {
+    const tiranaAds = [1, 2].map(() => makeEvent({ isSponsored: true }));
+    const durresAd = makeEvent({ city: 'durres', neighborhood: 'plazhi', isSponsored: true });
+    const durresEvent = makeEvent({ city: 'durres', neighborhood: 'qendra' });
+    const all = [...tiranaAds, durresAd, durresEvent];
+    expect(eventsForCity(all, 'durres').map((e) => e.id)).toEqual([durresAd.id, durresEvent.id]);
+    expect(eventsForCity(all, 'tirana')).toHaveLength(2);
+    expect(eventsForCity(all, 'berat')).toEqual([]);
   });
 });
 
@@ -55,7 +68,8 @@ describe('makeDraftEvent', () => {
       venueName: 'Bar',
       tags: ['chess'],
       startsAt: at(2, 19),
-      neighborhood: 'blloku' as const,
+      city: 'tirana' as const,
+      neighborhood: 'blloku',
     };
     expect(makeDraftEvent(input, 'd1')).toMatchObject({ status: 'draft', priceType: 'free' });
     expect(makeDraftEvent({ ...input, ticketPriceLek: 500 }, 'd2')).toMatchObject({ priceType: 'ticketed' });

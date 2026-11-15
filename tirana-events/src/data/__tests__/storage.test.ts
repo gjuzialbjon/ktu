@@ -36,12 +36,27 @@ describe('readString', () => {
 });
 
 describe('migrateStorage', () => {
+  it('moves pre-city data to Tirana and gives the profile a city', async () => {
+    await AsyncStorage.setItem(KEYS.drafts, JSON.stringify([{ id: 'd1', neighborhood: 'blloku' }]));
+    await AsyncStorage.setItem(KEYS.profile, JSON.stringify({ name: 'Ana', follows: [] }));
+    await migrateStorage();
+    expect(await readJson(KEYS.drafts, [])).toEqual([{ city: 'tirana', id: 'd1', neighborhood: 'blloku' }]);
+    expect(await readJson(KEYS.profile, null)).toEqual({ name: 'Ana', follows: [], city: 'tirana' });
+  });
+
+  it('leaves data already on the current version alone', async () => {
+    await AsyncStorage.setItem('schemaVersion', String(SCHEMA_VERSION));
+    await AsyncStorage.setItem(KEYS.profile, JSON.stringify({ name: 'Ana', follows: [], city: 'korce' }));
+    await migrateStorage();
+    expect(await readJson(KEYS.profile, null)).toEqual({ name: 'Ana', follows: [], city: 'korce' });
+  });
+
   it('gives old drafts a neighbourhood and records the version', async () => {
     await AsyncStorage.setItem(KEYS.drafts, JSON.stringify([{ id: 'd1' }, { id: 'd2', neighborhood: 'blloku' }]));
     await migrateStorage();
     expect(await readJson(KEYS.drafts, [])).toEqual([
-      { neighborhood: 'qendra', id: 'd1' },
-      { neighborhood: 'blloku', id: 'd2' },
+      { city: 'tirana', neighborhood: 'qendra', id: 'd1' },
+      { city: 'tirana', neighborhood: 'blloku', id: 'd2' },
     ]);
     expect(await AsyncStorage.getItem('schemaVersion')).toBe(String(SCHEMA_VERSION));
   });

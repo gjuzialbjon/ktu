@@ -18,7 +18,8 @@ export function FriendsStrip() {
   const { t, lang } = useI18n();
   const s = useStyles();
   const router = useRouter();
-  const { events, people, profile } = useStore();
+  // your city only: a friend's plan in another city is not something to join tonight
+  const { cityEvents: events, people, profile } = useStore();
   const now = useNow();
 
   const items = useMemo(() => {

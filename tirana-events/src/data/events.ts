@@ -1,4 +1,5 @@
 import type { Comment, EventItem, Rsvp } from './types';
+import type { CityId } from './cities';
 
 /**
  * Pure domain rules for events: no React, no storage, no clock reads.
@@ -16,7 +17,15 @@ export function orderFeedEvents(all: EventItem[]): EventItem[] {
   return [...pinned, ...rest];
 }
 
-export type DraftInput = Pick<EventItem, 'title' | 'description' | 'venueName' | 'tags' | 'startsAt' | 'neighborhood'> & {
+/** One city's feed. Sponsored slots are per city: a Durrës ad never takes a Tirana slot. */
+export function eventsForCity(all: EventItem[], city: CityId): EventItem[] {
+  return orderFeedEvents(all.filter((e) => e.city === city));
+}
+
+export type DraftInput = Pick<
+  EventItem,
+  'title' | 'description' | 'venueName' | 'tags' | 'startsAt' | 'city' | 'neighborhood'
+> & {
   ticketPriceLek?: number;
   /** data-URL or file URI from the image picker */
   coverImage?: string;
@@ -32,6 +41,7 @@ export function makeDraftEvent(input: DraftInput, id: string): EventItem {
     tags: input.tags,
     venueName: input.venueName,
     address: input.venueName,
+    city: input.city,
     neighborhood: input.neighborhood,
     startsAt: input.startsAt,
     coverImage: input.coverImage,

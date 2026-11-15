@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { NEIGHBORHOODS } from '@/data/types';
 import type { Category } from '@/data/types';
+import { CITIES, CityId, areaName, cityName } from '@/data/cities';
 import type { WhenFilter } from '@/lib/format';
 import { useI18n } from '@/lib/i18n';
 import { CATEGORY_EMOJI, makeStyles, space, useTheme } from '@/lib/theme';
@@ -17,13 +17,14 @@ const WHEN_OPTIONS: WhenFilter[] = ['all', 'tomorrow', 'weekend'];
  * The sticky filter bar: one horizontally scrolling row (when · where · more · tag),
  * with the where/more panels opening inline beneath it.
  */
-export function FilterBar({ state, maxWidth }: { state: FeedFiltersState; maxWidth: number }) {
-  const { t } = useI18n();
+export function FilterBar({ state, city, maxWidth }: { state: FeedFiltersState; city: CityId; maxWidth: number }) {
+  const { t, lang } = useI18n();
   const theme = useTheme();
   const s = useStyles();
   const { filters, panel } = state;
   const extra = extraFilterCount(filters);
-  const hoodLabel = filters.hood ? t[`hood_${filters.hood}` as const] : t.hood_all;
+  const allLabel = t.hood_all(cityName(city, lang));
+  const hoodLabel = filters.hood ? areaName(city, filters.hood, lang) : allLabel;
   const whenLabel = (w: WhenFilter) =>
     w === 'all' ? t.when_all : w === 'tomorrow' ? t.when_tomorrow : w === 'weekend' ? t.when_weekend : t.when_today;
 
@@ -74,20 +75,20 @@ export function FilterBar({ state, maxWidth }: { state: FeedFiltersState; maxWid
         {panel === 'where' && (
           <View style={s.panel}>
             <Chip
-              label={t.hood_all}
+              label={allLabel}
               active={!filters.hood}
               onPress={() => {
                 state.setHood(null);
                 state.closePanel();
               }}
             />
-            {NEIGHBORHOODS.map((h) => (
+            {CITIES[city].areas.map(({ id }) => (
               <Chip
-                key={h}
-                label={t[`hood_${h}` as const]}
-                active={filters.hood === h}
+                key={id}
+                label={areaName(city, id, lang)}
+                active={filters.hood === id}
                 onPress={() => {
-                  state.setHood(filters.hood === h ? null : h);
+                  state.setHood(filters.hood === id ? null : id);
                   state.closePanel();
                 }}
               />

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import Svg, { Circle, G, Path, Rect, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, G, Text as SvgText } from 'react-native-svg';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
 import { CATEGORY_EMOJI, makeStyles, radius, useTheme } from '@/lib/theme';
@@ -12,6 +12,8 @@ import { track } from '@/lib/analytics';
 import { Display, Emoji } from '@/components/ui';
 import { useNow } from '@/hooks/useNow';
 import { MAP_H, MAP_W, project } from '@/features/map/project';
+import { MapBackdrop } from '@/features/map/MapBackdrop';
+import { CITIES, areaName, cityName } from '@/data/cities';
 
 const W = MAP_W;
 const H = MAP_H;
@@ -21,7 +23,8 @@ export default function MapScreen() {
   const { t, lang } = useI18n();
   const theme = useTheme();
   const s = useStyles();
-  const { events } = useStore();
+  const { cityEvents: events, profile } = useStore();
+  const city = CITIES[profile.city];
   const router = useRouter();
   const { width } = useWindowDimensions();
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -31,8 +34,8 @@ export default function MapScreen() {
     () =>
       events
         .filter((e) => e.lat != null && e.lng != null && new Date(e.startsAt).getTime() > now - 3600_000)
-        .map((e) => ({ event: e, ...project(e.lat as number, e.lng as number) })),
-    [events, now],
+        .map((e) => ({ event: e, ...project(e.lat as number, e.lng as number, city.bounds) })),
+    [events, now, city.bounds],
   );
 
   const selected = pins.find((p) => p.event.id === selectedId)?.event ?? null;
@@ -40,7 +43,6 @@ export default function MapScreen() {
   const mapHeight = (mapWidth / W) * H;
   const scale = mapWidth / W; // viewBox units → points
   const m = theme.map;
-  const roadW = theme.id === 'fasadat' ? 3 : 7;
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
@@ -52,35 +54,12 @@ export default function MapScreen() {
 
         <View style={[s.mapCard, { width: mapWidth, height: mapHeight }]}>
           <Svg width={mapWidth} height={mapHeight} viewBox={`0 0 ${W} ${H}`}>
-            <Rect x={0} y={0} width={W} height={H} fill={m.ground} />
-            {/* Parku i Madh and the lake */}
-            <Path d="M150 290 Q 230 270 280 300 Q 300 350 250 385 Q 180 400 140 370 Q 120 320 150 290 Z" fill={m.park} />
-            <Path d="M175 315 Q 225 300 255 325 Q 260 355 225 365 Q 180 365 170 340 Z" fill={m.water} />
-            {/* Lana river */}
-            <Path d="M0 250 Q 90 235 180 245 Q 270 255 360 235" stroke={m.water} strokeWidth={7} fill="none" />
-            {/* boulevard and main roads */}
-            <Path d="M196 60 L 196 300" stroke={m.road} strokeWidth={roadW + 2} />
-            <Path d="M196 160 L 20 196" stroke={m.road} strokeWidth={roadW} />
-            <Path d="M196 185 L 340 270" stroke={m.road} strokeWidth={roadW - 1} />
-            <Path d="M196 150 L 40 70" stroke={m.road} strokeWidth={roadW} />
-            <Path
-              d="M100 110 Q 196 70 300 115 Q 330 190 290 260 Q 196 300 110 255 Q 70 180 100 110 Z"
-              stroke={m.road}
-              strokeWidth={2.5}
-              fill="none"
-              opacity={0.7}
+            <MapBackdrop
+              city={city}
+              theme={theme}
+              cityLabel={cityName(city.id, lang)}
+              waterLabel={city.water ? (city.water.kind === 'sea' ? t.map_sea : t.map_lake) : undefined}
             />
-            {/* Skanderbeg square */}
-            <Circle cx={196} cy={150} r={13} fill={m.ground} stroke={m.road} strokeWidth={2.5} />
-            <SvgText x={196} y={131} fontSize={9} fill={m.label} textAnchor="middle" fontWeight="bold">
-              Skënderbej
-            </SvgText>
-            <SvgText x={212} y={300} fontSize={9} fill={m.label} textAnchor="middle" fontWeight="bold">
-              Parku i Madh
-            </SvgText>
-            <SvgText x={322} y={300} fontSize={9} fill={m.label} textAnchor="middle" fontWeight="bold">
-              Dajti →
-            </SvgText>
 
             {pins.map(({ event, x, y }) => {
               const color = theme.cat[event.category];
@@ -149,7 +128,7 @@ export default function MapScreen() {
 function MapPreviewCard({ event, when, onOpen }: { event: EventItem; when: string; onOpen: () => void }) {
   const theme = useTheme();
   const s = useStyles();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   return (
     <Pressable
       accessibilityRole="link"
@@ -163,7 +142,7 @@ function MapPreviewCard({ event, when, onOpen }: { event: EventItem; when: strin
       </View>
       <Display size={19}>{event.title}</Display>
       <Text style={s.previewMeta}>
-        {event.venueName}, {t[`hood_${event.neighborhood}` as const]}. {event.priceType === 'free' ? t.free : `${event.ticketPriceLek} Lekë`}
+        {event.venueName}, {areaName(event.city, event.neighborhood, lang)}. {event.priceType === 'free' ? t.free : `${event.ticketPriceLek} Lekë`}
       </Text>
     </Pressable>
   );

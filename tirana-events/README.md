@@ -35,7 +35,7 @@ Production web build: `npx expo export --platform web` → static SPA in `dist/`
 
 ## Explicitly NOT in v1 (gated on week-2 retention)
 
-Payments, ratings/reviews, chat, recommendations, multi-city, organizer analytics.
+Payments, ratings/reviews, chat, recommendations, organizer analytics.
 
 ## Architecture
 
@@ -47,10 +47,12 @@ src/
     feed/       buildFeed.ts (pure: sections, filters, popular), useFeedFilters, FilterBar
     event/      ActionBar, Comments, FaqList, actions.ts (share, open in maps)
     create/     validateDraft.ts (pure), Field, PhotoField
-    map/        project.ts (lat/lng → canvas)
+    map/        project.ts (lat/lng → canvas per city), MapBackdrop (Tirana hand-drawn, others from data)
+    city/       CityPicker sheet, countByCity.ts
     dev/        DevTools panel (development builds only)
   components/   shared UI: ui.tsx primitives, EventCard, StoryCard, EventPhoto, CityBand, CrashScreen
-  data/         store.tsx (state; the Supabase swap boundary), events.ts (pure rules),
+  data/         cities.ts (every city: areas, map bounds, water), store.tsx (state; the Supabase swap boundary),
+                events.ts (pure rules),
                 storage.ts (versioned device storage), seed.ts, types.ts
   hooks/        useNow, useHoverLift, useKeyboardVisible, useReducedMotion
   lib/          theme, i18n, format, log, analytics, haptics
@@ -61,6 +63,7 @@ Rules of thumb:
 
 - **Import with `@/`** (`@/data/store`), never `../../`.
 - **Business rules are pure functions** (`data/events.ts`, `features/*/build*.ts`, `validate*.ts`) that take `now` and ids as arguments. Screens call them; tests call them directly. Nothing in them reads the clock, storage or React.
+- **Cities are data.** Adding one is an entry in `data/cities.ts` plus events; a test checks every seed event sits in a real area of its city and inside its map.
 - **Copy lives in `lib/i18n.tsx`** in both languages. A test fails if a key is missing in one language or the two disagree on arguments.
 - **Never put non-route files or tests in `src/app/`**: Expo Router treats every file there as a screen.
 

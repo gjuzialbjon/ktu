@@ -6,12 +6,13 @@ import { useStore } from '@/data/store';
 import { THEMES, THEME_ORDER, ThemeId, makeStyles, radius, useTheme } from '@/lib/theme';
 import { Avatar, Chip, Display } from '@/components/ui';
 import { DevTools } from '@/features/dev/DevTools';
+import { CITY_ORDER, cityName } from '@/data/cities';
 
 export default function Profile() {
   const { t, lang, setLang } = useI18n();
   const theme = useTheme();
   const s = useStyles();
-  const { people, profile, toggleFollow, setName } = useStore();
+  const { people, profile, toggleFollow, setName, setCity } = useStore();
 
   const themeName = (id: ThemeId) => (id === 'nata' ? t.theme_nata : id === 'liqeni' ? t.theme_liqeni : t.theme_fasadat);
   const themeDesc = (id: ThemeId) =>
@@ -31,6 +32,16 @@ export default function Profile() {
           placeholder="…"
           placeholderTextColor={theme.c.textDim}
         />
+
+        <Text style={s.label}>{t.city}</Text>
+        <Text style={s.hint}>{t.city_hint}</Text>
+        <View style={s.wrapRow} accessibilityRole="radiogroup">
+          {CITY_ORDER.map((c) => (
+            <View key={c} style={{ marginBottom: 8 }}>
+              <Chip label={cityName(c, lang)} active={profile.city === c} onPress={() => setCity(c, 'profile')} />
+            </View>
+          ))}
+        </View>
 
         <Text style={s.label}>{t.theme}</Text>
         <View style={s.themes} accessibilityRole="radiogroup">
@@ -118,6 +129,8 @@ const useStyles = makeStyles((t) =>
     swatches: { flexDirection: 'row', alignItems: 'flex-end', gap: 3, height: 32, marginBottom: 6 },
     swatch: { width: 12, borderWidth: 1 },
     row: { flexDirection: 'row' },
+    wrapRow: { flexDirection: 'row', flexWrap: 'wrap' },
+    hint: { color: t.c.textDim, fontSize: 14, marginTop: -4, marginBottom: 10 },
     personRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     personLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
     personName: { color: t.c.text, fontSize: 16, fontWeight: '600' },

@@ -5,6 +5,7 @@ import { Link, useRouter } from 'expo-router';
 import { EventItem } from '@/data/types';
 import { CATEGORY_EMOJI, makeStyles, radius, useTheme } from '@/lib/theme';
 import { useI18n } from '@/lib/i18n';
+import { areaName } from '@/data/cities';
 import { useStore } from '@/data/store';
 import { firstName, formatWhen, joinNames, lekToEur } from '@/lib/format';
 import { AvatarStack, Chip, Display, Emoji, TagRow } from '@/components/ui';
@@ -26,7 +27,7 @@ export function EventCard({ event, popular }: { event: EventItem; popular?: bool
   const going = people.filter((p) => event.goingUserIds.includes(p.id));
   const friends = going.filter((p) => profile.follows.includes(p.id));
   const joined = !!rsvps[event.id];
-  const hood = t[`hood_${event.neighborhood}` as const];
+  const hood = areaName(event.city, event.neighborhood, lang);
   const when = formatWhen(event.startsAt, lang, t.today, t.tomorrow);
 
   return (

@@ -6,6 +6,7 @@ import QRCode from 'react-native-qrcode-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
+import { areaName, cityName } from '@/data/cities';
 import { spotsLeft } from '@/data/events';
 import { CATEGORY_EMOJI, makeStyles, radius, useTheme } from '@/lib/theme';
 import { firstName, formatWhen, joinNames } from '@/lib/format';
@@ -46,7 +47,8 @@ export default function EventDetail() {
   const going = people.filter((p) => event.goingUserIds.includes(p.id));
   const friendsGoing = going.filter((p) => profile.follows.includes(p.id));
   const when = formatWhen(event.startsAt, lang, t.today, t.tomorrow);
-  const hood = t[`hood_${event.neighborhood}` as const];
+  // name the city too: plans and shared links can point at events outside your city
+  const hood = `${areaName(event.city, event.neighborhood, lang)}, ${cityName(event.city, lang)}`;
   const eventComments = comments.filter((c) => c.eventId === event.id);
   const totalGoing = going.length + (rsvp ? 1 : 0);
   const spots = spotsLeft(event, !!rsvp);

@@ -5,6 +5,7 @@ const valid: DraftForm = {
   title: 'Chess at the lake',
   description: '  bring a board  ',
   venue: 'Parku i Madh',
+  city: 'tirana',
   hood: 'liqeni',
   when: new Date(2026, 10, 20, 18, 0),
   tags: 'Chess, Board Games',
@@ -17,7 +18,7 @@ describe('validateDraft', () => {
     const r = validateDraft(valid, NOW);
     expect(r.ok).toBe(true);
     if (r.ok) {
-      expect(r.value).toMatchObject({ description: 'bring a board', tags: ['chess', 'board-games'], ticketPriceLek: undefined });
+      expect(r.value).toMatchObject({ city: 'tirana', neighborhood: 'liqeni', description: 'bring a board', tags: ['chess', 'board-games'], ticketPriceLek: undefined });
     }
   });
 
@@ -38,6 +39,12 @@ describe('validateDraft', () => {
     ['text price', { price: 'cheap' }, { price: 'err_price' }],
   ])('rejects %s', (_name, change, errors) => {
     expect(validateDraft({ ...valid, ...change }, NOW)).toEqual({ ok: false, errors });
+  });
+
+  it('rejects an area that does not belong to the picked city', () => {
+    // 'lungomare' is in Vlora, not Tirana: e.g. the city was switched after picking the area
+    expect(validateDraft({ ...valid, hood: 'lungomare' }, NOW)).toEqual({ ok: false, errors: { hood: 'err_required' } });
+    expect(validateDraft({ ...valid, city: 'vlore', hood: 'lungomare' }, NOW).ok).toBe(true);
   });
 
   it('turns a whole-number price into a ticketed draft', () => {

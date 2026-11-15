@@ -15,14 +15,15 @@ export function DevTools() {
   const { t, lang } = useI18n();
   const theme = useTheme();
   const s = useStyles();
-  const { resetLocalData, rsvps, events } = useStore();
+  const { resetLocalData, rsvps, events, cityEvents, profile } = useStore();
   const [done, setDone] = useState(false);
 
   const facts: [string, string][] = [
     ['app', `${Constants.expoConfig?.name ?? '?'} ${Constants.expoConfig?.version ?? ''}`],
     ['storage schema', `v${SCHEMA_VERSION}`],
     ['theme / lang', `${theme.id} / ${lang}`],
-    ['events / rsvps', `${events.length} / ${Object.keys(rsvps).length}`],
+    ['city', profile.city],
+    ['events (city / all) / rsvps', `${cityEvents.length} / ${events.length} / ${Object.keys(rsvps).length}`],
   ];
 
   return (

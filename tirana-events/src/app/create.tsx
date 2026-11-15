@@ -4,14 +4,16 @@ import { Stack, useRouter } from 'expo-router';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
 import { makeStyles } from '@/lib/theme';
-import { NEIGHBORHOODS } from '@/data/types';
+import { CITIES, CITY_ORDER, CityId, areaName, cityName } from '@/data/cities';
 import { Button, Chip } from '@/components/ui';
 import { DateTimeField } from '@/components/DateTimeField';
 import { Field, FieldError, FieldLabel } from '@/features/create/Field';
 import { PhotoField } from '@/features/create/PhotoField';
 import { DraftErrors, DraftField, DraftForm, validateDraft } from '@/features/create/validateDraft';
 
-const EMPTY_FORM: DraftForm = {
+type FormState = Omit<DraftForm, 'city'>;
+
+const EMPTY_FORM: FormState = {
   title: '',
   description: '',
   venue: '',
@@ -23,7 +25,7 @@ const EMPTY_FORM: DraftForm = {
 };
 
 /** Which error a form field clears when the user edits it. */
-const ERROR_FOR: Partial<Record<keyof DraftForm, DraftField>> = {
+const ERROR_FOR: Partial<Record<keyof FormState, DraftField>> = {
   title: 'title',
   venue: 'venue',
   hood: 'hood',
@@ -38,22 +40,31 @@ function notify(msg: string) {
 }
 
 export default function CreateEvent() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const s = useStyles();
-  const { submitDraft } = useStore();
+  const { submitDraft, profile } = useStore();
   const router = useRouter();
-  const [form, setForm] = useState<DraftForm>(EMPTY_FORM);
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  // Only an explicit pick is stored; otherwise follow the profile's city live. (Copying it
+  // into state at mount would freeze the pre-hydration default on a direct web load.)
+  const [pickedCity, setPickedCity] = useState<CityId | null>(null);
+  const city = pickedCity ?? profile.city;
   const [errors, setErrors] = useState<DraftErrors>({});
 
-  const update = <K extends keyof DraftForm>(key: K, value: DraftForm[K]) => {
+  const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((f) => ({ ...f, [key]: value }));
     const errKey = ERROR_FOR[key];
     if (errKey) setErrors((e) => (e[errKey] ? { ...e, [errKey]: undefined } : e));
   };
+  const pickCity = (next: CityId) => {
+    if (next === city) return;
+    setPickedCity(next);
+    setForm((f) => ({ ...f, hood: null })); // areas belong to the previous city
+  };
   const err = (f: DraftField) => (errors[f] ? t[errors[f]] : undefined);
 
   const onSubmit = () => {
-    const result = validateDraft(form, new Date());
+    const result = validateDraft({ ...form, city }, new Date());
     if (!result.ok) {
       setErrors(result.errors);
       notify(t.fix_errors);
@@ -82,11 +93,20 @@ export default function CreateEvent() {
         <Field label={t.ev_desc} value={form.description} onChange={(v) => update('description', v)} multiline />
         <Field label={t.ev_venue} value={form.venue} onChange={(v) => update('venue', v)} required error={err('venue')} />
 
+        <FieldLabel label={t.ev_city} required />
+        <View style={s.hoodRow}>
+          {CITY_ORDER.map((c) => (
+            <View key={c} style={{ marginBottom: 8 }}>
+              <Chip label={cityName(c, lang)} active={city === c} onPress={() => pickCity(c)} />
+            </View>
+          ))}
+        </View>
+
         <FieldLabel label={t.ev_hood} required />
         <View style={s.hoodRow}>
-          {NEIGHBORHOODS.map((h) => (
-            <View key={h} style={{ marginBottom: 8 }}>
-              <Chip label={t[`hood_${h}` as const]} active={form.hood === h} onPress={() => update('hood', h)} />
+          {CITIES[city].areas.map(({ id }) => (
+            <View key={id} style={{ marginBottom: 8 }}>
+              <Chip label={areaName(city, id, lang)} active={form.hood === id} onPress={() => update('hood', id)} />
             </View>
           ))}
         </View>

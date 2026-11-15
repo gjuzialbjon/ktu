@@ -20,6 +20,7 @@ export function makeEvent(overrides: Partial<EventItem> = {}): EventItem {
     tags: ['test'],
     venueName: 'Venue',
     address: 'Venue',
+    city: 'tirana',
     neighborhood: 'qendra',
     startsAt: at(1, 19),
     priceType: 'free',

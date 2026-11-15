@@ -10,12 +10,15 @@ import { EventCard } from '@/components/EventCard';
 import { StoryCard } from '@/components/StoryCard';
 import { FriendsStrip } from '@/components/FriendsStrip';
 import { CityBand } from '@/components/CityBand';
-import { Display, Emoji } from '@/components/ui';
+import { Chevron, Display, Emoji } from '@/components/ui';
 import { track } from '@/lib/analytics';
 import { useNow } from '@/hooks/useNow';
 import { FeedSection, buildFeed, isFiltering } from '@/features/feed/buildFeed';
 import { useFeedFilters } from '@/features/feed/useFeedFilters';
 import { FilterBar } from '@/features/feed/FilterBar';
+import { CityPicker } from '@/features/city/CityPicker';
+import { cityName } from '@/data/cities';
+import MapPin from 'lucide-react-native/icons/map-pin';
 import { DiceOrigin, DiceRoll } from '@/features/feed/DiceRoll';
 import type { EventItem } from '@/data/types';
 
@@ -41,9 +44,10 @@ export default function Home() {
   const { t, lang, setLang } = useI18n();
   const theme = useTheme();
   const s = useStyles();
-  const { events, profile } = useStore();
+  const { cityEvents: events, profile } = useStore();
+  const [cityOpen, setCityOpen] = useState(false);
   const router = useRouter();
-  const filterState = useFeedFilters();
+  const filterState = useFeedFilters(profile.city);
   const { filters } = filterState;
   const { maxW, itemWidth, wide } = useFeedGrid();
   const column = { maxWidth: maxW };
@@ -134,6 +138,19 @@ export default function Home() {
               </View>
             </View>
 
+            {/* the city everything below is about; tap to switch */}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t.a11y_city(cityName(profile.city, lang))}
+              onPress={() => setCityOpen(true)}
+              hitSlop={6}
+              style={({ pressed }) => [s.cityPill, pressed && { opacity: 0.8 }]}
+            >
+              <MapPin color={theme.c.text} size={16} strokeWidth={2.2} />
+              <Text style={s.cityText}>{cityName(profile.city, lang)}</Text>
+              <Chevron open={false} color={theme.c.text} />
+            </Pressable>
+
             <Display size={wide ? 52 : 38} style={s.hero}>
               {t.hero_q}
             </Display>
@@ -185,7 +202,7 @@ export default function Home() {
         </View>
 
         {/* 1 — sticky filter bar */}
-        <FilterBar state={filterState} maxWidth={maxW} />
+        <FilterBar state={filterState} city={profile.city} maxWidth={maxW} />
 
         {/* 2 — the rest of the week, grouped by time */}
         <View style={[s.column, column, s.results]}>
@@ -221,6 +238,7 @@ export default function Home() {
           )}
         </View>
       </ScrollView>
+      <CityPicker visible={cityOpen} onClose={() => setCityOpen(false)} />
       {roll && <DiceRoll key={roll.key} event={roll.event} origin={roll.origin} onOpen={openRolled} />}
     </SafeAreaView>
   );
@@ -248,7 +266,21 @@ const useStyles = makeStyles((t) =>
     iconBtnFilled: { backgroundColor: t.c.primary, borderColor: t.c.primary },
     iconText: { color: t.c.text, fontSize: 13, fontWeight: '800' },
 
-    hero: { marginTop: space.lg },
+    cityPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      gap: 6,
+      minHeight: 40,
+      paddingHorizontal: space.md,
+      marginTop: space.sm,
+      borderRadius: 999,
+      backgroundColor: t.c.surface,
+      borderWidth: t.outline,
+      borderColor: t.c.border,
+    },
+    cityText: { color: t.c.text, fontSize: 15, fontWeight: '700' },
+    hero: { marginTop: space.md },
     heroMeta: {
       flexDirection: 'row',
       alignItems: 'center',

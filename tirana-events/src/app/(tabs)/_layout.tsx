@@ -8,6 +8,8 @@ import MapIcon from 'lucide-react-native/icons/map';
 import Ticket from 'lucide-react-native/icons/ticket';
 import User from 'lucide-react-native/icons/user';
 import { useI18n } from '@/lib/i18n';
+import { useStore } from '@/data/store';
+import { cityName } from '@/data/cities';
 import { useTheme } from '@/lib/theme';
 
 type IconComponent = typeof Building2;
@@ -31,8 +33,9 @@ function tabIcon(Icon: IconComponent) {
 const BAR_CONTENT = 56; // item pads 5 + icon slot 28 + label 2 + 14 + 5, with ~2pt to spare
 
 export default function TabsLayout() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const theme = useTheme();
+  const { profile } = useStore();
   const insets = useSafeAreaInsets();
   return (
     <Tabs
@@ -51,7 +54,7 @@ export default function TabsLayout() {
         tabBarAllowFontScaling: false,
       }}
     >
-      <Tabs.Screen name="index" options={{ title: t.feed_title, tabBarIcon: tabIcon(Building2) }} />
+      <Tabs.Screen name="index" options={{ title: cityName(profile.city, lang), tabBarIcon: tabIcon(Building2) }} />
       <Tabs.Screen name="map" options={{ title: t.map, tabBarIcon: tabIcon(MapIcon) }} />
       <Tabs.Screen
         name="my-events"

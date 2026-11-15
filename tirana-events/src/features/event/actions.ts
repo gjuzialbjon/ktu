@@ -1,5 +1,6 @@
 import { Linking, Platform, Share } from 'react-native';
 import type { EventItem } from '@/data/types';
+import { cityName } from '@/data/cities';
 import { track } from '@/lib/analytics';
 import { createLogger } from '@/lib/log';
 
@@ -20,7 +21,7 @@ export async function shareEvent(event: EventItem, message: string): Promise<voi
 
 /** Apple Maps on iOS, Google Maps everywhere else. */
 export function openInMaps(event: EventItem): void {
-  const q = encodeURIComponent(`${event.venueName}, Tirana`);
+  const q = encodeURIComponent(`${event.venueName}, ${cityName(event.city, 'en')}, Albania`);
   const url = Platform.select({ ios: `maps:0,0?q=${q}`, default: `https://www.google.com/maps/search/?api=1&query=${q}` });
   Linking.openURL(url).catch((e) => log.warn('could not open maps', { url, e }));
 }

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import type { Category, Neighborhood } from '@/data/types';
+import type { Category } from '@/data/types';
+import type { AreaId, CityId } from '@/data/cities';
 import type { WhenFilter } from '@/lib/format';
 import { FeedFilters } from './buildFeed';
 
@@ -9,14 +10,17 @@ export type FilterPanel = 'where' | 'more' | null;
 /**
  * Filter state for the home feed. The tag lives in the URL (?tag=…) so a tag tapped
  * on an event page lands here filtered, and the web back button undoes it.
+ * The area filter remembers its city: after switching city it simply stops applying.
  */
-export function useFeedFilters() {
+export function useFeedFilters(city: CityId) {
   const router = useRouter();
   const params = useLocalSearchParams<{ tag?: string }>();
   const tag = typeof params.tag === 'string' && params.tag.length > 0 ? params.tag : null;
 
   const [when, setWhen] = useState<WhenFilter>('all');
-  const [hood, setHood] = useState<Neighborhood | null>(null);
+  const [area, setArea] = useState<{ city: CityId; id: AreaId } | null>(null);
+  const hood = area?.city === city ? area.id : null;
+  const setHood = (id: AreaId | null) => setArea(id ? { city, id } : null);
   const [cat, setCat] = useState<Category | null>(null);
   const [freeOnly, setFreeOnly] = useState(false);
   const [panel, setPanel] = useState<FilterPanel>(null);

@@ -1,4 +1,5 @@
 import type { ImageSourcePropType } from 'react-native';
+import type { AreaId, CityId } from './cities';
 
 export type Category =
   | 'community'
@@ -12,9 +13,6 @@ export type Category =
 
 export type PriceType = 'free' | 'ticketed';
 
-export type Neighborhood = 'qendra' | 'blloku' | 'liqeni' | 'pazari' | 'periferia';
-
-export const NEIGHBORHOODS: Neighborhood[] = ['qendra', 'blloku', 'liqeni', 'pazari', 'periferia'];
 
 export interface Organizer {
   id: string;
@@ -51,7 +49,9 @@ export interface EventItem {
   goodToKnow?: string[];
   venueName: string;
   address: string;
-  neighborhood: Neighborhood;
+  city: CityId;
+  /** area id within `city` (see CITIES[city].areas) */
+  neighborhood: AreaId;
   lat?: number;
   lng?: number;
   startsAt: string; // ISO
@@ -94,4 +94,6 @@ export interface Profile {
   name: string;
   /** ids of PublicUser this user follows ("people you know") */
   follows: string[];
+  /** default city: the feed, map and dice show this city's events */
+  city: CityId;
 }

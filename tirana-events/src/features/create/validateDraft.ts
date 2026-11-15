@@ -1,4 +1,4 @@
-import type { Neighborhood } from '@/data/types';
+import { AreaId, CITIES, CityId } from '@/data/cities';
 import type { DraftInput } from '@/data/events';
 
 /**
@@ -13,7 +13,9 @@ export interface DraftForm {
   title: string;
   description: string;
   venue: string;
-  hood: Neighborhood | null;
+  city: CityId;
+  /** must be one of CITIES[city].areas; cleared when the city changes */
+  hood: AreaId | null;
   when: Date | null;
   tags: string;
   price: string;
@@ -42,7 +44,8 @@ export function validateDraft(form: DraftForm, now: Date): ValidationResult {
   else if (title.length < TITLE_MIN) errors.title = 'err_title_short';
 
   if (!venue) errors.venue = 'err_required';
-  if (!form.hood) errors.hood = 'err_required';
+  const hoodValid = !!form.hood && CITIES[form.city].areas.some((a) => a.id === form.hood);
+  if (!hoodValid) errors.hood = 'err_required';
 
   if (!form.when) errors.date = 'err_required';
   else if (form.when.getTime() < now.getTime()) errors.date = 'err_date_past';
@@ -65,6 +68,7 @@ export function validateDraft(form: DraftForm, now: Date): ValidationResult {
       title,
       description: form.description.trim(),
       venueName: venue,
+      city: form.city,
       neighborhood: form.hood,
       startsAt: form.when.toISOString(),
       tags,

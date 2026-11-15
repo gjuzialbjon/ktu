@@ -1,13 +1,14 @@
-import type { Category, EventItem, Neighborhood } from '@/data/types';
+import type { Category, EventItem } from '@/data/types';
+import type { AreaId } from '@/data/cities';
 import { TimeBucket, WhenFilter, bucketOf, isThisWeek, matchesWhen } from '@/lib/format';
 
 /**
- * Everything the home feed shows, derived from events + filters + the clock.
+ * Everything the home feed shows, derived from one city's events + filters + the clock.
  * Pure: the screen calls it inside useMemo, tests call it directly.
  */
 export interface FeedFilters {
   when: WhenFilter;
-  hood: Neighborhood | null;
+  hood: AreaId | null;
   cat: Category | null;
   freeOnly: boolean;
   /** set by tapping a tag on a card; acts as a search, so it also covers today */

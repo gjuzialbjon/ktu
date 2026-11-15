@@ -22,13 +22,20 @@ export const KEYS = {
 export type StorageKey = (typeof KEYS)[keyof typeof KEYS];
 
 const VERSION_KEY = 'schemaVersion';
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 const MIGRATIONS: Record<number, () => Promise<void>> = {
   // 0 → 1: drafts saved before neighbourhoods existed default to the centre.
   1: async () => {
     const drafts = await readJson<Record<string, unknown>[]>(KEYS.drafts, [], asArray);
     if (drafts.length) await writeJson(KEYS.drafts, drafts.map((d) => ({ neighborhood: 'qendra', ...d })));
+  },
+  // 1 → 2: multi-city. Everything saved before was in Tirana; the profile gets a default city.
+  2: async () => {
+    const drafts = await readJson<Record<string, unknown>[]>(KEYS.drafts, [], asArray);
+    if (drafts.length) await writeJson(KEYS.drafts, drafts.map((d) => ({ city: 'tirana', ...d })));
+    const profile = await readJson<Record<string, unknown> | null>(KEYS.profile, null, asRecord);
+    if (profile && !profile.city) await writeJson(KEYS.profile, { ...profile, city: 'tirana' });
   },
 };
 
