@@ -1,4 +1,4 @@
-import { NO_FILTERS, buildFeed, extraFilterCount, isFiltering } from '@/features/feed/buildFeed';
+import { NO_FILTERS, buildFeed, extraFilterCount, isFiltering, pickHighlights } from '@/features/feed/buildFeed';
 import { NOW, at, makeEvent } from '@/test-utils/fixtures';
 
 const tonight = makeEvent({ startsAt: at(0, 20), tags: ['jazz'] });
@@ -50,5 +50,16 @@ describe('filter helpers', () => {
     expect(isFiltering(NO_FILTERS)).toBe(false);
     expect(isFiltering({ ...NO_FILTERS, tag: 'x' })).toBe(true);
     expect(extraFilterCount({ ...NO_FILTERS, cat: 'food', freeOnly: true })).toBe(2);
+  });
+});
+
+describe('pickHighlights', () => {
+  it('leads with sponsored, then friends going, then turnout; capped', () => {
+    const quiet = makeEvent({ startsAt: at(5, 19) });
+    const busy = makeEvent({ startsAt: at(5, 19), goingUserIds: ['a', 'b', 'c', 'd'] });
+    const friend = makeEvent({ startsAt: at(5, 19), goingUserIds: ['u2', 'x'] });
+    const ad = makeEvent({ startsAt: at(5, 19), isSponsored: true });
+    const order = pickHighlights([quiet, busy, friend, ad], ['u2'], NOW, 3).map((e) => e.id);
+    expect(order).toEqual([ad.id, friend.id, busy.id]);
   });
 });

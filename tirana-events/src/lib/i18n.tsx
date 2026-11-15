@@ -148,6 +148,7 @@ const sq = {
   a11y_profile: 'Profili yt',
   // home
   today_note: 'nga mengjesi te nata',
+  highlights_title: 'Mos i humb',
   for_you_title: 'Mbase te pelqen',
   for_you_hint: 'Sipas interesave qe ke zgjedh ne profil.',
   by_vibe: 'Sipas qejfit',
@@ -365,6 +366,7 @@ const en: Dict = {
   tab_offers: 'Perks',
   a11y_profile: 'Your profile',
   today_note: 'morning to late night',
+  highlights_title: "Don't miss these",
   for_you_title: 'Might be your thing',
   for_you_hint: 'Based on the interests you picked in your profile.',
   by_vibe: 'By vibe',

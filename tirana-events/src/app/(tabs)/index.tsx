@@ -12,7 +12,7 @@ import { Chevron, Display, Emoji, Hand, Sticker } from '@/components/ui';
 import { TopBar } from '@/components/TopBar';
 import { track } from '@/lib/analytics';
 import { useNow } from '@/hooks/useNow';
-import { FeedSection, buildFeed, isFiltering, railsByCategory } from '@/features/feed/buildFeed';
+import { FeedSection, buildFeed, isFiltering, pickHighlights, railsByCategory } from '@/features/feed/buildFeed';
 import { TodayTimeline } from '@/features/feed/TodayTimeline';
 import { EventRail } from '@/features/feed/EventRail';
 import { SkyBackdrop } from '@/features/feed/SkyBackdrop';
@@ -41,16 +41,16 @@ function useFeedGrid() {
 }
 
 /**
- * Reading order: weather · city · you → greeting → question → crew → today (earliest
- * to latest, the sky warming as you go) → for you → by vibe → filter bar (sticky) →
- * the rest of the week. Filters apply to what sits below them.
+ * Reading order: weather · city · you → greeting + question (skyline behind) → don't miss
+ * → today (earliest to latest, the sky warming as you go) → for you → by vibe → crew →
+ * filter bar (sticky) → the rest of the week. Filters apply to what sits below them.
  */
 export default function Home() {
   const { t, lang } = useI18n();
   const theme = useTheme();
   const s = useStyles();
   const { cityEvents: events, profile, rsvps, events: allEvents } = useStore();
-  const { height: viewportH } = useWindowDimensions();
+  const { height: viewportH, width: viewportW } = useWindowDimensions();
   const [cityOpen, setCityOpen] = useState(false);
   const router = useRouter();
   const filterState = useFeedFilters(profile.city);
@@ -87,6 +87,7 @@ export default function Home() {
       joinedTags,
     );
   }, [allEvents, rsvps, feed.upcoming, feed.today, profile.interests]);
+  const highlights = useMemo(() => pickHighlights(feed.upcoming, profile.follows, now), [feed.upcoming, profile.follows, now]);
   const rails = useMemo(() => {
     const todayIds = new Set(feed.today.map((e) => e.id));
     return railsByCategory(feed.upcoming.filter((e) => !todayIds.has(e.id)));
@@ -173,6 +174,11 @@ export default function Home() {
       >
         {/* 0 — lead: who and what is happening now */}
         <View>
+          {/* the skyline sits behind the greeting instead of taking its own row */}
+          <View style={s.heroArea}>
+          <View pointerEvents="none" style={s.bandBehind}>
+            <CityBand height={wide ? 150 : 120} />
+          </View>
           <View style={[s.column, column]}>
             <TopBar>
               {/* the city everything below is about; tap to switch */}
@@ -209,7 +215,7 @@ export default function Home() {
               </Sticker>
             </Animated.View>
 
-            <Display size={wide ? 52 : 38} style={s.hero}>
+            <Display size={wide ? 52 : viewportW < 360 ? 32 : 36} style={s.hero}>
               {t.hero_q}
             </Display>
             <View style={s.heroMeta}>
@@ -228,14 +234,12 @@ export default function Home() {
             </View>
           </View>
 
-          {/* full-bleed skyline: the city spans the window, not the column */}
-          <View style={s.band}>
-            <CityBand height={wide ? 120 : 88} />
           </View>
 
-          {!filters.tag && (
-            <View style={[s.column, column]}>
-              <FriendsStrip />
+          {/* a few events worth opening, before anything else */}
+          {!filters.tag && highlights.length > 0 && (
+            <View style={[s.column, column, s.highlights]}>
+              <EventRail title={t.highlights_title} events={highlights} source="highlights" />
             </View>
           )}
 
@@ -284,6 +288,7 @@ export default function Home() {
                   source={`rail_${cat}`}
                 />
               ))}
+              <FriendsStrip />
             </View>
           )}
         </View>
@@ -365,7 +370,10 @@ const useStyles = makeStyles((t) =>
     surprise: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44 },
     surpriseText: { color: t.c.text, fontSize: 15, fontWeight: '700', textDecorationLine: 'underline' },
 
-    band: { marginTop: space.sm, marginBottom: space.xl },
+    heroArea: { paddingBottom: space.lg, marginBottom: space.md },
+    // full-bleed, faded, anchored to the bottom of the hero: scenery, not content
+    bandBehind: { position: 'absolute', left: 0, right: 0, bottom: 0, opacity: 0.45 },
+    highlights: { marginBottom: space.sm },
 
     today: { marginTop: space.xs, marginBottom: space.xl, gap: space.md },
     rails: { gap: space.md, marginBottom: space.md },

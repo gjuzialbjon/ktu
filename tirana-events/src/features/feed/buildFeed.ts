@@ -92,3 +92,23 @@ export function railsByCategory(events: EventItem[]): { cat: Category; items: Ev
     .map(([cat, items]) => ({ cat, items }))
     .sort((a, b) => b.items.length - a.items.length || a.cat.localeCompare(b.cat));
 }
+
+export const HIGHLIGHTS_MAX = 5;
+
+/**
+ * The few events worth leading the home screen with. Score: sponsored first (paid
+ * placement, already capped per city), then people you follow going, then turnout and
+ * likes, with a small nudge for the next two days. Stable: ties go to the sooner event.
+ */
+export function pickHighlights(upcoming: EventItem[], follows: string[], now: Date, max = HIGHLIGHTS_MAX): EventItem[] {
+  const soon = now.getTime() + 48 * 3600_000;
+  const score = (e: EventItem) =>
+    (e.isSponsored ? 100 : 0) +
+    e.goingUserIds.filter((id) => follows.includes(id)).length * 3 +
+    e.goingUserIds.length +
+    (e.likeCount ?? 0) / 10 +
+    (new Date(e.startsAt).getTime() <= soon ? 2 : 0);
+  return [...upcoming]
+    .sort((a, b) => score(b) - score(a) || a.startsAt.localeCompare(b.startsAt))
+    .slice(0, max);
+}
