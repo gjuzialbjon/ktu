@@ -24,13 +24,26 @@ export function Emoji({ children, size = 16 }: { children: string; size?: number
 export function Chevron({ open, color, size = 12 }: { open: boolean; color: string; size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 12 12" style={{ transform: [{ rotate: open ? '180deg' : '0deg' }] }}>
-      <Path d="M2.5 4.5 L6 8 L9.5 4.5" stroke={color} strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <Path
+        d="M2.5 4.5 L6 8 L9.5 4.5"
+        stroke={color}
+        strokeWidth={1.8}
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </Svg>
   );
 }
 
 /** Heading text in the theme's display face. */
-export function Display({ children, size = 24, color, numberOfLines, style }: {
+export function Display({
+  children,
+  size = 24,
+  color,
+  numberOfLines,
+  style,
+}: {
   children: React.ReactNode;
   size?: number;
   color?: string;
@@ -42,7 +55,11 @@ export function Display({ children, size = 24, color, numberOfLines, style }: {
     <Text
       accessibilityRole="header"
       numberOfLines={numberOfLines}
-      style={[{ fontFamily: t.font, fontSize: size, lineHeight: Math.round(size * 1.15), color: color ?? t.c.text }, style]}
+      maxFontSizeMultiplier={1.4}
+      style={[
+        { fontFamily: t.font, fontSize: size, lineHeight: Math.round(size * 1.15), color: color ?? t.c.text },
+        style,
+      ]}
     >
       {children}
     </Text>
@@ -66,10 +83,8 @@ export function Chip({
 }) {
   const t = useTheme();
   const s = useStyles();
-  const bg =
-    tone === 'sponsored' ? t.c.sponsored : tone === 'free' ? t.c.free : active ? t.c.text : t.c.surface;
-  const fg =
-    tone === 'sponsored' ? t.c.onSponsored : tone === 'free' ? t.c.onFree : active ? t.c.bg : t.c.text;
+  const bg = tone === 'sponsored' ? t.c.sponsored : tone === 'free' ? t.c.free : active ? t.c.text : t.c.surface;
+  const fg = tone === 'sponsored' ? t.c.onSponsored : tone === 'free' ? t.c.onFree : active ? t.c.bg : t.c.text;
   return (
     <Pressable
       onPress={onPress}
@@ -78,6 +93,7 @@ export function Chip({
       accessibilityState={onPress ? { selected: !!active } : undefined}
       accessibilityLabel={accessibilityLabel ?? label}
       hitSlop={6}
+      android_ripple={{ color: t.dark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.10)', foreground: true }}
       style={({ pressed }) => [
         s.chip,
         { backgroundColor: bg, borderColor: active || tone !== 'default' ? bg : t.c.border },
@@ -188,6 +204,7 @@ export function Button({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
+      android_ripple={{ color: t.dark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.12)', foreground: true }}
       style={({ pressed }) => [
         s.btn,
         {
@@ -214,6 +231,7 @@ const useStyles = makeStyles((t) =>
       borderRadius: 999,
       borderWidth: t.outline,
       marginRight: 8,
+      overflow: 'hidden',
     },
     chipText: { fontSize: 14, fontWeight: '600' },
     tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
@@ -230,6 +248,7 @@ const useStyles = makeStyles((t) =>
       alignItems: 'center',
       justifyContent: 'center',
       paddingHorizontal: 16,
+      overflow: 'hidden',
     },
     btnText: { fontWeight: '700', fontSize: 16 },
   }),

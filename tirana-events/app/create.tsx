@@ -110,7 +110,13 @@ export default function CreateEvent() {
   return (
     <>
       <Stack.Screen options={{ title: t.create_event }} />
-      <ScrollView style={s.scroll} contentContainerStyle={s.content}>
+      <ScrollView
+        style={s.scroll}
+        contentContainerStyle={s.content}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        automaticallyAdjustKeyboardInsets
+      >
         <Text style={s.hint}>{t.create_hint}</Text>
 
         <Text style={s.label}>{t.ev_photo}</Text>
@@ -135,9 +141,27 @@ export default function CreateEvent() {
           </Pressable>
         )}
 
-        <Field label={t.ev_title} value={title} onChange={(v) => { setTitle(v); clearError('title'); }} required error={errors.title} />
+        <Field
+          label={t.ev_title}
+          value={title}
+          onChange={(v) => {
+            setTitle(v);
+            clearError('title');
+          }}
+          required
+          error={errors.title}
+        />
         <Field label={t.ev_desc} value={desc} onChange={setDesc} multiline />
-        <Field label={t.ev_venue} value={venue} onChange={(v) => { setVenue(v); clearError('venue'); }} required error={errors.venue} />
+        <Field
+          label={t.ev_venue}
+          value={venue}
+          onChange={(v) => {
+            setVenue(v);
+            clearError('venue');
+          }}
+          required
+          error={errors.venue}
+        />
 
         <Text style={s.label}>
           {t.ev_hood}
@@ -163,12 +187,35 @@ export default function CreateEvent() {
           dateLabel={t.ev_date}
           timeLabel={t.ev_time}
           value={when}
-          onChange={(d) => { setWhen(d); clearError('date'); }}
+          onChange={(d) => {
+            setWhen(d);
+            clearError('date');
+          }}
           errorDate={errors.date}
           requiredMark
         />
-        <Field label={t.ev_tags} value={tags} onChange={(v) => { setTags(v); clearError('tags'); }} required error={errors.tags} placeholder="yoga, outdoor" />
-        <Field label={t.ev_price} value={price} onChange={(v) => { setPrice(v); clearError('price'); }} keyboard="numeric" error={errors.price} placeholder="700" />
+        <Field
+          label={t.ev_tags}
+          value={tags}
+          onChange={(v) => {
+            setTags(v);
+            clearError('tags');
+          }}
+          required
+          error={errors.tags}
+          placeholder="yoga, outdoor"
+        />
+        <Field
+          label={t.ev_price}
+          value={price}
+          onChange={(v) => {
+            setPrice(v);
+            clearError('price');
+          }}
+          keyboard="numeric"
+          error={errors.price}
+          placeholder="700"
+        />
 
         <View style={{ height: 14 }} />
         <Button label={t.submit} onPress={onSubmit} />
@@ -237,7 +284,8 @@ const useStyles = makeStyles((t) =>
       minHeight: 48,
       marginBottom: 4,
     },
-    inputError: { borderColor: t.c.danger, borderWidth: 2 },
+    // thicker error border eats into the padding, so the text never moves when an error appears
+    inputError: { borderColor: t.c.danger, borderWidth: 2, padding: 12 - (2 - Math.min(t.outline, 2)) },
     errorText: { color: t.c.danger, fontSize: 14, fontWeight: '600', marginBottom: 4 },
     hoodRow: { flexDirection: 'row', flexWrap: 'wrap' },
     photoBox: {

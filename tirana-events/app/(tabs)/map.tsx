@@ -19,6 +19,7 @@ import { useNow } from '../../lib/useNow';
 const BOUNDS = { latMin: 41.3, latMax: 41.345, lngMin: 19.77, lngMax: 19.875 };
 const W = 360;
 const H = 420;
+const PIN_HIT = 44;
 
 function project(lat: number, lng: number): { x: number; y: number } {
   const x = ((lng - BOUNDS.lngMin) / (BOUNDS.lngMax - BOUNDS.lngMin)) * W;
@@ -47,6 +48,7 @@ export default function MapScreen() {
   const selected = pins.find((p) => p.event.id === selectedId)?.event ?? null;
   const mapWidth = Math.min(width - 32, 640);
   const mapHeight = (mapWidth / W) * H;
+  const scale = mapWidth / W; // viewBox units → points
   const m = theme.map;
   const roadW = theme.id === 'fasadat' ? 3 : 7;
 
@@ -94,8 +96,7 @@ export default function MapScreen() {
               const color = theme.cat[event.category];
               const isSel = event.id === selectedId;
               return (
-                <G key={event.id} onPress={() => setSelectedId(isSel ? null : event.id)}>
-                  <Circle cx={x} cy={y} r={22} fill="transparent" />
+                <G key={event.id}>
                   {isSel && <Circle cx={x} cy={y} r={17} fill={color} opacity={0.3} />}
                   <Circle
                     cx={x}
@@ -112,6 +113,21 @@ export default function MapScreen() {
               );
             })}
           </Svg>
+          {/* Hit targets as real Pressables over the drawing: SVG onPress leaks touch-responder
+              props onto web <g> elements, and has no accessible name. 44pt targets, centred on each pin. */}
+          {pins.map(({ event, x, y }) => {
+            const isSel = event.id === selectedId;
+            return (
+              <Pressable
+                key={event.id}
+                onPress={() => setSelectedId(isSel ? null : event.id)}
+                accessibilityRole="button"
+                accessibilityLabel={event.title}
+                accessibilityState={{ selected: isSel }}
+                style={[s.pinHit, { left: x * scale - PIN_HIT / 2, top: y * scale - PIN_HIT / 2 }]}
+              />
+            );
+          })}
         </View>
 
         <Text style={s.disclaimer}>{t.stylized_map}</Text>
@@ -170,6 +186,7 @@ const useStyles = makeStyles((t) =>
     headerBlock: { alignSelf: 'stretch', maxWidth: 640, width: '100%', marginBottom: 14, gap: 2 },
     sub: { color: t.c.textDim, fontSize: 15 },
     mapCard: { borderRadius: radius.lg, overflow: 'hidden', borderWidth: t.outline, borderColor: t.c.border },
+    pinHit: { position: 'absolute', width: PIN_HIT, height: PIN_HIT, borderRadius: PIN_HIT / 2 },
     disclaimer: { color: t.c.textDim, fontSize: 12, marginTop: 8 },
     preview: {
       marginTop: 14,

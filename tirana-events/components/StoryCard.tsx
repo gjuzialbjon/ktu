@@ -60,7 +60,7 @@ export function StoryCard({ event, source }: { event: EventItem; source: string 
               )}
               <View style={s.bottom}>
                 <Text style={s.when}>{when}</Text>
-                <Text style={[s.title, { fontFamily: theme.font }]} numberOfLines={3}>
+                <Text style={[s.title, { fontFamily: theme.font }]} numberOfLines={3} maxFontSizeMultiplier={1.3}>
                   {event.title}
                 </Text>
                 {friends.length > 0 && (

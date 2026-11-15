@@ -21,6 +21,8 @@ const sq = {
   share_msg: (title: string, when: string, venue: string) =>
     `${title}\n${when}, ${venue}\nPo vij unë. Hajde edhe ti! `,
   my_events: 'Eventet e mia',
+  /** tab bar label: must fit ~75px on a 320pt-wide iPhone SE */
+  tab_mine: 'Axhenda',
   upcoming: 'Në vijim',
   past: 'Të kaluara',
   no_events: 'Asnjë event ende. Gjej diçka te Tirana.',
@@ -149,6 +151,7 @@ const en: Dict = {
   share_msg: (title: string, when: string, venue: string) =>
     `${title}\n${when}, ${venue}\nI'm going. Join me! `,
   my_events: 'My events',
+  tab_mine: 'My events',
   upcoming: 'Upcoming',
   past: 'Past',
   no_events: 'Nothing yet. Find something in Tirana.',

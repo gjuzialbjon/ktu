@@ -22,6 +22,10 @@ import { Avatar, Button, Chip, Display, Emoji, TagRow } from '../../components/u
 import { track } from '../../lib/analytics';
 import { FaqItem } from '../../lib/types';
 import { EventPhoto } from '../../components/EventPhoto';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Share2 from 'lucide-react-native/icons/share-2';
+import { hapticSuccess } from '../../lib/haptics';
+import { useKeyboardVisible } from '../../lib/useKeyboardVisible';
 
 export default function EventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -31,6 +35,8 @@ export default function EventDetail() {
   const { t, lang } = useI18n();
   const { events, people, profile, rsvps, join, cancel, comments, addComment } = useStore();
   const [draft, setDraft] = useState('');
+  const insets = useSafeAreaInsets();
+  const keyboardOpen = useKeyboardVisible();
 
   const event = events.find((e) => e.id === id);
   if (!event) {
@@ -62,6 +68,11 @@ export default function EventDetail() {
     }
   };
 
+  const onJoin = () => {
+    join(event.id);
+    hapticSuccess();
+  };
+
   const onMap = () => {
     const q = encodeURIComponent(`${event.venueName}, Tirana`);
     Linking.openURL(
@@ -78,7 +89,12 @@ export default function EventDetail() {
     <>
       <Stack.Screen options={{ title: event.title }} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView style={s.scroll} contentContainerStyle={s.content}>
+        <ScrollView
+          style={s.scroll}
+          contentContainerStyle={[s.content, { paddingBottom: 112 + insets.bottom }]}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+        >
           <View>
             <EventPhoto event={event} style={s.img} emojiSize={64} />
             <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.55)']} style={s.fade} />
@@ -130,35 +146,21 @@ export default function EventDetail() {
             {spotsLeft != null && <Row label="" value={t.capacity_left(Math.max(spotsLeft, 0))} />}
           </View>
 
-          {/* Primary action, with the payment promise stated before the tap */}
-          <View style={{ marginTop: 16, gap: 8 }}>
-            {rsvp ? (
-              <View style={s.rsvpBox}>
-                <Text style={s.rsvpTitle}>{t.youre_going}</Text>
-                {rsvp.reservationCode && (
-                  <View style={s.qrBox}>
-                    <View style={s.qrWrap}>
-                      <QRCode value={rsvp.reservationCode} size={128} backgroundColor="#FFFFFF" color="#000000" />
-                    </View>
-                    <Text style={s.code}>{rsvp.reservationCode}</Text>
-                    <Text style={s.payNote}>{t.pay_at_door(event.ticketPriceLek ?? 0)}</Text>
+          {/* once you're going, the pass (QR for ticketed events) lives in the page; actions live in the bar */}
+          {rsvp && (
+            <View style={[s.rsvpBox, { marginTop: 16 }]}>
+              <Text style={s.rsvpTitle}>{t.youre_going}</Text>
+              {rsvp.reservationCode && (
+                <View style={s.qrBox}>
+                  <View style={s.qrWrap}>
+                    <QRCode value={rsvp.reservationCode} size={128} backgroundColor="#FFFFFF" color="#000000" />
                   </View>
-                )}
-                <Button label={t.cancel_rsvp} tone="ghost" onPress={() => cancel(event.id)} />
-              </View>
-            ) : (
-              <>
-                {event.priceType === 'ticketed' && event.ticketPriceLek ? (
-                  <Text style={s.payPromise}>
-                    {t.price_door(event.ticketPriceLek)}
-                    {lang === 'en' ? `  ${t.eur_hint(lekToEur(event.ticketPriceLek))}` : ''}
-                  </Text>
-                ) : null}
-                <Button label={event.priceType === 'free' ? t.im_going : t.reserve} onPress={() => join(event.id)} />
-              </>
-            )}
-            <Button label={t.share} tone="ghost" onPress={onShare} />
-          </View>
+                  <Text style={s.code}>{rsvp.reservationCode}</Text>
+                  <Text style={s.payNote}>{t.pay_at_door(event.ticketPriceLek ?? 0)}</Text>
+                </View>
+              )}
+            </View>
+          )}
 
           <Display size={20} style={s.section}>
             {t.about}
@@ -243,6 +245,48 @@ export default function EventDetail() {
             </Pressable>
           </View>
         </ScrollView>
+
+        {/* sticky action bar in thumb reach; steps aside while the keyboard is up */}
+        {!keyboardOpen && (
+          <View style={[s.actionBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+            <View style={s.actionInner}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t.share}
+                onPress={onShare}
+                style={({ pressed }) => [s.shareBtn, pressed && { opacity: 0.7 }]}
+              >
+                <Share2 color={theme.c.text} size={22} strokeWidth={2} />
+              </Pressable>
+              {rsvp ? (
+                <>
+                  <Text style={s.barStatus} numberOfLines={1}>
+                    {t.youre_going}
+                  </Text>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => cancel(event.id)}
+                    style={({ pressed }) => [s.barGhost, pressed && { opacity: 0.7 }]}
+                  >
+                    <Text style={s.barGhostText}>{t.cancel_rsvp}</Text>
+                  </Pressable>
+                </>
+              ) : (
+                <>
+                  <Text style={s.barPrice} numberOfLines={2}>
+                    {event.priceType === 'ticketed' && event.ticketPriceLek
+                      ? t.price_door(event.ticketPriceLek) +
+                        (lang === 'en' ? `  ${t.eur_hint(lekToEur(event.ticketPriceLek))}` : '')
+                      : t.free}
+                  </Text>
+                  <View style={s.barCta}>
+                    <Button label={event.priceType === 'free' ? t.im_going : t.reserve} onPress={onJoin} />
+                  </View>
+                </>
+              )}
+            </View>
+          </View>
+        )}
       </KeyboardAvoidingView>
     </>
   );
@@ -344,6 +388,42 @@ const useStyles = makeStyles((t) =>
     faqToggle: { color: t.c.text, fontSize: 22, fontWeight: '700' },
     faqA: { color: t.c.textDim, fontSize: 15, lineHeight: 22, marginTop: 10 },
     avatars: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
+    actionBar: {
+      backgroundColor: t.c.surface,
+      borderTopWidth: Math.max(StyleSheet.hairlineWidth, t.outline - 1),
+      borderTopColor: t.c.border,
+      paddingTop: 10,
+      paddingHorizontal: 16,
+    },
+    actionInner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      maxWidth: 680,
+      width: '100%',
+      alignSelf: 'center',
+    },
+    shareBtn: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      borderWidth: t.outline,
+      borderColor: t.c.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    barPrice: { flex: 1, color: t.c.text, fontSize: 14, fontWeight: '600' },
+    barStatus: { flex: 1, color: t.c.text, fontSize: 15, fontWeight: '700' },
+    barCta: { minWidth: 150 },
+    barGhost: {
+      minHeight: 44,
+      paddingHorizontal: 14,
+      justifyContent: 'center',
+      borderRadius: 999,
+      borderWidth: t.outline,
+      borderColor: t.c.border,
+    },
+    barGhostText: { color: t.c.text, fontWeight: '600', fontSize: 14 },
     rsvpBox: {
       backgroundColor: t.c.surface,
       borderColor: t.c.free,

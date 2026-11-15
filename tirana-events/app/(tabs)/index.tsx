@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import Plus from 'lucide-react-native/icons/plus';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
@@ -43,7 +44,15 @@ export default function Home() {
   const [freeOnly, setFreeOnly] = useState(false);
   const [panel, setPanel] = useState<Panel>(null);
   const nowMs = useNow();
-  const now = useMemo(() => new Date(nowMs), [nowMs]);
+  // pull-to-refresh: re-syncs the clock now; with a backend it is also where events get refetched
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshedAt, setRefreshedAt] = useState(0);
+  const now = useMemo(() => new Date(Math.max(nowMs, refreshedAt)), [nowMs, refreshedAt]);
+  const onRefresh = () => {
+    setRefreshing(true);
+    setRefreshedAt(Date.now());
+    setTimeout(() => setRefreshing(false), 450);
+  };
 
   const { width } = useWindowDimensions();
   const cols = width >= 1280 ? 3 : width >= 768 ? 2 : 1;
@@ -57,7 +66,10 @@ export default function Home() {
   const filtering = when !== 'all' || !!hood || extraFilters > 0 || !!tag;
 
   const upcoming = useMemo(
-    () => [...events].filter((e) => bucketOf(e.startsAt, now) !== 'past').sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
+    () =>
+      [...events]
+        .filter((e) => bucketOf(e.startsAt, now) !== 'past')
+        .sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
     [events, now],
   );
 
@@ -92,7 +104,12 @@ export default function Home() {
   // "Popular" is relative: at most the two busiest events in view, and only if busy.
   const popularIds = useMemo(() => {
     const ranked = [...list].sort((a, b) => b.goingUserIds.length - a.goingUserIds.length);
-    return new Set(ranked.filter((e) => e.goingUserIds.length >= 4).slice(0, 2).map((e) => e.id));
+    return new Set(
+      ranked
+        .filter((e) => e.goingUserIds.length >= 4)
+        .slice(0, 2)
+        .map((e) => e.id),
+    );
   }, [list]);
 
   const weekCount = useMemo(() => events.filter((e) => isThisWeek(e.startsAt, now)).length, [events, now]);
@@ -120,14 +137,32 @@ export default function Home() {
   };
 
   const sectionTitle = (key: TimeBucket) =>
-    key === 'today' ? todayTitle : key === 'tomorrow' ? t.sec_tomorrow : key === 'weekend' ? t.sec_weekend : t.sec_later;
+    key === 'today'
+      ? todayTitle
+      : key === 'tomorrow'
+        ? t.sec_tomorrow
+        : key === 'weekend'
+          ? t.sec_weekend
+          : t.sec_later;
   const whenLabel = (w: WhenFilter) =>
     w === 'all' ? t.when_all : w === 'tomorrow' ? t.when_tomorrow : w === 'weekend' ? t.when_weekend : t.when_today;
   const hoodLabel = hood ? t[`hood_${hood}` as const] : t.hood_all;
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      <ScrollView stickyHeaderIndices={[1]} contentContainerStyle={s.scroll}>
+      <ScrollView
+        stickyHeaderIndices={[1]}
+        contentContainerStyle={s.scroll}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.c.text}
+            colors={[theme.c.primary]}
+            progressBackgroundColor={theme.c.surface}
+          />
+        }
+      >
         {/* 0 — lead: who and what is happening now */}
         <View>
           <View style={[s.column, column]}>
@@ -151,7 +186,7 @@ export default function Home() {
                   onPress={() => router.push('/create')}
                   style={({ pressed }) => [s.iconBtn, s.iconBtnFilled, pressed && { opacity: 0.8 }]}
                 >
-                  <Text style={[s.iconText, s.plus]}>+</Text>
+                  <Plus color={theme.c.onPrimary} size={22} strokeWidth={2.4} />
                 </Pressable>
               </View>
             </View>
@@ -250,7 +285,14 @@ export default function Home() {
 
             {panel === 'where' && (
               <View style={s.panel}>
-                <Chip label={t.hood_all} active={!hood} onPress={() => { setHood(null); setPanel(null); }} />
+                <Chip
+                  label={t.hood_all}
+                  active={!hood}
+                  onPress={() => {
+                    setHood(null);
+                    setPanel(null);
+                  }}
+                />
                 {NEIGHBORHOODS.map((h) => (
                   <Chip
                     key={h}
@@ -376,10 +418,15 @@ const useStyles = makeStyles((t) =>
     },
     iconBtnFilled: { backgroundColor: t.c.primary, borderColor: t.c.primary },
     iconText: { color: t.c.text, fontSize: 13, fontWeight: '800' },
-    plus: { color: t.c.onPrimary, fontSize: 22, lineHeight: 24 },
 
     hero: { marginTop: space.lg },
-    heroMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md, marginTop: space.sm },
+    heroMeta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: space.md,
+      marginTop: space.sm,
+    },
     sub: { color: t.c.textDim, fontSize: 15 },
     surprise: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44 },
     surpriseText: { color: t.c.text, fontSize: 15, fontWeight: '700', textDecorationLine: 'underline' },
@@ -405,7 +452,13 @@ const useStyles = makeStyles((t) =>
       borderRadius: 999,
       padding: 3,
     },
-    segItem: { minHeight: 38, borderRadius: 999, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.md },
+    segItem: {
+      minHeight: 38,
+      borderRadius: 999,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: space.md,
+    },
     segText: { fontSize: 14, fontWeight: '700' },
     disclosure: {
       flexDirection: 'row',
