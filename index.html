@@ -16,6 +16,13 @@
       body {
         overflow: hidden;
       }
+      /* Set before JS runs: otherwise the browser's default 8px body margin stays until
+         react-native-web resets it, and the whole app jumps on first paint. The background
+         is the default (liqeni) theme's, so there is no white flash while fonts load. */
+      body {
+        margin: 0;
+        background-color: #eaf3ee;
+      }
       /* These styles make the root element full-height */
       #root {
         display: flex;
@@ -30,6 +37,6 @@
     <noscript> You need to enable JavaScript to run this app. </noscript>
     <!-- The root element for your Expo app. -->
     <div id="root"></div>
-  <script src="/ktu/_expo/static/js/web/__expo-metro-runtime-8c088df87a31e4e6accd81c554ec290d.js" defer></script><script src="/ktu/_expo/static/js/web/__common-5cf0bb8d38223e228c88af2ef0d48346.js" defer></script><script src="/ktu/_expo/static/js/web/entry-c9a378cf4452cca79b4234aef46979b6.js" defer></script>
+  <script src="/ktu/_expo/static/js/web/__expo-metro-runtime-8c088df87a31e4e6accd81c554ec290d.js" defer></script><script src="/ktu/_expo/static/js/web/__common-ea29dc2c1b4908b0f459a457e6eb1673.js" defer></script><script src="/ktu/_expo/static/js/web/entry-136e4dd4cb4ba99c21113bf96172e1ef.js" defer></script>
 </body>
 </html>
