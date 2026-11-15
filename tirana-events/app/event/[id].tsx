@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Image,
   KeyboardAvoidingView,
   Linking,
   Platform,
@@ -22,6 +21,7 @@ import { firstName, formatWhen, initials, joinNames, lekToEur } from '../../lib/
 import { Avatar, Button, Chip, Display, Emoji, TagRow } from '../../components/ui';
 import { track } from '../../lib/analytics';
 import { FaqItem } from '../../lib/types';
+import { EventPhoto } from '../../components/EventPhoto';
 
 export default function EventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -53,7 +53,9 @@ export default function EventDetail() {
   const onShare = async () => {
     track('share_card_created', { eventId: event.id, tags: event.tags });
     try {
-      await Share.share({ message: t.share_msg(event.title, when, event.venueName) + `tiranaevents://event/${event.id}` });
+      await Share.share({
+        message: t.share_msg(event.title, when, event.venueName) + `tiranaevents://event/${event.id}`,
+      });
       track('share_completed', { eventId: event.id });
     } catch {
       // user dismissed the share sheet
@@ -78,7 +80,7 @@ export default function EventDetail() {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView style={s.scroll} contentContainerStyle={s.content}>
           <View>
-            <Image source={{ uri: event.coverImage }} style={s.img} accessibilityIgnoresInvertColors />
+            <EventPhoto event={event} style={s.img} emojiSize={64} />
             <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.55)']} style={s.fade} />
             <View style={s.badges}>
               <View style={[s.catBubble, { backgroundColor: theme.cat[event.category] }]}>
@@ -93,13 +95,20 @@ export default function EventDetail() {
             </View>
           </View>
 
+          {event.photoCredit ? <Text style={s.credit}>{event.photoCredit}</Text> : null}
           <Text style={s.whenTop}>{when}</Text>
           <Display size={30}>{event.title}</Display>
 
           {friendsGoing.length > 0 && (
             <View style={[s.friendsPill, { backgroundColor: theme.c.social }]}>
               <Text style={[s.friendsText, { color: theme.c.onSocial }]}>
-                {t.friends_going_short(joinNames(friendsGoing.map((f) => firstName(f.name)), t.and_word), friendsGoing.length)}
+                {t.friends_going_short(
+                  joinNames(
+                    friendsGoing.map((f) => firstName(f.name)),
+                    t.and_word,
+                  ),
+                  friendsGoing.length,
+                )}
               </Text>
             </View>
           )}
@@ -284,9 +293,23 @@ const useStyles = makeStyles((t) =>
     img: { width: '100%', height: 250, borderRadius: radius.lg, backgroundColor: t.c.surfaceAlt },
     fade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 120, borderRadius: radius.lg },
     badges: { position: 'absolute', top: 12, left: 12, right: 4, flexDirection: 'row', alignItems: 'center' },
-    catBubble: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginRight: 8 },
+    catBubble: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 8,
+    },
+    credit: { color: t.c.textDim, fontSize: 11, marginTop: 6 },
     whenTop: { color: t.c.textDim, fontSize: 15, fontWeight: '700', marginTop: 16, marginBottom: 4 },
-    friendsPill: { alignSelf: 'flex-start', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6, marginTop: 10 },
+    friendsPill: {
+      alignSelf: 'flex-start',
+      borderRadius: 999,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      marginTop: 10,
+    },
     friendsText: { fontSize: 14, fontWeight: '700' },
     infoBox: {
       backgroundColor: t.c.surface,

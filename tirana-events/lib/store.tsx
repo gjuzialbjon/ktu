@@ -163,7 +163,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       address: e.venueName,
       neighborhood: e.neighborhood,
       startsAt: e.startsAt,
-      coverImage: e.coverImage ?? `https://picsum.photos/seed/${encodeURIComponent(e.title)}/900/560`,
+      coverImage: e.coverImage,
       priceType: e.ticketPriceLek ? 'ticketed' : 'free',
       ticketPriceLek: e.ticketPriceLek,
       source: 'organizer',

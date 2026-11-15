@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
 import { EventItem } from '../lib/types';
@@ -9,11 +9,14 @@ import { useStore } from '../lib/store';
 import { firstName, formatWhen, joinNames } from '../lib/format';
 import { Emoji } from './ui';
 import { track } from '../lib/analytics';
+import { useHoverLift } from './useHoverLift';
+import { EventPhoto } from './EventPhoto';
 
 /** Tall photo tile for the "Tonight" rail — the Instagram-story shape people already scroll. */
 export function StoryCard({ event, source }: { event: EventItem; source: string }) {
   const theme = useTheme();
   const s = useStyles();
+  const hover = useHoverLift();
   const { t, lang } = useI18n();
   const { people, profile } = useStore();
   const friends = people.filter((p) => event.goingUserIds.includes(p.id) && profile.follows.includes(p.id));
@@ -28,34 +31,55 @@ export function StoryCard({ event, source }: { event: EventItem; source: string 
       <Pressable
         accessibilityRole="link"
         accessibilityLabel={`${event.title}, ${when}`}
-        style={({ pressed }) => [s.card, { transform: [{ scale: pressed ? 0.97 : 1 }] }]}
+        {...hover.handlers}
+        style={s.pressable}
       >
-        <Image source={{ uri: event.coverImage }} style={StyleSheet.absoluteFill} accessibilityIgnoresInvertColors />
-        <LinearGradient
-          colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.88)']}
-          style={StyleSheet.absoluteFill}
-        />
-        <View style={[s.bubble, { backgroundColor: theme.cat[event.category] }]}>
-          <Emoji size={18}>{CATEGORY_EMOJI[event.category]}</Emoji>
-        </View>
-        {event.priceType === 'free' && (
-          <View style={[s.badge, { backgroundColor: theme.c.free }]}>
-            <Text style={[s.badgeText, { color: theme.c.onFree }]}>{t.free}</Text>
-          </View>
-        )}
-        <View style={s.bottom}>
-          <Text style={s.when}>{when}</Text>
-          <Text style={[s.title, { fontFamily: theme.font }]} numberOfLines={3}>
-            {event.title}
-          </Text>
-          {friends.length > 0 && (
-            <View style={[s.friends, { backgroundColor: theme.c.social }]}>
-              <Text style={[s.friendsText, { color: theme.c.onSocial }]} numberOfLines={1}>
-                {t.friends_going_short(joinNames(friends.map((f) => firstName(f.name)), t.and_word), friends.length)}
-              </Text>
+        {({ pressed }) => (
+          <Animated.View
+            style={[
+              s.card,
+              { boxShadow: hover.shadow, transform: [{ translateY: hover.translateY }, { scale: pressed ? 0.97 : 1 }] },
+              hover.focusRing,
+            ]}
+          >
+            <View style={s.clip}>
+              <Animated.View style={[StyleSheet.absoluteFill, { transform: [{ scale: hover.photoScale }] }]}>
+                <EventPhoto event={event} style={StyleSheet.absoluteFill} emojiSize={56} />
+              </Animated.View>
+              <LinearGradient
+                colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.88)']}
+                style={StyleSheet.absoluteFill}
+              />
+              <View style={[s.bubble, { backgroundColor: theme.cat[event.category] }]}>
+                <Emoji size={18}>{CATEGORY_EMOJI[event.category]}</Emoji>
+              </View>
+              {event.priceType === 'free' && (
+                <View style={[s.badge, { backgroundColor: theme.c.free }]}>
+                  <Text style={[s.badgeText, { color: theme.c.onFree }]}>{t.free}</Text>
+                </View>
+              )}
+              <View style={s.bottom}>
+                <Text style={s.when}>{when}</Text>
+                <Text style={[s.title, { fontFamily: theme.font }]} numberOfLines={3}>
+                  {event.title}
+                </Text>
+                {friends.length > 0 && (
+                  <View style={[s.friends, { backgroundColor: theme.c.social }]}>
+                    <Text style={[s.friendsText, { color: theme.c.onSocial }]} numberOfLines={1}>
+                      {t.friends_going_short(
+                        joinNames(
+                          friends.map((f) => firstName(f.name)),
+                          t.and_word,
+                        ),
+                        friends.length,
+                      )}
+                    </Text>
+                  </View>
+                )}
+              </View>
             </View>
-          )}
-        </View>
+          </Animated.View>
+        )}
       </Pressable>
     </Link>
   );
@@ -63,16 +87,17 @@ export function StoryCard({ event, source }: { event: EventItem; source: string 
 
 const useStyles = makeStyles((t) =>
   StyleSheet.create({
+    // vertical padding gives the lift and shadow room inside the horizontal scroller
+    pressable: { marginRight: 12, paddingTop: 6, paddingBottom: 14 },
     card: {
       width: 200,
       height: 280,
       borderRadius: radius.lg,
-      overflow: 'hidden',
       backgroundColor: t.c.surfaceAlt,
-      marginRight: 12,
       borderWidth: t.outline,
       borderColor: t.c.border,
     },
+    clip: { flex: 1, borderRadius: radius.lg - t.outline, overflow: 'hidden' },
     bubble: {
       position: 'absolute',
       top: 10,

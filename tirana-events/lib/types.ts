@@ -1,3 +1,5 @@
+import type { ImageSourcePropType } from 'react-native';
+
 export type Category =
   | 'community'
   | 'music'
@@ -54,7 +56,13 @@ export interface EventItem {
   lng?: number;
   startsAt: string; // ISO
   endsAt?: string; // ISO
-  coverImage: string;
+  /**
+   * A URI/data-URL string from the picker, or a bundled asset from require(), which is a number on
+   * iOS/Android but an object ({ uri, width, height }) on web. Missing or broken: EventPhoto shows the category.
+   */
+  coverImage?: string | ImageSourcePropType;
+  /** Attribution shown on the event page; required by most Creative Commons licenses. */
+  photoCredit?: string;
   priceType: PriceType;
   ticketPriceLek?: number;
   capacity?: number;
