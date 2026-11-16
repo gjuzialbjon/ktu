@@ -59,3 +59,18 @@ describe('countThisWeekByCity', () => {
     expect(Object.keys(counts)).toHaveLength(CITY_ORDER.length);
   });
 });
+
+describe('live cities', () => {
+  const { CAN_PICK_CITY, CITIES, DEFAULT_CITY, LIVE_CITIES, isLiveCity } = jest.requireActual('../cities') as typeof import('../cities');
+  it('only lists defined cities, and always includes the default', () => {
+    for (const c of LIVE_CITIES) expect(CITIES[c]).toBeDefined();
+    expect(isLiveCity(DEFAULT_CITY)).toBe(true);
+  });
+  it('shows a city choice only when more than one city is live', () => {
+    expect(CAN_PICK_CITY).toBe(LIVE_CITIES.length > 1);
+  });
+  it('rejects unknown and switched-off cities', () => {
+    expect(isLiveCity('atlantis')).toBe(false);
+    for (const c of Object.keys(CITIES)) expect(isLiveCity(c)).toBe(LIVE_CITIES.includes(c as never));
+  });
+});

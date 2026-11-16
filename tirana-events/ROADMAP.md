@@ -26,6 +26,9 @@ is simulated and marked as such in the code.
 
 ## Next
 
+0. **Other cities (built, switched off).** Durrës, Vlorë, Shkodër, Korçë, Sarandë, Berat and Gjirokastër are
+   fully defined but hidden: Tirana only until it works (board round 5). Switch one on in `LIVE_CITIES`.
+
 1. **Facilitator program.** Rules for who can host, what they do (book the table, welcome
    people, nudge latecomers), and the profile bonus. Needs a backend and a decision on rewards.
 2. **Engagement score.** After an event: who showed up, a one-tap "how was it?", comments,

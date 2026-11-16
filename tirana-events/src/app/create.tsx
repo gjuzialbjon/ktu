@@ -4,7 +4,7 @@ import { Stack, useRouter } from 'expo-router';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
 import { makeStyles } from '@/lib/theme';
-import { CITIES, CITY_ORDER, CityId, areaName, cityName } from '@/data/cities';
+import { CAN_PICK_CITY, CITIES, LIVE_CITIES, CityId, areaName, cityName } from '@/data/cities';
 import { Button, Chip } from '@/components/ui';
 import { DateTimeField } from '@/components/DateTimeField';
 import { Field, FieldError, FieldLabel } from '@/features/create/Field';
@@ -93,14 +93,18 @@ export default function CreateEvent() {
         <Field label={t.ev_desc} value={form.description} onChange={(v) => update('description', v)} multiline />
         <Field label={t.ev_venue} value={form.venue} onChange={(v) => update('venue', v)} required error={err('venue')} />
 
-        <FieldLabel label={t.ev_city} required />
-        <View style={s.hoodRow}>
-          {CITY_ORDER.map((c) => (
-            <View key={c} style={{ marginBottom: 8 }}>
-              <Chip label={cityName(c, lang)} active={city === c} onPress={() => pickCity(c)} />
+        {CAN_PICK_CITY && (
+          <>
+            <FieldLabel label={t.ev_city} required />
+            <View style={s.hoodRow}>
+              {LIVE_CITIES.map((c) => (
+                <View key={c} style={{ marginBottom: 8 }}>
+                  <Chip label={cityName(c, lang)} active={city === c} onPress={() => pickCity(c)} />
+                </View>
+              ))}
             </View>
-          ))}
-        </View>
+          </>
+        )}
 
         <FieldLabel label={t.ev_hood} required />
         <View style={s.hoodRow}>

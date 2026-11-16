@@ -69,6 +69,7 @@ Rules of thumb:
 - **Import with `@/`** (`@/data/store`), never `../../`.
 - **Business rules are pure functions** (`data/events.ts`, `features/*/build*.ts`, `validate*.ts`) that take `now` and ids as arguments. Screens call them; tests call them directly. Nothing in them reads the clock, storage or React.
 - **Cities are data.** Adding one is an entry in `data/cities.ts` plus events; a test checks every seed event sits in a real area of its city and inside its map.
+- **Only Tirana is live.** `LIVE_CITIES` in `data/cities.ts` decides which cities people see. The other seven cities (areas, maps, seed events, partners) stay in the code; add an id to `LIVE_CITIES` to switch one on, and the city picker, the profile setting and the create form's city row come back on their own (they only show when more than one city is live).
 - **Copy lives in `lib/i18n.tsx`** in both languages. A test fails if a key is missing in one language or the two disagree on arguments.
 - **Never put non-route files or tests in `src/app/`**: Expo Router treats every file there as a screen.
 

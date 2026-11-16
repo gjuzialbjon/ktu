@@ -22,8 +22,9 @@ import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedFilters } from '@/features/feed/useFeedFilters';
 import { FilterBar } from '@/features/feed/FilterBar';
 import { CityPicker } from '@/features/city/CityPicker';
-import { cityName } from '@/data/cities';
+import { CAN_PICK_CITY, cityName } from '@/data/cities';
 import MapPin from 'lucide-react-native/icons/map-pin';
+import ArrowUp from 'lucide-react-native/icons/arrow-up';
 import { DiceOrigin, DiceRoll } from '@/features/feed/DiceRoll';
 import type { EventItem } from '@/data/types';
 
@@ -114,10 +115,28 @@ export default function Home() {
       extrapolate: 'clamp',
     });
   }, [todayTop, rowCenters, feed.today, nowLateness, viewportH, scrollY]);
+  // "back to top" shows once you are about a screen down; state flips only when crossing that line
+  const scrollRef = useRef<React.ComponentRef<typeof Animated.ScrollView>>(null);
+  const [showTop, setShowTop] = useState(false);
   const onScroll = useMemo(
-    () => Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: Platform.OS !== 'web' }),
-    [scrollY],
+    () =>
+      Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+        useNativeDriver: Platform.OS !== 'web',
+        listener: (e: { nativeEvent: { contentOffset: { y: number } } }) => {
+          const past = e.nativeEvent.contentOffset.y > viewportH * 0.9;
+          setShowTop((v) => (v === past ? v : past));
+        },
+      }),
+    [scrollY, viewportH],
   );
+  const toTop = () => {
+    track('scroll_to_top');
+    scrollRef.current?.scrollTo({ y: 0, animated: !reduceMotion });
+  };
+
+  // the question always fits on one line: size it from the column width (~0.56em per glyph in
+  // the heading face), between a readable floor and the design size
+  const heroSize = Math.max(15, Math.min(wide ? 40 : 22, Math.floor((Math.min(viewportW, maxW) - space.lg * 2) / (t.hero_q.length * 0.56))));
 
   // one orchestrated moment: the greeting sticker is pressed on when home first appears
   const reduceMotion = useReducedMotion();
@@ -158,6 +177,7 @@ export default function Home() {
     <SafeAreaView style={s.safe} edges={['top']}>
       <SkyBackdrop lateness={lateness} />
       <Animated.ScrollView
+        ref={scrollRef}
         stickyHeaderIndices={[1]}
         onScroll={onScroll}
         scrollEventThrottle={16}
@@ -177,51 +197,59 @@ export default function Home() {
           {/* the skyline sits behind the greeting instead of taking its own row */}
           <View style={s.heroArea}>
           <View pointerEvents="none" style={s.bandBehind}>
-            <CityBand height={wide ? 150 : 120} />
+            <CityBand height={wide ? 110 : 64} />
           </View>
           <View style={[s.column, column]}>
             <TopBar>
-              {/* the city everything below is about; tap to switch */}
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t.a11y_city(cityName(profile.city, lang))}
-                onPress={() => setCityOpen(true)}
-                hitSlop={6}
-                style={({ pressed }) => [s.cityPill, pressed && { opacity: 0.8 }]}
-              >
-                <MapPin color={theme.c.text} size={16} strokeWidth={2.2} />
-                <Text style={s.cityText} numberOfLines={1}>
-                  {cityName(profile.city, lang)}
-                </Text>
-                <Chevron open={false} color={theme.c.text} />
-              </Pressable>
+              {/* city switcher only when more than one city is live (data/cities.ts LIVE_CITIES) */}
+              {CAN_PICK_CITY && (
+                <>
+                  {/* the city everything below is about; tap to switch */}
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t.a11y_city(cityName(profile.city, lang))}
+                    onPress={() => setCityOpen(true)}
+                    hitSlop={6}
+                    style={({ pressed }) => [s.cityPill, pressed && { opacity: 0.8 }]}
+                  >
+                    <MapPin color={theme.c.text} size={16} strokeWidth={2.2} />
+                    <Text style={s.cityText} numberOfLines={1}>
+                      {cityName(profile.city, lang)}
+                    </Text>
+                    <Chevron open={false} color={theme.c.text} />
+                  </Pressable>
+                </>
+              )}
+              {/* the empty middle of the top bar holds the greeting */}
+              {!CAN_PICK_CITY && (
+                <Animated.View
+                  style={{
+                    opacity: stick,
+                    transform: [
+                      { scale: stick.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) },
+                      { rotate: stick.interpolate({ inputRange: [0, 1], outputRange: ['-9deg', '0deg'] }) },
+                    ],
+                  }}
+                >
+                  <Sticker tone={0} tilt={-3} size={19}>
+                    {greetWord}
+                    {name ? `, ${name}` : ''} 👋
+                  </Sticker>
+                </Animated.View>
+              )}
             </TopBar>
 
-            <Animated.View
-              style={[
-                s.greetWrap,
-                {
-                  opacity: stick,
-                  transform: [
-                    { scale: stick.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) },
-                    { rotate: stick.interpolate({ inputRange: [0, 1], outputRange: ['-9deg', '0deg'] }) },
-                  ],
-                },
-              ]}
-            >
-              <Sticker tone={0} tilt={-3} size={22}>
-                {greetWord}
-                {name ? `, ${name}` : ''} 👋
-              </Sticker>
-            </Animated.View>
-
-            <Display size={wide ? 52 : viewportW < 360 ? 32 : 36} style={s.hero}>
+            <Display size={heroSize} numberOfLines={1} style={s.hero}>
               {t.hero_q}
             </Display>
-            <View style={s.heroMeta}>
-              <Text style={s.sub}>{t.feed_subtitle(feed.weekCount)}</Text>
+            <View style={s.metaRow}>
+              <Text style={s.sub} numberOfLines={1}>
+                {/* narrow phones: just the count, so the line never gets cut off */}
+                {viewportW < 360 ? t.city_week(feed.weekCount) : t.feed_subtitle(feed.weekCount)}
+              </Text>
               <Pressable
                 accessibilityRole="button"
+                accessibilityLabel={t.surprise}
                 ref={diceRef}
                 onPress={surprise}
                 disabled={!!roll}
@@ -330,7 +358,18 @@ export default function Home() {
           )}
         </View>
       </Animated.ScrollView>
-      <CityPicker visible={cityOpen} onClose={() => setCityOpen(false)} />
+      {CAN_PICK_CITY && <CityPicker visible={cityOpen} onClose={() => setCityOpen(false)} />}
+      {showTop && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t.back_to_top}
+          onPress={toTop}
+          hitSlop={6}
+          style={({ pressed }) => [s.toTop, pressed && { transform: [{ scale: 0.92 }] }]}
+        >
+          <ArrowUp color={theme.c.text} size={22} strokeWidth={2.4} />
+        </Pressable>
+      )}
       {roll && <DiceRoll key={roll.key} event={roll.event} origin={roll.origin} onOpen={openRolled} />}
     </SafeAreaView>
   );
@@ -340,7 +379,22 @@ const useStyles = makeStyles((t) =>
   StyleSheet.create({
     // the sky sits behind the scroll view, so the screen itself stays see-through
     safe: { flex: 1, backgroundColor: t.c.bg },
-    greetWrap: { alignSelf: 'flex-start', marginTop: space.md },
+    // bottom-right, above the tab bar, clear of the thumb's scroll path
+    toTop: {
+      position: 'absolute',
+      right: space.lg,
+      bottom: space.lg,
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: t.c.surface,
+      borderWidth: t.outline,
+      borderColor: t.c.border,
+      boxShadow: '0 4px 12px rgba(40,30,60,0.18)',
+    },
+    metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
     scroll: { paddingBottom: space.xxxl },
     column: { width: '100%', alignSelf: 'center', paddingHorizontal: space.lg },
 
@@ -358,21 +412,14 @@ const useStyles = makeStyles((t) =>
       borderColor: t.c.border,
     },
     cityText: { color: t.c.text, fontSize: 15, fontWeight: '700', flexShrink: 1 },
-    hero: { marginTop: space.md },
-    heroMeta: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: space.md,
-      marginTop: space.sm,
-    },
-    sub: { color: t.c.textDim, fontSize: 15 },
+    hero: { marginTop: space.sm },
+    sub: { color: t.c.textDim, fontSize: 14, flexShrink: 1 },
     surprise: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44 },
     surpriseText: { color: t.c.text, fontSize: 15, fontWeight: '700', textDecorationLine: 'underline' },
 
-    heroArea: { paddingBottom: space.lg, marginBottom: space.md },
+    heroArea: { paddingBottom: space.md, marginBottom: space.sm },
     // full-bleed, faded, anchored to the bottom of the hero: scenery, not content
-    bandBehind: { position: 'absolute', left: 0, right: 0, bottom: 0, opacity: 0.45 },
+    bandBehind: { position: 'absolute', left: 0, right: 0, bottom: 0, opacity: 0.35 },
     highlights: { marginBottom: space.sm },
 
     today: { marginTop: space.xs, marginBottom: space.xl, gap: space.md },

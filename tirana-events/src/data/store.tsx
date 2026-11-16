@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import type { Comment, EventItem, Profile, PublicUser, Rsvp } from './types';
 import { SEED_COMMENTS, SEED_EVENTS, SEED_PEOPLE } from './seed';
 import { DraftInput, eventsForCity, makeComment, makeDraftEvent, makeRsvp, orderFeedEvents } from './events';
-import { CityId, DEFAULT_CITY, isCityId } from './cities';
+import { CityId, DEFAULT_CITY, isLiveCity } from './cities';
 import { DEMO_APPROVE_AFTER_MS, visibleInFeed } from './access';
 import { KEYS, asArray, asRecord, clearStorage, migrateStorage, readJson, writeJson } from './storage';
 import { track } from '@/lib/analytics';
@@ -58,7 +58,8 @@ const asProfile = (x: unknown): Profile | null => {
   return {
     name: p.name,
     follows: p.follows,
-    city: isCityId(p.city) ? p.city : DEFAULT_CITY,
+    // a city saved while it was live, then switched off, falls back to the default
+    city: isLiveCity(p.city) ? p.city : DEFAULT_CITY,
     interests: Array.isArray(p.interests) ? p.interests.filter((x) => typeof x === 'string') : DEFAULT_INTERESTS,
   };
 };
@@ -124,10 +125,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   usePersist(KEYS.saved, saved, hydrated);
   usePersist(KEYS.stamps, stamps, hydrated);
 
-  const events = useMemo(() => orderFeedEvents([...SEED_EVENTS, ...drafts]), [drafts]);
+  // events in cities that are not live yet stay in the seed but never reach the UI
+  const allEvents = useMemo(() => [...SEED_EVENTS, ...drafts].filter((e) => isLiveCity(e.city)), [drafts]);
+  const events = useMemo(() => orderFeedEvents(allEvents), [allEvents]);
   const cityEvents = useMemo(
-    () => eventsForCity([...SEED_EVENTS, ...drafts], profile.city).filter((e) => visibleInFeed(e, profile, rsvps[e.id])),
-    [drafts, profile, rsvps],
+    () => eventsForCity(allEvents, profile.city).filter((e) => visibleInFeed(e, profile, rsvps[e.id])),
+    [allEvents, profile, rsvps],
   );
 
   // Demo host: a pending request is accepted a few seconds after it was sent (also on the
@@ -193,6 +196,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const setName = useCallback((name: string) => setProfile((p) => ({ ...p, name })), []);
 
   const setCity = useCallback((city: CityId, source: 'home' | 'profile') => {
+    if (!isLiveCity(city)) return;
     setProfile((p) => {
       if (p.city !== city) track('city_changed', { from: p.city, to: city, source });
       return { ...p, city };

@@ -149,6 +149,7 @@ const sq = {
   // home
   today_note: 'nga mengjesi te nata',
   highlights_title: 'Mos i humb',
+  back_to_top: 'Kthehu lart',
   for_you_title: 'Mbase te pelqen',
   for_you_hint: 'Sipas interesave qe ke zgjedh ne profil.',
   by_vibe: 'Sipas qejfit',
@@ -367,6 +368,7 @@ const en: Dict = {
   a11y_profile: 'Your profile',
   today_note: 'morning to late night',
   highlights_title: "Don't miss these",
+  back_to_top: 'Back to top',
   for_you_title: 'Might be your thing',
   for_you_hint: 'Based on the interests you picked in your profile.',
   by_vibe: 'By vibe',

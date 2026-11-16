@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Check from 'lucide-react-native/icons/check';
-import { CITY_ORDER, cityName } from '@/data/cities';
+import { LIVE_CITIES, cityName } from '@/data/cities';
 import { countThisWeekByCity } from './countByCity';
 import { useStore } from '@/data/store';
 import { useI18n } from '@/lib/i18n';
@@ -26,7 +26,7 @@ export function CityPicker({ visible, onClose }: { visible: boolean; onClose: ()
     <Sheet visible={visible} onClose={onClose}>
         <Display size={24}>{t.city_pick_title}</Display>
         <ScrollView style={s.list} contentContainerStyle={{ gap: 6 }}>
-          {CITY_ORDER.map((c) => {
+          {LIVE_CITIES.map((c) => {
             const active = c === profile.city;
             return (
               <Pressable

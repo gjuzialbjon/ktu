@@ -143,6 +143,19 @@ export const CITY_ORDER: CityId[] = ['tirana', 'durres', 'vlore', 'shkoder', 'ko
 
 export const DEFAULT_CITY: CityId = 'tirana';
 
+/**
+ * Cities people can see right now. The others stay fully defined above (areas, map,
+ * seed events, partners) and are ready to switch on: add the id here and the city
+ * picker on home, the profile setting and the create form's city row reappear by
+ * themselves (they only show when more than one city is live).
+ *
+ * Tirana only for now: the board asked to own one city before spreading (founder/board.md, round 5).
+ */
+export const LIVE_CITIES: CityId[] = ['tirana'];
+export const isLiveCity = (x: unknown): x is CityId => typeof x === 'string' && (LIVE_CITIES as string[]).includes(x);
+/** Whether there is a city choice to show at all. */
+export const CAN_PICK_CITY = LIVE_CITIES.length > 1;
+
 export const isCityId = (x: unknown): x is CityId => typeof x === 'string' && x in CITIES;
 
 export const cityName = (id: CityId, lang: Lang): string => CITIES[id].name[lang];

@@ -6,7 +6,7 @@ import { useStore } from '@/data/store';
 import { THEMES, THEME_ORDER, ThemeId, makeStyles, radius, useTheme } from '@/lib/theme';
 import { Avatar, Chip, Display } from '@/components/ui';
 import { DevTools } from '@/features/dev/DevTools';
-import { CITY_ORDER, cityName } from '@/data/cities';
+import { CAN_PICK_CITY, LIVE_CITIES, cityName } from '@/data/cities';
 
 export default function Profile() {
   const { t, lang, setLang } = useI18n();
@@ -40,15 +40,20 @@ export default function Profile() {
           placeholderTextColor={theme.c.textDim}
         />
 
-        <Text style={s.label}>{t.city}</Text>
-        <Text style={s.hint}>{t.city_hint}</Text>
-        <View style={s.wrapRow} accessibilityRole="radiogroup">
-          {CITY_ORDER.map((c) => (
-            <View key={c} style={{ marginBottom: 8 }}>
-              <Chip label={cityName(c, lang)} active={profile.city === c} onPress={() => setCity(c, 'profile')} />
+        {/* only when more than one city is live (data/cities.ts LIVE_CITIES) */}
+        {CAN_PICK_CITY && (
+          <>
+            <Text style={s.label}>{t.city}</Text>
+            <Text style={s.hint}>{t.city_hint}</Text>
+            <View style={s.wrapRow} accessibilityRole="radiogroup">
+              {LIVE_CITIES.map((c) => (
+                <View key={c} style={{ marginBottom: 8 }}>
+                  <Chip label={cityName(c, lang)} active={profile.city === c} onPress={() => setCity(c, 'profile')} />
+                </View>
+              ))}
             </View>
-          ))}
-        </View>
+          </>
+        )}
 
         <View style={s.labelRow}>
           <Text style={[s.label, { marginTop: 0, marginBottom: 0 }]}>{t.interests}</Text>
