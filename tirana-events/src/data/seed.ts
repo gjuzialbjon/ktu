@@ -48,6 +48,7 @@ export const SEED_EVENTS: EventItem[] = [
     description:
       'Mbledhje e lirshme pas pune në tarracën sipër tregut: pije lokale, meze dhe njerëz të rinj. Ejani vetëm ose me shoqëri — grupi është miqësor dhe gjithmonë dikush prezanton.',
     category: 'food',
+    languages: ['sq', 'en', 'it'],
     tags: ['aperitivo', 'meet-people', 'after-work', 'social'],
     faq: [
       { q: 'Duhet të rezervoj?', a: 'Jo, thjesht eja. Trokit "Po vij" që të dimë sa vende të mbajmë.' },
@@ -77,7 +78,8 @@ export const SEED_EVENTS: EventItem[] = [
     description:
       'Natë karaoke me këngë shqip, italisht dhe anglisht. Lista e këngëve hapet në 21:30 — regjistrohu te DJ-ja sa mbërrin.',
     category: 'nightlife',
-    tags: ['karaoke', 'nightlife', 'singing', 'english-friendly'],
+    languages: ['sq', 'en'],
+    tags: ['karaoke', 'nightlife', 'singing'],
     goodToKnow: ['Hyrja falas', 'Lista e këngëve te DJ-ja', 'Mbaron rreth 01:00'],
     venueName: 'Radio Bar',
     address: 'Rruga Ismail Qemali',
@@ -102,6 +104,7 @@ export const SEED_EVENTS: EventItem[] = [
     description:
       'Sesion yoga për të gjitha nivelet pranë Liqenit Artificial. Sillni shtrojën tuaj; disa shtroja rezervë do të ketë. Pas seancës: kafe bashkë te kioska e parkut.',
     category: 'outdoors',
+    languages: ['sq', 'en'],
     tags: ['yoga', 'outdoor', 'beginner-friendly', 'morning', 'wellness'],
     faq: [
       { q: 'Nuk kam bërë kurrë yoga, mund të vij?', a: 'Po! Flow-i është për fillestarë, instruktorja tregon çdo pozicion me variante më të lehta.' },
@@ -133,6 +136,7 @@ export const SEED_EVENTS: EventItem[] = [
     description:
       'Turne miqësor shahu, sistemi zviceran, 5 raunde nga 15 minuta. Të gjitha nivelet. Tabela sigurohen nga klubi; ejani 15 minuta para fillimit për regjistrim.',
     category: 'community',
+    languages: ['sq', 'en'],
     tags: ['chess', 'games', 'tournament', 'indoor'],
     faq: [
       { q: 'A ka çmim për fituesin?', a: 'Simbolik: një libër shahu dhe krenaria. Turneu është për qejf.' },
@@ -229,7 +233,8 @@ export const SEED_EVENTS: EventItem[] = [
     description:
       'Ecje në grup deri te Pllaja e Dajtit, rreth 4 orë vajtje-ardhje, nivel mesatar. Takimi te hyrja e Surrelit në 08:45. Merrni ujë dhe këpucë të përshtatshme.',
     category: 'outdoors',
-    tags: ['hiking', 'outdoor', 'nature', 'group-trip', 'english-friendly'],
+    languages: ['sq', 'en', 'it'],
+    tags: ['hiking', 'outdoor', 'nature', 'group-trip'],
     faq: [
       { q: 'Sa i vështirë është?', a: 'Mesatar: ~600m ngjitje, 4 orë gjithsej me pushime. Fëmijët 10+ e bëjnë pa problem.' },
       { q: 'Si shkohet te Surreli?', a: 'Organizojmë car-pooling në grupin e WhatsApp pas rezervimit — ose taksi ~800 Lekë nga qendra.' },
@@ -259,6 +264,7 @@ export const SEED_EVENTS: EventItem[] = [
     description:
       'Bisedë e hapur me një themelues lokal mbi rritjen e produktit në tregun shqiptar. Networking para dhe pas. Regjistrimi i detyrueshëm, vendet të kufizuara.',
     category: 'business',
+    languages: ['en'],
     tags: ['startup', 'networking', 'tech', 'talk'],
     faq: [
       { q: 'A ka pyetje nga publiku?', a: 'Po, 20 minutat e fundit janë Q&A të hapur + networking me pije.' },
@@ -288,6 +294,7 @@ export const SEED_EVENTS: EventItem[] = [
     description:
       'Muzikë house në tarracë me pamje nga qyteti, nga ora 18 deri në mesnatë. Hyrja me biletë; rezervo këtu dhe paguaj te dera.',
     category: 'nightlife',
+    languages: ['sq', 'en'],
     tags: ['dj', 'house', 'rooftop', 'nightlife'],
     faq: [
       { q: 'Dress code?', a: 'Smart casual. Pa sandale burrash, ju lutemi. 🙂' },
@@ -319,6 +326,7 @@ export const SEED_EVENTS: EventItem[] = [
     description:
       'Gjashtë vende, një tavolinë, zero telefona. Njihu me njerëz të rinj përreth një darke të thjeshtë. Pagesa individuale e menysë në restorant; rezervimi këtu është falas.',
     category: 'food',
+    languages: ['sq', 'en'],
     tags: ['dinner', 'meet-people', 'social', 'small-group'],
     faq: [
       { q: 'Si funksionon saktësisht?', a: '6 të panjohur, një tavolinë e rezervuar, dy pyetje thyese akulli nga ne — pjesa tjetër vjen vetë.' },
@@ -354,6 +362,7 @@ export const SEED_EVENTS: EventItem[] = [
     description:
       'Po mblidhen lojtarë për dy ndeshje 5v5 në fushat e Kombinatit. Niveli: argëtues. Kostoja e fushës ndahet bashkë (~300 lekë për person, cash në vend).',
     category: 'sports',
+    languages: ['sq', 'en', 'es'],
     tags: ['football', 'pickup-game', 'sports', 'evening'],
     goodToKnow: ['~300 Lekë për person, cash', 'Atlete fushe, jo me thumba metalikë', '2 ndeshje × 45 min'],
     venueName: 'Fushat Kombinat',
@@ -380,7 +389,8 @@ export const SEED_EVENTS: EventItem[] = [
     description:
       'Rroba vintage, pllaka vinyl dhe kafe speciale në oborrin e Tulla-s. Hyrja e lirë, shitës lokalë, muzikë gjatë gjithë ditës.',
     category: 'culture',
-    tags: ['market', 'vintage', 'vinyl', 'daytime', 'english-friendly'],
+    languages: ['sq', 'en', 'it'],
+    tags: ['market', 'vintage', 'vinyl', 'daytime'],
     faq: [
       { q: 'A pranojnë kartë shitësit?', a: 'Shumica vetëm cash — ka bankomat 200m larg te Rruga e Elbasanit.' },
     ],
@@ -676,6 +686,7 @@ export const SEED_EVENTS: EventItem[] = [
     description:
       'Një xhiro e qetë 6 km rreth Liqenit Artificial, me ritëm bisede. Askush nuk mbetet pas: mikpritësi vrapon i fundit. Pas vrapit, shtrirje dhe një kafe bashkë.',
     category: 'sports',
+    languages: ['sq', 'en'],
     tags: ['running', 'outdoor', 'beginner-friendly', 'meet-people'],
     goodToKnow: ['Ritëm 6:30–7:00 min/km', 'Çantat mund t’i lini te mikpritësi'],
     venueName: 'Hyrja e Liqenit, te Diga',
@@ -703,6 +714,7 @@ export const SEED_EVENTS: EventItem[] = [
     description:
       'Catan, Dixit, Codenames dhe shumë të tjera. Vjen vetëm? Të gjejmë tavolinë. Shpjegojmë rregullat, s’ka nevojë të dish asgjë.',
     category: 'community',
+    languages: ['sq', 'en', 'es'],
     tags: ['board-games', 'games', 'indoor', 'meet-people'],
     venueName: 'Kafja e Mëngjesit',
     address: 'Rruga e Kavajës',
@@ -747,6 +759,7 @@ export const SEED_EVENTS: EventItem[] = [
     title: 'Shëtitje fotografike nën drita',
     description: 'Me telefon ose aparat, ecim nga Pazari te Skanderbeg dhe fotografojmë qytetin natën. Këshilla të thjeshta gjatë rrugës.',
     category: 'culture',
+    languages: ['sq', 'en', 'it'],
     tags: ['photography', 'walk', 'night', 'beginner-friendly'],
     venueName: 'Sheshi Skënderbej, te Ora',
     address: 'Sheshi Skënderbej',
@@ -769,6 +782,7 @@ export const SEED_EVENTS: EventItem[] = [
     description:
       'Gjashtë njerëz që s’njihen, një tavolinë e gjatë dhe pyetje që hapin bisedë. Mikpritësja kujdeset për rezervimin dhe i bën të gjithë të ndihen rehat.',
     category: 'food',
+    languages: ['sq', 'en'],
     tags: ['dinner', 'meet-people', 'small-group', 'newcomers'],
     goodToKnow: ['Secili paguan darkën e vet', 'Opsione vegjetariane gjithmonë'],
     venueName: 'Te Sofra e Madhe',
@@ -795,6 +809,7 @@ export const SEED_EVENTS: EventItem[] = [
     title: 'Qeramikë për fillestarë',
     description: 'Dy orë me duar në baltë: forma, xhami, dhe një filxhan që e merr me vete pasi piqet.',
     category: 'culture',
+    languages: ['sq', 'it'],
     tags: ['crafts', 'workshop', 'beginner-friendly', 'indoor'],
     goodToKnow: ['Vishu me rroba që s’të vjen keq t’i ndotësh', 'Filxhani gati pas një jave'],
     venueName: 'Punishtja e Baltës',
@@ -821,7 +836,8 @@ export const SEED_EVENTS: EventItem[] = [
     description:
       'Për ata që sapo janë transferuar, studiojnë këtu për pak kohë ose thjesht duan njerëz të rinj. Bisedë në shqip dhe anglisht, pa presion.',
     category: 'community',
-    tags: ['newcomers', 'meet-people', 'english-friendly', 'coffee'],
+    languages: ['sq', 'en', 'it', 'es'],
+    tags: ['newcomers', 'meet-people', 'coffee'],
     venueName: 'Kafja e Mëngjesit',
     address: 'Rruga e Kavajës',
     city: 'tirana',
@@ -844,6 +860,7 @@ export const SEED_EVENTS: EventItem[] = [
     title: 'Agim në Dajt: ngjitje e lehtë',
     description: 'Nisemi herët me teleferik, ecim 5 km në pyll dhe shohim qytetin të zgjohet. Mëngjes i thjeshtë në majë.',
     category: 'outdoors',
+    languages: ['sq', 'en'],
     tags: ['hiking', 'sunrise', 'outdoor', 'nature'],
     goodToKnow: ['Këpucë të mbyllura', 'Teleferiku paguhet veç'],
     venueName: 'Stacioni i Teleferikut',
@@ -868,7 +885,8 @@ export const SEED_EVENTS: EventItem[] = [
     title: 'Stand-up në anglisht',
     description: 'Komedianë vendas dhe të huaj, 8 minuta secili. Open mic në fund për kë guxon.',
     category: 'nightlife',
-    tags: ['comedy', 'english-friendly', 'nightlife', 'evening'],
+    languages: ['en'],
+    tags: ['comedy', 'nightlife', 'evening'],
     venueName: 'Radio Bar',
     address: 'Rruga Ismail Qemali',
     city: 'tirana',

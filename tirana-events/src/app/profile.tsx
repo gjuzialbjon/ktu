@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { useI18n } from '@/lib/i18n';
@@ -7,12 +7,14 @@ import { THEMES, THEME_ORDER, ThemeId, makeStyles, radius, useTheme } from '@/li
 import { Avatar, Chip, Display } from '@/components/ui';
 import { DevTools } from '@/features/dev/DevTools';
 import { CAN_PICK_CITY, LIVE_CITIES, cityName } from '@/data/cities';
+import { HideTopicsSheet } from '@/features/profile/HideTopicsSheet';
 
 export default function Profile() {
   const { t, lang, setLang } = useI18n();
   const theme = useTheme();
   const s = useStyles();
-  const { events, people, profile, toggleFollow, setName, setCity, toggleInterest } = useStore();
+  const { events, people, profile, toggleFollow, setName, setCity, toggleInterest, toggleHidden } = useStore();
+  const [hideOpen, setHideOpen] = useState(false);
   // every tag in use, most common first, plus anything the user picked that is no longer in use
   const tagChoices = useMemo(() => {
     const counts = new Map<string, number>();
@@ -20,6 +22,12 @@ export default function Profile() {
     const common = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([tag]) => tag).slice(0, 24);
     return [...new Set([...profile.interests, ...common])];
   }, [events, profile.interests]);
+  // the hide sheet offers every topic in use (plus whatever is already hidden), likes excluded
+  const hideChoices = useMemo(() => {
+    const all = new Set<string>(profile.hidden);
+    for (const e of events) for (const tag of e.tags) all.add(tag);
+    return [...all].filter((tag) => !profile.interests.includes(tag)).sort();
+  }, [events, profile.hidden, profile.interests]);
 
   const themeName = (id: ThemeId) => t[`theme_${id}` as const];
   const themeDesc = (id: ThemeId) => t[`theme_desc_${id}` as const];
@@ -66,6 +74,27 @@ export default function Profile() {
             </View>
           ))}
         </View>
+
+        <Text style={s.label}>{t.hidden_title}</Text>
+        <Text style={s.hint}>{t.hidden_hint}</Text>
+        <View style={s.wrapRow}>
+          {profile.hidden.length === 0 && <Text style={[s.hint, { marginRight: 12 }]}>{t.hidden_none}</Text>}
+          {profile.hidden.map((tag) => (
+            <View key={tag} style={{ marginBottom: 8 }}>
+              <Chip
+                emoji="🙈"
+                label={`#${tag}  ✕`}
+                active
+                accessibilityLabel={t.a11y_unhide(tag)}
+                onPress={() => toggleHidden(tag)}
+              />
+            </View>
+          ))}
+          <View style={{ marginBottom: 8 }}>
+            <Chip label={`+ ${t.hidden_add}`} onPress={() => setHideOpen(true)} />
+          </View>
+        </View>
+        <HideTopicsSheet visible={hideOpen} onClose={() => setHideOpen(false)} tags={hideChoices} />
 
         <Text style={s.label}>{t.theme}</Text>
         <View style={s.themes} accessibilityRole="radiogroup">

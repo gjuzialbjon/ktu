@@ -24,7 +24,7 @@ export function eventsForCity(all: EventItem[], city: CityId): EventItem[] {
 
 export type DraftInput = Pick<
   EventItem,
-  'title' | 'description' | 'venueName' | 'tags' | 'startsAt' | 'city' | 'neighborhood'
+  'title' | 'description' | 'venueName' | 'tags' | 'startsAt' | 'city' | 'neighborhood' | 'languages'
 > & {
   ticketPriceLek?: number;
   /** data-URL or file URI from the image picker */
@@ -39,6 +39,7 @@ export function makeDraftEvent(input: DraftInput, id: string): EventItem {
     description: input.description,
     category: 'community',
     tags: input.tags,
+    languages: input.languages,
     venueName: input.venueName,
     address: input.venueName,
     city: input.city,

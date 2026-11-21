@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import type { Category } from '@/data/types';
+import type { Category, SpokenLang } from '@/data/types';
 import type { AreaId, CityId } from '@/data/cities';
 import type { WhenFilter } from '@/lib/format';
 import { FeedFilters } from './buildFeed';
 
-export type FilterPanel = 'where' | 'more' | null;
+export type FilterPanel = 'when' | 'where' | 'more' | null;
 
 /**
  * Filter state for the home feed. The tag lives in the URL (?tag=…) so a tag tapped
@@ -23,9 +23,10 @@ export function useFeedFilters(city: CityId) {
   const setHood = (id: AreaId | null) => setArea(id ? { city, id } : null);
   const [cat, setCat] = useState<Category | null>(null);
   const [freeOnly, setFreeOnly] = useState(false);
+  const [lang, setLang] = useState<SpokenLang | null>(null);
   const [panel, setPanel] = useState<FilterPanel>(null);
 
-  const filters = useMemo<FeedFilters>(() => ({ when, hood, cat, freeOnly, tag }), [when, hood, cat, freeOnly, tag]);
+  const filters = useMemo<FeedFilters>(() => ({ when, hood, cat, freeOnly, lang, tag }), [when, hood, cat, freeOnly, lang, tag]);
 
   const clearTag = () => router.setParams({ tag: '' });
 
@@ -34,6 +35,7 @@ export function useFeedFilters(city: CityId) {
     setHood(null);
     setCat(null);
     setFreeOnly(false);
+    setLang(null);
     setPanel(null);
     if (tag) clearTag();
   };
@@ -44,6 +46,7 @@ export function useFeedFilters(city: CityId) {
     setHood,
     setCat,
     setFreeOnly,
+    setLang,
     clearTag,
     reset,
     panel,

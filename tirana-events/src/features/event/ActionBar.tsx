@@ -62,7 +62,9 @@ export function ActionBar({
               onPress={onCancel}
               style={({ pressed }) => [s.ghost, pressed && { opacity: 0.7 }]}
             >
-              <Text style={s.ghostText}>{isIn(rsvp) ? t.cancel_rsvp : t.withdraw}</Text>
+              <Text style={s.ghostText} numberOfLines={1}>
+                {isIn(rsvp) ? t.cancel_rsvp : t.withdraw}
+              </Text>
             </Pressable>
           </>
         ) : (
@@ -93,7 +95,9 @@ const useStyles = makeStyles((t) =>
       paddingTop: 10,
       paddingHorizontal: 16,
     },
-    inner: { flexDirection: 'row', alignItems: 'center', gap: 12, maxWidth: 680, width: '100%', alignSelf: 'center' },
+    // one fixed height for every state (join / requested / in): the bar must not change size when
+    // the host answers or you tap, and an emoji in the status must not make its line taller
+    inner: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 52, maxWidth: 680, width: '100%', alignSelf: 'center' },
     shareBtn: {
       width: 48,
       height: 48,
@@ -103,17 +107,25 @@ const useStyles = makeStyles((t) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    price: { flex: 1, color: t.c.text, fontSize: 14, fontWeight: '600' },
-    status: { flex: 1, color: t.c.text, fontSize: 15, fontWeight: '700' },
+    // minWidth 0: on web a text box will not shrink below its longest word otherwise, so a
+    // different status ("Kerkesa" vs "brenda") would push the button sideways
+    price: { flex: 1, minWidth: 0, color: t.c.text, fontSize: 14, lineHeight: 19, fontWeight: '600' },
+    status: { flex: 1, minWidth: 0, color: t.c.text, fontSize: 15, lineHeight: 20, fontWeight: '700' },
     cta: { minWidth: 150 },
+    // fixed width that fits the longest label in either language ("Nuk vij dot me"), so
+    // "Withdraw" → "Can't make it" after the host says yes does not resize the button
     ghost: {
       minHeight: 44,
-      paddingHorizontal: 14,
+      width: 140,
+      flexShrink: 0,
+      paddingHorizontal: 10,
+      alignItems: 'center',
       justifyContent: 'center',
       borderRadius: 999,
       borderWidth: t.outline,
       borderColor: t.c.border,
     },
-    ghostText: { color: t.c.text, fontWeight: '600', fontSize: 14 },
+    // fills the button and centres its glyphs: a new label changes the text, not the box
+    ghostText: { color: t.c.text, fontWeight: '600', fontSize: 14, alignSelf: 'stretch', textAlign: 'center' },
   }),
 );

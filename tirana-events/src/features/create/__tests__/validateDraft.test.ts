@@ -11,6 +11,7 @@ const valid: DraftForm = {
   tags: 'Chess, Board Games',
   price: '',
   photo: null,
+  langs: ['sq'],
 };
 
 describe('validateDraft', () => {
@@ -20,6 +21,13 @@ describe('validateDraft', () => {
     if (r.ok) {
       expect(r.value).toMatchObject({ city: 'tirana', neighborhood: 'liqeni', description: 'bring a board', tags: ['chess', 'board-games'], ticketPriceLek: undefined });
     }
+  });
+
+  it('stores Albanian-only as the default and keeps picked languages in a fixed order', () => {
+    const plain = validateDraft(valid, NOW);
+    const mixed = validateDraft({ ...valid, langs: ['it', 'sq', 'en'] }, NOW);
+    expect(plain.ok && plain.value.languages).toBeUndefined();
+    expect(mixed.ok && mixed.value.languages).toEqual(['sq', 'en', 'it']);
   });
 
   it('flags every missing required field at once', () => {

@@ -13,10 +13,13 @@ export function EventPhoto({
   event,
   style,
   emojiSize = 44,
+  emojiPlacement = 'center',
 }: {
   event: EventItem;
   style?: StyleProp<ImageStyle>;
   emojiSize?: number;
+  /** watermark: upper right and faded, for tiles whose text sits over the photo */
+  emojiPlacement?: 'center' | 'watermark';
 }) {
   const t = useTheme();
   const src = event.coverImage;
@@ -28,10 +31,15 @@ export function EventPhoto({
       <View
         style={[
           style as StyleProp<ViewStyle>,
-          { backgroundColor: t.cat[event.category], alignItems: 'center', justifyContent: 'center' },
+          { backgroundColor: t.cat[event.category] },
+          emojiPlacement === 'center'
+            ? { alignItems: 'center', justifyContent: 'center' }
+            : { alignItems: 'flex-end', justifyContent: 'flex-start', paddingTop: '22%', paddingRight: '9%' },
         ]}
       >
-        <Emoji size={emojiSize}>{CATEGORY_EMOJI[event.category]}</Emoji>
+        <View style={emojiPlacement === 'watermark' ? { opacity: 0.55, transform: [{ rotate: '-8deg' }] } : null}>
+          <Emoji size={emojiSize}>{CATEGORY_EMOJI[event.category]}</Emoji>
+        </View>
       </View>
     );
   }

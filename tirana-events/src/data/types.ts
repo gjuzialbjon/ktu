@@ -13,6 +13,9 @@ export type Category =
 
 export type PriceType = 'free' | 'ticketed';
 
+/** A language an event is run in (or is comfortable for). Albanian is the default. */
+export type SpokenLang = 'sq' | 'en' | 'it' | 'es';
+
 /**
  * Who can find an event, and how you get in.
  * - public + open: in everyone's feed, details visible, join in one tap.
@@ -50,6 +53,11 @@ export interface EventItem {
   title: string;
   description: string;
   category: Category;
+  /**
+   * Languages the host is happy to run it in, so visitors know they can join.
+   * Missing = Albanian only. Separate from category: an English-friendly jazz night is still music.
+   */
+  languages?: SpokenLang[];
   /** 1-6 lowercase free-form tags. They power future recommendations;
    *  v1 only displays and logs them. */
   tags: string[];
@@ -124,4 +132,6 @@ export interface Profile {
   city: CityId;
   /** tags the user picked; private events only reach feeds whose interests overlap */
   interests: string[];
+  /** tags the user never wants to see: events carrying one stay out of the feed (never in interests too) */
+  hidden: string[];
 }

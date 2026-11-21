@@ -1,67 +1,123 @@
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import type { Category } from '@/data/types';
+import CalendarDays from 'lucide-react-native/icons/calendar-days';
+import MapPin from 'lucide-react-native/icons/map-pin';
+import SlidersHorizontal from 'lucide-react-native/icons/sliders-horizontal';
+import Check from 'lucide-react-native/icons/check';
+import type { Category, SpokenLang } from '@/data/types';
 import { CITIES, CityId, areaName, cityName } from '@/data/cities';
 import type { WhenFilter } from '@/lib/format';
 import { useI18n } from '@/lib/i18n';
-import { CATEGORY_EMOJI, makeStyles, space, useTheme, withAlpha } from '@/lib/theme';
-import { Chevron, Chip } from '@/components/ui';
+import { CATEGORY_EMOJI, makeStyles, radius, space, useTheme } from '@/lib/theme';
+import { Button, Chip, Display } from '@/components/ui';
+import { Sheet } from '@/components/Sheet';
 import { extraFilterCount } from './buildFeed';
 import type { FeedFiltersState } from './useFeedFilters';
 
 const CATEGORIES: Category[] = ['community', 'music', 'nightlife', 'culture', 'sports', 'food', 'outdoors', 'business'];
-/** Today has its own row above the filters, so the bar only browses what comes after. */
-const WHEN_OPTIONS: WhenFilter[] = ['all', 'tomorrow', 'weekend'];
+const WHEN_OPTIONS: WhenFilter[] = ['all', 'today', 'tomorrow', 'weekend'];
 
 /**
- * The sticky filter bar: one horizontally scrolling row (when · where · more · tag),
- * with the where/more panels opening inline beneath it.
+ * The sticky filter bar, two short rows:
+ *  1. three buttons (when, where, filters) that each open a bottom sheet, so nothing
+ *     unfolds inside the feed and pushes it around. Their labels never change ("Kur", "Ku",
+ *     "Filtra"): they turn dark when in use, so they always fit and never resize;
+ *  2. one swipeable row: first what you picked, spelled out, each with ✕ to clear
+ *     ("Fundjave ✕", "Jashte qendres ✕"), then the categories, one tap each.
  */
-export function FilterBar({ state, city, maxWidth }: { state: FeedFiltersState; city: CityId; maxWidth: number }) {
+export function FilterBar({
+  state,
+  city,
+  maxWidth,
+  langs,
+  resultCount,
+}: {
+  state: FeedFiltersState;
+  city: CityId;
+  maxWidth: number;
+  /** foreign languages that some upcoming event uses; only these get a chip */
+  langs: SpokenLang[];
+  /** how many events the current filters show, for the sheet's confirm button */
+  resultCount: number;
+}) {
   const { t, lang } = useI18n();
-  const theme = useTheme();
   const s = useStyles();
   const { filters, panel } = state;
   const extra = extraFilterCount(filters);
-  const allLabel = t.hood_all(cityName(city, lang));
-  const hoodLabel = filters.hood ? areaName(city, filters.hood, lang) : allLabel;
   const whenLabel = (w: WhenFilter) =>
-    w === 'all' ? t.when_all : w === 'tomorrow' ? t.when_tomorrow : w === 'weekend' ? t.when_weekend : t.when_today;
+    w === 'all' ? t.when_all_long : w === 'tomorrow' ? t.when_tomorrow : w === 'weekend' ? t.when_weekend : t.when_today;
+  const allAreas = t.hood_all(cityName(city, lang));
+  const hoodLabel = filters.hood ? areaName(city, filters.hood, lang) : cityName(city, lang);
 
   return (
     <View style={s.barWrap}>
       <View style={[s.column, { maxWidth }]}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.barRow}>
-          <View style={s.segment} accessibilityRole="radiogroup">
-            {WHEN_OPTIONS.map((w) => {
-              const active = filters.when === w;
-              return (
-                <Pressable
-                  key={w}
-                  accessibilityRole="radio"
-                  accessibilityState={{ checked: active }}
-                  onPress={() => state.setWhen(w)}
-                  style={[s.segItem, active && { backgroundColor: theme.c.text }]}
-                >
-                  <Text style={[s.segText, { color: active ? theme.c.bg : theme.c.text }]}>{whenLabel(w)}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-
-          <DisclosureButton
-            label={hoodLabel}
-            a11yLabel={t.a11y_where(hoodLabel)}
-            open={panel === 'where'}
+        <View style={s.buttons}>
+          <BarButton
+            Icon={CalendarDays}
+            label={t.when_btn}
+            a11yLabel={t.a11y_when(whenLabel(filters.when))}
+            active={filters.when !== 'all'}
+            onPress={() => state.togglePanel('when')}
+          />
+          <BarButton
+            Icon={MapPin}
+            label={t.where_btn}
+            a11yLabel={t.a11y_where(filters.hood ? hoodLabel : allAreas)}
             active={!!filters.hood}
             onPress={() => state.togglePanel('where')}
           />
-          <DisclosureButton
-            label={extra > 0 ? t.more_filters_n(extra) : t.more_filters}
-            open={panel === 'more'}
+          <BarButton
+            Icon={SlidersHorizontal}
+            label={t.more_filters}
+            badge={extra}
             active={extra > 0}
             onPress={() => state.togglePanel('more')}
           />
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={s.catScroll}
+          contentContainerStyle={s.catRow}
+        >
+          {/* what you picked, in full words, each one tap to clear */}
+          {filters.when !== 'all' && (
+            <Chip
+              emoji="📅"
+              label={`${whenLabel(filters.when)}  ✕`}
+              active
+              accessibilityLabel={t.a11y_clear_filter(whenLabel(filters.when))}
+              onPress={() => state.setWhen('all')}
+            />
+          )}
+          {filters.hood && (
+            <Chip
+              emoji="📍"
+              label={`${hoodLabel}  ✕`}
+              active
+              accessibilityLabel={t.a11y_clear_filter(hoodLabel)}
+              onPress={() => state.setHood(null)}
+            />
+          )}
+          {filters.freeOnly && (
+            <Chip
+              label={`${t.free}  ✕`}
+              active
+              accessibilityLabel={t.a11y_clear_filter(t.free)}
+              onPress={() => state.setFreeOnly(false)}
+            />
+          )}
+          {filters.lang && (
+            <Chip
+              emoji="🗣️"
+              label={`${t.lang_name[filters.lang]}  ✕`}
+              active
+              accessibilityLabel={t.a11y_clear_filter(t.lang_name[filters.lang])}
+              onPress={() => state.setLang(null)}
+            />
+          )}
           {filters.tag && (
             <Chip
               label={`#${filters.tag}  ✕`}
@@ -70,82 +126,178 @@ export function FilterBar({ state, city, maxWidth }: { state: FeedFiltersState; 
               onPress={state.clearTag}
             />
           )}
-        </ScrollView>
-
-        {panel === 'where' && (
-          <View style={s.panel}>
+          <Chip label={t.when_all} active={!filters.cat} onPress={() => state.setCat(null)} />
+          {CATEGORIES.map((c) => (
             <Chip
-              label={allLabel}
-              active={!filters.hood}
+              key={c}
+              emoji={CATEGORY_EMOJI[c]}
+              label={t[`cat_${c}` as const]}
+              active={filters.cat === c}
+              onPress={() => state.setCat(filters.cat === c ? null : c)}
+            />
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* when */}
+      <Sheet visible={panel === 'when'} onClose={state.closePanel}>
+        <Display size={22}>{t.when_title}</Display>
+        <View accessibilityRole="radiogroup">
+          {WHEN_OPTIONS.map((w) => (
+            <OptionRow
+              key={w}
+              label={whenLabel(w)}
+              selected={filters.when === w}
               onPress={() => {
-                state.setHood(null);
+                state.setWhen(w);
                 state.closePanel();
               }}
             />
-            {CITIES[city].areas.map(({ id }) => (
-              <Chip
-                key={id}
-                label={areaName(city, id, lang)}
-                active={filters.hood === id}
-                onPress={() => {
-                  state.setHood(filters.hood === id ? null : id);
-                  state.closePanel();
-                }}
-              />
-            ))}
+          ))}
+        </View>
+      </Sheet>
+
+      {/* where */}
+      <Sheet visible={panel === 'where'} onClose={state.closePanel}>
+        <Display size={22}>{t.where_title}</Display>
+        <ScrollView accessibilityRole="radiogroup">
+          {[null, ...CITIES[city].areas.map((a) => a.id)].map((id) => (
+            <OptionRow
+              key={id ?? 'all'}
+              label={id ? areaName(city, id, lang) : allAreas}
+              selected={filters.hood === id}
+              onPress={() => {
+                state.setHood(id);
+                state.closePanel();
+              }}
+            />
+          ))}
+        </ScrollView>
+      </Sheet>
+
+      {/* everything else: changes apply as you tap, the button shows what you will get */}
+      <Sheet visible={panel === 'more'} onClose={state.closePanel}>
+        <Display size={22}>{t.more_filters}</Display>
+        <OptionRow
+          label={t.free_only}
+          selected={filters.freeOnly}
+          onPress={() => state.setFreeOnly((v) => !v)}
+          checkbox
+        />
+        {langs.length > 0 && (
+          <View style={{ gap: space.sm }}>
+            <Text style={s.sheetLabel}>{t.lang_section}</Text>
+            <View style={s.wrapRow}>
+              {langs.map((l) => (
+                <Chip
+                  key={l}
+                  emoji="🗣️"
+                  label={t.lang_name[l]}
+                  active={filters.lang === l}
+                  onPress={() => state.setLang(filters.lang === l ? null : l)}
+                />
+              ))}
+            </View>
           </View>
         )}
-        {panel === 'more' && (
-          <View style={s.panel}>
-            <Chip label={t.free} active={filters.freeOnly} onPress={() => state.setFreeOnly((v) => !v)} />
-            {CATEGORIES.map((c) => (
-              <Chip
-                key={c}
-                emoji={CATEGORY_EMOJI[c]}
-                label={t[`cat_${c}` as const]}
-                active={filters.cat === c}
-                onPress={() => state.setCat(filters.cat === c ? null : c)}
-              />
-            ))}
+        <View style={s.sheetFooter}>
+          {extra > 0 && (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                state.setFreeOnly(false);
+                state.setLang(null);
+              }}
+              hitSlop={8}
+              style={({ pressed }) => [s.clear, pressed && { opacity: 0.6 }]}
+            >
+              <Text style={s.clearText}>{t.clear_these}</Text>
+            </Pressable>
+          )}
+          <View style={{ flex: 1 }}>
+            <Button label={t.show_n(resultCount)} onPress={state.closePanel} />
           </View>
-        )}
-      </View>
+        </View>
+      </Sheet>
     </View>
   );
 }
 
-function DisclosureButton({
+function BarButton({
+  Icon,
   label,
   a11yLabel,
-  open,
   active,
+  badge = 0,
   onPress,
 }: {
+  Icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   label: string;
   a11yLabel?: string;
-  open: boolean;
   active: boolean;
+  badge?: number;
   onPress: () => void;
 }) {
-  const t = useTheme();
+  const theme = useTheme();
   const s = useStyles();
-  const fg = active ? t.c.bg : t.c.text;
+  const fg = active ? theme.c.bg : theme.c.text;
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={a11yLabel ?? label}
-      accessibilityState={{ expanded: open }}
+      accessibilityLabel={a11yLabel ?? (badge > 0 ? `${label} (${badge})` : label)}
       onPress={onPress}
       style={({ pressed }) => [
-        s.disclosure,
-        active ? { backgroundColor: t.c.text, borderColor: t.c.text } : null,
+        s.btn,
+        active && { backgroundColor: theme.c.text, borderColor: theme.c.text },
         pressed && { opacity: 0.8 },
       ]}
     >
-      <Text style={[s.disclosureText, { color: fg }]} numberOfLines={1}>
+      <View style={{ flexShrink: 0 }}>
+        <Icon size={17} color={fg} strokeWidth={2.2} />
+      </View>
+      <Text style={[s.btnText, { color: fg }]} numberOfLines={1}>
         {label}
       </Text>
-      <Chevron open={open} color={fg} />
+      {badge > 0 && (
+        <View style={[s.badge, { backgroundColor: theme.c.primary, borderColor: theme.c.surface }]}>
+          <Text style={[s.badgeText, { color: theme.c.onPrimary }]}>{badge}</Text>
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
+/** A full-width choice in a sheet: big enough to hit, a check when it is on. */
+function OptionRow({
+  label,
+  selected,
+  onPress,
+  checkbox,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+  checkbox?: boolean;
+}) {
+  const theme = useTheme();
+  const s = useStyles();
+  return (
+    <Pressable
+      accessibilityRole={checkbox ? 'checkbox' : 'radio'}
+      accessibilityState={{ checked: selected }}
+      onPress={onPress}
+      style={({ pressed }) => [s.option, pressed && { backgroundColor: theme.c.surfaceAlt }]}
+    >
+      <Text style={[s.optionText, selected && { fontWeight: '800' }]}>{label}</Text>
+      <View
+        style={[
+          s.tick,
+          checkbox ? { borderRadius: 7 } : null,
+          selected ? { backgroundColor: theme.c.text, borderColor: theme.c.text } : null,
+        ]}
+      >
+        {selected && <Check size={15} color={theme.c.bg} strokeWidth={3} />}
+      </View>
     </Pressable>
   );
 }
@@ -154,41 +306,70 @@ const useStyles = makeStyles((t) =>
   StyleSheet.create({
     column: { width: '100%', alignSelf: 'center', paddingHorizontal: space.lg },
     barWrap: {
-      // mostly opaque, so the sky behind the feed still tints it a little
-      backgroundColor: withAlpha(t.c.surface, 0.88),
+      // solid: rows scrolling under it must not show through the buttons
+      backgroundColor: t.c.surface,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: t.c.border,
-      paddingVertical: space.sm,
+      paddingTop: space.sm,
+      paddingBottom: 2,
     },
-    barRow: { alignItems: 'center', gap: space.sm, paddingRight: space.lg },
-    segment: {
+    buttons: { flexDirection: 'row', gap: space.sm },
+    // three equal buttons with fixed labels: always fit, never resize
+    btn: {
+      flex: 1,
       flexDirection: 'row',
-      backgroundColor: t.c.surface,
-      borderColor: t.c.border,
-      borderWidth: t.outline,
-      borderRadius: 999,
-      padding: 3,
-    },
-    segItem: {
-      minHeight: 38,
-      borderRadius: 999,
       alignItems: 'center',
       justifyContent: 'center',
+      gap: 7,
+      minHeight: 42,
       paddingHorizontal: space.md,
-    },
-    segText: { fontSize: 14, fontWeight: '700' },
-    disclosure: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      minHeight: 44,
-      paddingHorizontal: space.md,
-      borderRadius: 999,
+      borderRadius: 14,
       borderWidth: t.outline,
       borderColor: t.c.border,
       backgroundColor: t.c.surface,
     },
-    disclosureText: { fontSize: 14, fontWeight: '600', maxWidth: 170 },
-    panel: { flexDirection: 'row', flexWrap: 'wrap', rowGap: space.sm, paddingTop: space.sm },
+    btnText: { fontSize: 15, fontWeight: '700' },
+    // over the top-right corner, so a count appearing does not widen the button
+    badge: {
+      position: 'absolute',
+      top: -7,
+      right: -5,
+      minWidth: 20,
+      height: 20,
+      borderRadius: 10,
+      borderWidth: 2,
+      paddingHorizontal: 4,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    badgeText: { fontSize: 12, fontWeight: '800', fontVariant: ['tabular-nums'] },
+    // vertical padding gives the chips' hit slop room inside the scroller
+    catScroll: { marginHorizontal: -space.lg },
+    catRow: { alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, paddingVertical: space.sm },
+    sheetLabel: { color: t.c.textDim, fontSize: 14, fontWeight: '700' },
+    wrapRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+    option: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      minHeight: 52,
+      // text lines up with the sheet title; the pressed highlight still has a little room
+      marginHorizontal: -space.sm,
+      paddingHorizontal: space.sm,
+      borderRadius: radius.md,
+    },
+    optionText: { color: t.c.text, fontSize: 17, fontWeight: '600' },
+    tick: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      borderWidth: 2,
+      borderColor: t.c.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    sheetFooter: { flexDirection: 'row', alignItems: 'center', gap: space.lg, marginTop: space.sm },
+    clear: { minHeight: 44, justifyContent: 'center' },
+    clearText: { color: t.c.text, fontSize: 15, fontWeight: '700', textDecorationLine: 'underline' },
   }),
 );

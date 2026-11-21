@@ -114,8 +114,11 @@ const useStyles = makeStyles((t) =>
       alignItems: 'center',
       gap: 4,
       minHeight: 44,
-      minWidth: 72,
-      paddingHorizontal: space.md,
+      // fixed, not min: the chip must not grow when the forecast arrives ("–" → "-12°"),
+      // or the greeting next to it moves
+      width: 84,
+      justifyContent: 'center',
+      paddingHorizontal: space.sm,
       borderRadius: 999,
       backgroundColor: t.c.surface,
       borderWidth: t.outline,

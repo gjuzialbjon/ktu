@@ -1,4 +1,4 @@
-import { canSeeDetails, dayPartOf, forYou, isIn, sharedInterests, similarEvents, visibleInFeed } from '../access';
+import { canSeeDetails, dayPartOf, forYou, hiddenTopicOf, isIn, sharedInterests, similarEvents, visibleInFeed } from '../access';
 import type { Rsvp } from '../types';
 import { NOW, at, makeEvent } from '@/test-utils/fixtures';
 
@@ -23,6 +23,27 @@ describe('isIn', () => {
     expect(isIn(rsvp('going'))).toBe(true);
     expect(isIn(rsvp('requested'))).toBe(false);
     expect(isIn(undefined)).toBe(false);
+  });
+});
+
+describe('hidden topics ("never show me chess")', () => {
+  const chess = makeEvent({ tags: ['chess', 'games'] });
+  const me = { interests: [], follows: [], hidden: ['chess'] };
+
+  it('keeps an event with a hidden topic out of the feed, even a public one', () => {
+    expect(hiddenTopicOf(chess, me.hidden)).toBe('chess');
+    expect(visibleInFeed(chess, me, undefined)).toBe(false);
+    expect(visibleInFeed(makeEvent({ tags: ['games'] }), me, undefined)).toBe(true);
+  });
+
+  it('never hides something you already joined or asked to join', () => {
+    const r: Rsvp = { eventId: chess.id, status: 'requested', createdAt: NOW.toISOString() };
+    expect(visibleInFeed(chess, me, r)).toBe(true);
+  });
+
+  it('hides nothing when no topic is hidden', () => {
+    expect(hiddenTopicOf(chess, [])).toBeUndefined();
+    expect(hiddenTopicOf(chess, undefined)).toBeUndefined();
   });
 });
 

@@ -3,7 +3,7 @@ import type { Comment, EventItem, Profile, PublicUser, Rsvp } from './types';
 import { SEED_COMMENTS, SEED_EVENTS, SEED_PEOPLE } from './seed';
 import { DraftInput, eventsForCity, makeComment, makeDraftEvent, makeRsvp, orderFeedEvents } from './events';
 import { CityId, DEFAULT_CITY, isLiveCity } from './cities';
-import { DEMO_APPROVE_AFTER_MS, visibleInFeed } from './access';
+import { DEMO_APPROVE_AFTER_MS, hiddenTopicOf, visibleInFeed } from './access';
 import { KEYS, asArray, asRecord, clearStorage, migrateStorage, readJson, writeJson } from './storage';
 import { track } from '@/lib/analytics';
 import { createLogger } from '@/lib/log';
@@ -31,6 +31,10 @@ interface StoreCtx {
   setName: (name: string) => void;
   setCity: (city: CityId, source: 'home' | 'profile') => void;
   toggleInterest: (tag: string) => void;
+  /** "never show me this topic"; removes it from interests */
+  toggleHidden: (tag: string) => void;
+  /** events in the city the feed leaves out because of a hidden topic (for "N hidden, change") */
+  hiddenEvents: EventItem[];
   /** ask the host; approved after a short delay in the demo */
   requestJoin: (eventId: string) => void;
   likes: Record<string, true>;
@@ -49,7 +53,7 @@ const Ctx = createContext<StoreCtx | null>(null);
 
 /** A few starter interests so private events have something to match before the user picks their own. */
 export const DEFAULT_INTERESTS = ['meet-people', 'outdoor', 'books'];
-const DEFAULT_PROFILE: Profile = { name: '', follows: ['u2', 'u3'], city: DEFAULT_CITY, interests: DEFAULT_INTERESTS };
+const DEFAULT_PROFILE: Profile = { name: '', follows: ['u2', 'u3'], city: DEFAULT_CITY, interests: DEFAULT_INTERESTS, hidden: [] };
 
 /** Accepts older or partly broken profiles: keeps what is valid, defaults the rest. */
 const asProfile = (x: unknown): Profile | null => {
@@ -61,6 +65,7 @@ const asProfile = (x: unknown): Profile | null => {
     // a city saved while it was live, then switched off, falls back to the default
     city: isLiveCity(p.city) ? p.city : DEFAULT_CITY,
     interests: Array.isArray(p.interests) ? p.interests.filter((x) => typeof x === 'string') : DEFAULT_INTERESTS,
+    hidden: Array.isArray(p.hidden) ? p.hidden.filter((x) => typeof x === 'string') : [],
   };
 };
 
@@ -130,6 +135,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const events = useMemo(() => orderFeedEvents(allEvents), [allEvents]);
   const cityEvents = useMemo(
     () => eventsForCity(allEvents, profile.city).filter((e) => visibleInFeed(e, profile, rsvps[e.id])),
+    [allEvents, profile, rsvps],
+  );
+  const hiddenEvents = useMemo(
+    () =>
+      profile.hidden.length === 0
+        ? []
+        : eventsForCity(allEvents, profile.city).filter(
+            (e) => !rsvps[e.id] && hiddenTopicOf(e, profile.hidden) && visibleInFeed(e, { ...profile, hidden: [] }, undefined),
+          ),
     [allEvents, profile, rsvps],
   );
 
@@ -208,9 +222,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setProfile((p) => ({
         ...p,
         interests: p.interests.includes(tag) ? p.interests.filter((x) => x !== tag) : [...p.interests, tag],
+        hidden: p.hidden.filter((x) => x !== tag),
       })),
     [],
   );
+  const toggleHidden = useCallback((tag: string) => {
+    setProfile((p) => {
+      const hiding = !p.hidden.includes(tag);
+      track(hiding ? 'topic_hidden' : 'topic_unhidden', { tag });
+      return {
+        ...p,
+        hidden: hiding ? [...p.hidden, tag] : p.hidden.filter((x) => x !== tag),
+        interests: hiding ? p.interests.filter((x) => x !== tag) : p.interests,
+      };
+    });
+  }, []);
 
   const requestJoin = useCallback((eventId: string) => {
     setRsvps((prev) => ({ ...prev, [eventId]: { eventId, status: 'requested', createdAt: new Date().toISOString() } }));
@@ -265,6 +291,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     () => ({
       events,
       cityEvents,
+      hiddenEvents,
       people: SEED_PEOPLE,
       rsvps,
       profile,
@@ -276,6 +303,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setName,
       setCity,
       toggleInterest,
+      toggleHidden,
       requestJoin,
       likes,
       saved,
@@ -288,6 +316,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }),
     [
       toggleInterest,
+      toggleHidden,
       requestJoin,
       likes,
       saved,
@@ -297,6 +326,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       collectStamp,
       events,
       cityEvents,
+      hiddenEvents,
       rsvps,
       profile,
       comments,
@@ -311,6 +341,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     ],
   );
 
+  // Draw nothing until saved data is read (a few ms): drawing defaults first and then the real
+  // profile, plans and hidden topics would rearrange the screen right after it appears.
+  if (!hydrated) return null;
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

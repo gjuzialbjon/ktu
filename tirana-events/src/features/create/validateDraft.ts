@@ -1,5 +1,7 @@
 import { AreaId, CITIES, CityId } from '@/data/cities';
 import type { DraftInput } from '@/data/events';
+import type { SpokenLang } from '@/data/types';
+import { normalizeLangs } from '@/data/languages';
 
 /**
  * Rules for the "make an event" form. Pure: returns i18n keys, not sentences,
@@ -20,6 +22,8 @@ export interface DraftForm {
   tags: string;
   price: string;
   photo: string | null;
+  /** languages people can use there; starts as Albanian */
+  langs: SpokenLang[];
 }
 
 export const TITLE_MIN = 5;
@@ -72,6 +76,7 @@ export function validateDraft(form: DraftForm, now: Date): ValidationResult {
       neighborhood: form.hood,
       startsAt: form.when.toISOString(),
       tags,
+      languages: normalizeLangs(form.langs),
       ticketPriceLek,
       coverImage: form.photo ?? undefined,
     },

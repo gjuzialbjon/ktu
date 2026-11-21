@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { Animated, Platform, Pressable, RefreshControl, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -12,9 +12,9 @@ import { Chevron, Display, Emoji, Hand, Sticker } from '@/components/ui';
 import { TopBar } from '@/components/TopBar';
 import { track } from '@/lib/analytics';
 import { useNow } from '@/hooks/useNow';
-import { FeedSection, buildFeed, isFiltering, pickHighlights, railsByCategory } from '@/features/feed/buildFeed';
+import { FeedSection, NO_FILTERS, buildFeed, isFiltering, pickHighlights, railsByCategory } from '@/features/feed/buildFeed';
 import { TodayTimeline } from '@/features/feed/TodayTimeline';
-import { EventRail } from '@/features/feed/EventRail';
+import { CountPill, EventRail } from '@/features/feed/EventRail';
 import { SkyBackdrop } from '@/features/feed/SkyBackdrop';
 import { latenessOf, skyStops } from '@/features/feed/sky';
 import { forYou, isIn } from '@/data/access';
@@ -26,7 +26,8 @@ import { CAN_PICK_CITY, cityName } from '@/data/cities';
 import MapPin from 'lucide-react-native/icons/map-pin';
 import ArrowUp from 'lucide-react-native/icons/arrow-up';
 import { DiceOrigin, DiceRoll } from '@/features/feed/DiceRoll';
-import type { EventItem } from '@/data/types';
+import type { Category, EventItem, SpokenLang } from '@/data/types';
+import { LANG_ROW_TITLE, langsAvailable, railsByLanguage } from '@/data/languages';
 
 const GAP = space.lg;
 const TONIGHT_FROM_HOUR = 17;
@@ -50,7 +51,7 @@ export default function Home() {
   const { t, lang } = useI18n();
   const theme = useTheme();
   const s = useStyles();
-  const { cityEvents: events, profile, rsvps, events: allEvents } = useStore();
+  const { cityEvents: events, profile, rsvps, events: allEvents, hiddenEvents } = useStore();
   const { height: viewportH, width: viewportW } = useWindowDimensions();
   const [cityOpen, setCityOpen] = useState(false);
   const router = useRouter();
@@ -72,6 +73,8 @@ export default function Home() {
 
   const feed = useMemo(() => buildFeed(events, filters, now), [events, filters, now]);
   const filtering = isFiltering(filters);
+  // what your "never show me" topics took out this week, so nothing vanishes without a word
+  const hiddenCount = useMemo(() => buildFeed(hiddenEvents, NO_FILTERS, now).upcoming.length, [hiddenEvents, now]);
 
   const hour = now.getHours();
   const greetWord = hour < 12 ? t.greet_morning : hour < 18 ? t.greet_day : t.greet_evening;
@@ -93,15 +96,24 @@ export default function Home() {
     const todayIds = new Set(feed.today.map((e) => e.id));
     return railsByCategory(feed.upcoming.filter((e) => !todayIds.has(e.id)));
   }, [feed.upcoming, feed.today]);
+  // rows for visitors: events that work in English / Italian / Spanish. Uses everything
+  // upcoming (today included): someone here for three days wants tonight too.
+  const langRails = useMemo(() => railsByLanguage(feed.upcoming), [feed.upcoming]);
+  const langChips = useMemo(() => langsAvailable(feed.upcoming), [feed.upcoming]);
+  // with the app in English, the English row leads; otherwise language rows follow the categories
+  const langFirst = lang === 'en' ? langRails.filter((r) => r.lang === 'en') : [];
+  const langLater = langRails.filter((r) => !langFirst.includes(r));
 
   // --- the sky: scroll position → how late it feels (see features/feed/sky.ts)
   const [scrollY] = useState(() => new Animated.Value(0));
   const [todayTop, setTodayTop] = useState<{ section: number; list: number } | null>(null);
+  // where the body (everything under the filter bar) starts in the scroll content
+  const [bodyY, setBodyY] = useState(0);
   const [rowCenters, setRowCenters] = useState<Record<string, number>>({});
   const onRowLayout = useCallback((id: string, y: number) => setRowCenters((m) => (m[id] === y ? m : { ...m, [id]: y })), []);
   const nowLateness = latenessOf(now);
   const lateness = useMemo(() => {
-    const base = todayTop ? todayTop.section + todayTop.list : null;
+    const base = todayTop ? bodyY + todayTop.section + todayTop.list : null;
     const rows =
       base == null
         ? []
@@ -114,7 +126,7 @@ export default function Home() {
       outputRange: stops.map((p) => p.lateness),
       extrapolate: 'clamp',
     });
-  }, [todayTop, rowCenters, feed.today, nowLateness, viewportH, scrollY]);
+  }, [todayTop, bodyY, rowCenters, feed.today, nowLateness, viewportH, scrollY]);
   // "back to top" shows once you are about a screen down; state flips only when crossing that line
   const scrollRef = useRef<React.ComponentRef<typeof Animated.ScrollView>>(null);
   const [showTop, setShowTop] = useState(false);
@@ -128,6 +140,34 @@ export default function Home() {
         },
       }),
     [scrollY, viewportH],
+  );
+  // "see all" on a category row: filter the week list below to it and jump there
+  const [leadH, setLeadH] = useState(0);
+  const jumpToList = () => scrollRef.current?.scrollTo({ y: leadH, animated: !reduceMotion });
+  // when filters change while you are far down, bring the results' start up under the bar
+  const onFiltersChanged = useEffectEvent(() => {
+    if (showTop) scrollRef.current?.scrollTo({ y: leadH, animated: false });
+  });
+  useEffect(() => onFiltersChanged(), [filters]);
+  const seeCategory = (cat: Category) => {
+    track('rail_see_all', { cat });
+    filterState.setCat(cat);
+    jumpToList();
+  };
+  const seeLanguage = (l: SpokenLang) => {
+    track('rail_see_all', { lang: l });
+    filterState.setLang(l);
+    jumpToList();
+  };
+  const langRail = ({ lang: l, items }: { lang: Exclude<SpokenLang, 'sq'>; items: EventItem[] }) => (
+    <EventRail
+      key={l}
+      title={LANG_ROW_TITLE[l]}
+      emoji="🗣️"
+      events={items}
+      source={`rail_lang_${l}`}
+      onSeeAll={() => seeLanguage(l)}
+    />
   );
   const toTop = () => {
     track('scroll_to_top');
@@ -193,7 +233,7 @@ export default function Home() {
         }
       >
         {/* 0 — lead: who and what is happening now */}
-        <View>
+        <View onLayout={(e) => setLeadH(e.nativeEvent.layout.height)}>
           {/* the skyline sits behind the greeting instead of taking its own row */}
           <View style={s.heroArea}>
           <View pointerEvents="none" style={s.bandBehind}>
@@ -263,15 +303,21 @@ export default function Home() {
           </View>
 
           </View>
+        </View>
 
+        {/* 1 — sticky filter bar, right under the greeting so it is one thumb away */}
+        <FilterBar state={filterState} city={profile.city} maxWidth={maxW} langs={langChips} resultCount={feed.list.length} />
+
+        {/* 2 — browsing: the rows; with any filter on, they step aside for the matching list */}
+        <View onLayout={(e) => setBodyY(e.nativeEvent.layout.y)}>
           {/* a few events worth opening, before anything else */}
-          {!filters.tag && highlights.length > 0 && (
+          {!filtering && highlights.length > 0 && (
             <View style={[s.column, column, s.highlights]}>
-              <EventRail title={t.highlights_title} events={highlights} source="highlights" />
+              <EventRail title={t.highlights_title} events={highlights} source="highlights" size="wide" maxWidth={maxW} />
             </View>
           )}
 
-          {!filters.tag && feed.today.length > 0 && (
+          {!filtering && feed.today.length > 0 && (
             <View
               style={[s.column, column, s.today]}
               onLayout={(e) => {
@@ -279,9 +325,9 @@ export default function Home() {
                 setTodayTop((p) => (p?.section === section ? p : { section, list: p?.list ?? 0 }));
               }}
             >
-              <View style={s.sectionHead}>
-                <Display size={wide ? 30 : 26}>{todayTitle}</Display>
-                <Hand size={20} color={theme.c.textDim}>
+              <View style={s.todayHead}>
+                <Display size={wide ? 26 : 19}>{todayTitle}</Display>
+                <Hand size={18} color={theme.c.textDim}>
                   {t.today_note} ↓
                 </Hand>
               </View>
@@ -296,13 +342,14 @@ export default function Home() {
             </View>
           )}
 
-          {!filters.tag && (
+          {!filtering && (
             <View style={[s.column, column, s.rails]}>
+              {langFirst.map(langRail)}
               <EventRail title={t.for_you_title} note={t.for_you_hint} events={suggested} source="for_you" />
               {rails.length > 0 && (
                 <View style={s.vibeHead}>
-                  <Display size={wide ? 30 : 26}>{t.by_vibe}</Display>
-                  <Hand size={20} color={theme.c.textDim}>
+                  <Display size={wide ? 26 : 22}>{t.by_vibe}</Display>
+                  <Hand size={18} color={theme.c.textDim}>
                     {t.vibe_note} →
                   </Hand>
                 </View>
@@ -314,48 +361,57 @@ export default function Home() {
                   emoji={CATEGORY_EMOJI[cat]}
                   events={items}
                   source={`rail_${cat}`}
+                  onSeeAll={() => seeCategory(cat)}
                 />
               ))}
+              {langLater.map(langRail)}
               <FriendsStrip />
             </View>
           )}
-        </View>
 
-        {/* 1 — sticky filter bar */}
-        <FilterBar state={filterState} city={profile.city} maxWidth={maxW} />
+          {/* the rest of the week, grouped by time (everything matching, today included, when filtering) */}
+          <View style={[s.column, column, s.results]}>
+            {filtering && <Text style={s.count}>{t.results(feed.list.length)}</Text>}
 
-        {/* 2 — the rest of the week, grouped by time */}
-        <View style={[s.column, column, s.results]}>
-          {filtering && <Text style={s.count}>{t.results(feed.list.length)}</Text>}
-
-          {feed.sections.length === 0 ? (
-            <View style={s.empty}>
-              <Text style={s.emptyText}>{filtering ? t.no_results : t.empty_week}</Text>
-              <Pressable
-                accessibilityRole="button"
-                onPress={filtering ? filterState.reset : () => router.push('/create')}
-                style={({ pressed }) => [s.emptyBtn, pressed && { opacity: 0.85 }]}
-              >
-                <Text style={s.emptyBtnText}>{filtering ? t.reset_filters : t.create_event}</Text>
-              </Pressable>
-            </View>
-          ) : (
-            feed.sections.map(({ key, items }) => (
-              <View key={key} style={s.section}>
-                <View style={s.sectionHead}>
-                  <Display size={wide ? 30 : 26}>{sectionTitle(key)}</Display>
-                  <Text style={s.sectionCount}>{t.results(items.length)}</Text>
-                </View>
-                <View style={[s.grid, { gap: wide ? GAP : 0 }]}>
-                  {items.map((e) => (
-                    <View key={e.id} style={{ width: itemWidth }}>
-                      <EventCard event={e} popular={feed.popularIds.has(e.id)} />
-                    </View>
-                  ))}
-                </View>
+            {feed.sections.length === 0 ? (
+              <View style={s.empty}>
+                <Text style={s.emptyText}>{filtering ? t.no_results : t.empty_week}</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={filtering ? filterState.reset : () => router.push('/create')}
+                  style={({ pressed }) => [s.emptyBtn, pressed && { opacity: 0.85 }]}
+                >
+                  <Text style={s.emptyBtnText}>{filtering ? t.reset_filters : t.create_event}</Text>
+                </Pressable>
               </View>
-            ))
-          )}
+            ) : (
+              feed.sections.map(({ key, items }) => (
+                <View key={key} style={s.section}>
+                  <View style={s.sectionHead}>
+                    <Display size={wide ? 30 : 26} style={{ flexShrink: 1 }}>
+                      {sectionTitle(key)}
+                    </Display>
+                    <CountPill n={items.length} label={t.results(items.length)} />
+                  </View>
+                  <View style={[s.grid, { gap: wide ? GAP : 0 }]}>
+                    {items.map((e) => (
+                      <View key={e.id} style={{ width: itemWidth }}>
+                        <EventCard event={e} popular={feed.popularIds.has(e.id)} />
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ))
+            )}
+            {hiddenCount > 0 && (
+              <View style={s.hiddenNote}>
+                <Text style={s.hiddenText}>🙈 {t.hidden_count(hiddenCount)} </Text>
+                <Pressable accessibilityRole="link" onPress={() => router.push('/profile')} hitSlop={8}>
+                  <Text style={s.hiddenLink}>{t.hidden_edit}</Text>
+                </Pressable>
+              </View>
+            )}
+          </View>
         </View>
       </Animated.ScrollView>
       {CAN_PICK_CITY && <CityPicker visible={cityOpen} onClose={() => setCityOpen(false)} />}
@@ -420,9 +476,9 @@ const useStyles = makeStyles((t) =>
     heroArea: { paddingBottom: space.md, marginBottom: space.sm },
     // full-bleed, faded, anchored to the bottom of the hero: scenery, not content
     bandBehind: { position: 'absolute', left: 0, right: 0, bottom: 0, opacity: 0.35 },
-    highlights: { marginBottom: space.sm },
+    highlights: { marginTop: space.md, marginBottom: space.xs },
 
-    today: { marginTop: space.xs, marginBottom: space.xl, gap: space.md },
+    today: { marginBottom: space.xl, gap: space.sm },
     rails: { gap: space.md, marginBottom: space.md },
     vibeHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: space.md, marginTop: space.md },
 
@@ -430,8 +486,8 @@ const useStyles = makeStyles((t) =>
     results: { paddingTop: space.md },
     count: { color: t.c.textDim, fontSize: 14, fontWeight: '600' },
     section: { marginTop: space.xl, gap: space.md },
-    sectionHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: space.md, flexWrap: 'wrap' },
-    sectionCount: { color: t.c.textDim, fontSize: 14 },
+    todayHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: space.md, flexWrap: 'wrap' },
+    sectionHead: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
     grid: { flexDirection: 'row', flexWrap: 'wrap' },
 
     empty: {
@@ -453,5 +509,8 @@ const useStyles = makeStyles((t) =>
       justifyContent: 'center',
     },
     emptyBtnText: { color: t.c.onPrimary, fontWeight: '700', fontSize: 15 },
+    hiddenNote: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', marginTop: space.xl, minHeight: 44 },
+    hiddenText: { color: t.c.textDim, fontSize: 14 },
+    hiddenLink: { color: t.c.text, fontSize: 14, fontWeight: '700', textDecorationLine: 'underline' },
   }),
 );

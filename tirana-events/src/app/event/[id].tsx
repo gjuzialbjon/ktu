@@ -1,5 +1,5 @@
-import React from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
@@ -9,8 +9,10 @@ import { useStore } from '@/data/store';
 import { spotsLeft } from '@/data/events';
 import { CATEGORY_EMOJI, makeStyles, radius, useTheme } from '@/lib/theme';
 import { firstName, joinNames } from '@/lib/format';
-import { isIn, sharedInterests, similarEvents } from '@/data/access';
+import { hiddenTopicOf, isIn, sharedInterests, similarEvents } from '@/data/access';
+import { HideTopicsSheet } from '@/features/profile/HideTopicsSheet';
 import { findOffer, findPartner } from '@/data/partners';
+import { spokenLangs } from '@/data/languages';
 import { useEventFacts } from '@/features/event/useEventFacts';
 import { LikeSave } from '@/features/event/LikeSave';
 import { StoryCard } from '@/components/StoryCard';
@@ -75,7 +77,13 @@ function EventPage({ event }: { event: EventItem }) {
   const host = event.facilitatorId ? people.find((p) => p.id === event.facilitatorId) : undefined;
   const offer = findOffer(event.offerId);
   const partner = offer ? findPartner(offer.partnerId) : undefined;
-  const similar = similarEvents(event, events, nowMs);
+  // "similar" never suggests a topic you hid
+  const similar = similarEvents(
+    event,
+    events.filter((e) => !hiddenTopicOf(e, profile.hidden)),
+    nowMs,
+  );
+  const [hideOpen, setHideOpen] = useState(false);
 
   return (
     <>
@@ -147,6 +155,7 @@ function EventPage({ event }: { event: EventItem }) {
               link={hidden ? undefined : t.open_map}
               onLink={hidden ? undefined : () => openInMaps(event)}
             />
+            <Row label={t.languages_label} value={t.lang_list(spokenLangs(event).map((l) => t.lang_name[l]))} />
             <Row label={t.organizer} value={event.organizer.name + (event.organizer.verified ? ' ✓' : '')} />
             {host && <Row label={t.host} value={`${host.name} ✦`} />}
             {spots != null && <Row label="" value={t.capacity_left(spots)} />}
@@ -241,13 +250,26 @@ function EventPage({ event }: { event: EventItem }) {
               </Display>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.rail}>
                 {similar.map((e) => (
-                  <StoryCard key={e.id} event={e} source="similar" />
+                  <StoryCard key={e.id} event={e} source="similar" size="sm" />
                 ))}
               </ScrollView>
             </>
           )}
 
           <Comments comments={eventComments} onSend={(text) => addComment(event.id, text)} />
+
+          {/* quiet, at the end: the moment you see a chess event is when you know you never want chess */}
+          {event.tags.length > 0 && (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setHideOpen(true)}
+              hitSlop={8}
+              style={({ pressed }) => [s.hideLink, pressed && { opacity: 0.6 }]}
+            >
+              <Text style={s.hideLinkText}>🙈 {t.hide_like_this}</Text>
+            </Pressable>
+          )}
+          <HideTopicsSheet visible={hideOpen} onClose={() => setHideOpen(false)} tags={event.tags} />
         </ScrollView>
 
         {/* steps aside while the keyboard is up, so it never covers the comment box */}
@@ -293,6 +315,8 @@ function Row({ label, value, link, onLink }: { label: string; value: string; lin
 const useStyles = makeStyles((t) =>
   StyleSheet.create({
     scroll: { flex: 1, backgroundColor: t.c.bg },
+    hideLink: { alignSelf: 'center', minHeight: 44, justifyContent: 'center', marginTop: 24 },
+    hideLinkText: { color: t.c.textDim, fontSize: 14, fontWeight: '600', textDecorationLine: 'underline' },
     missing: { flex: 1, alignItems: 'flex-start', justifyContent: 'center', gap: 14, padding: 24, backgroundColor: t.c.bg },
     missingText: { color: t.c.textDim, fontSize: 16 },
     content: { padding: 16, paddingBottom: 64, maxWidth: 680, width: '100%', alignSelf: 'center' },

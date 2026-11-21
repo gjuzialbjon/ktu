@@ -1,4 +1,5 @@
-import type { Category, EventItem } from '@/data/types';
+import type { Category, EventItem, SpokenLang } from '@/data/types';
+import { speaks } from '@/data/languages';
 import type { AreaId } from '@/data/cities';
 import { TimeBucket, WhenFilter, bucketOf, isThisWeek, matchesWhen } from '@/lib/format';
 
@@ -11,17 +12,19 @@ export interface FeedFilters {
   hood: AreaId | null;
   cat: Category | null;
   freeOnly: boolean;
+  /** only events that work in this language (for visitors) */
+  lang: SpokenLang | null;
   /** set by tapping a tag on a card; acts as a search, so it also covers today */
   tag: string | null;
 }
 
-export const NO_FILTERS: FeedFilters = { when: 'all', hood: null, cat: null, freeOnly: false, tag: null };
+export const NO_FILTERS: FeedFilters = { when: 'all', hood: null, cat: null, freeOnly: false, lang: null, tag: null };
 
 export const isFiltering = (f: FeedFilters): boolean =>
-  f.when !== 'all' || !!f.hood || !!f.cat || f.freeOnly || !!f.tag;
+  f.when !== 'all' || !!f.hood || !!f.cat || f.freeOnly || !!f.lang || !!f.tag;
 
-/** Filters hidden behind "more filters": shown as a count on that button. */
-export const extraFilterCount = (f: FeedFilters): number => (f.cat ? 1 : 0) + (f.freeOnly ? 1 : 0);
+/** Filters inside the "Filtra" sheet (free, language): shown as a count on that button. Categories have their own row. */
+export const extraFilterCount = (f: FeedFilters): number => (f.freeOnly ? 1 : 0) + (f.lang ? 1 : 0);
 
 export interface FeedSection {
   key: Exclude<TimeBucket, 'past'>;
@@ -33,7 +36,7 @@ export interface Feed {
   upcoming: EventItem[];
   /** the highlight row above the filters: everything still to come today, unfiltered */
   today: EventItem[];
-  /** below the filter bar: from tomorrow on (or including today when searching a tag) */
+  /** below the rows: from tomorrow on; with any filter on, everything matching including today */
   list: EventItem[];
   sections: FeedSection[];
   /** at most the two busiest events in view, and only if they are actually busy */
@@ -54,11 +57,13 @@ export function buildFeed(events: EventItem[], f: FeedFilters, now: Date): Feed 
 
   const list = upcoming.filter(
     (e) =>
-      (f.tag || bucketOf(e.startsAt, now) !== 'today') &&
+      // browsing: today has its own timeline above; filtering: the rows step aside, so include today
+      (isFiltering(f) || bucketOf(e.startsAt, now) !== 'today') &&
       matchesWhen(e.startsAt, f.when, now) &&
       (!f.hood || e.neighborhood === f.hood) &&
       (!f.cat || e.category === f.cat) &&
       (!f.freeOnly || e.priceType === 'free') &&
+      (!f.lang || speaks(e, f.lang)) &&
       (!f.tag || e.tags.includes(f.tag)),
   );
 

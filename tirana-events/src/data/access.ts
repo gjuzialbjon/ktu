@@ -25,14 +25,26 @@ export function sharedInterests(e: EventItem, interests: string[]): string[] {
   return e.tags.filter((t) => interests.includes(t));
 }
 
+/** The first of the user's hidden topics this event carries, if any. */
+export function hiddenTopicOf(e: EventItem, hidden: readonly string[] | undefined): string | undefined {
+  return hidden && hidden.length > 0 ? e.tags.find((t) => hidden.includes(t)) : undefined;
+}
+
 /**
  * Does the event belong in this person's feed?
- * Public: always. Private + ask: when interests overlap, someone you follow is going,
- * or you already asked/joined. Invite-only: only once you are on it.
+ * Anything you already asked to join or joined: yes, always.
+ * A topic you hid ("never show me chess"): no.
+ * Public: yes. Private + ask: when interests overlap or someone you follow is going.
+ * Invite-only: only once you are on it.
  */
-export function visibleInFeed(e: EventItem, profile: Pick<Profile, 'interests' | 'follows'>, r: Rsvp | undefined): boolean {
-  if (visibilityOf(e) === 'public') return true;
+export function visibleInFeed(
+  e: EventItem,
+  profile: Pick<Profile, 'interests' | 'follows'> & { hidden?: string[] },
+  r: Rsvp | undefined,
+): boolean {
   if (r) return true;
+  if (hiddenTopicOf(e, profile.hidden)) return false;
+  if (visibilityOf(e) === 'public') return true;
   if (joinModeOf(e) === 'invite') return false;
   return sharedInterests(e, profile.interests).length > 0 || e.goingUserIds.some((id) => profile.follows.includes(id));
 }

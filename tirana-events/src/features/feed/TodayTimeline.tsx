@@ -73,10 +73,10 @@ function TimelineRow({ event, onLayout }: { event: EventItem; onLayout: (e: Layo
         style={({ pressed }) => [s.card, pressed && { transform: [{ scale: 0.985 }] }]}
       >
         <View style={[s.bubble, { backgroundColor: theme.cat[event.category] }]}>
-          <Emoji size={18}>{CATEGORY_EMOJI[event.category]}</Emoji>
+          <Emoji size={16}>{CATEGORY_EMOJI[event.category]}</Emoji>
         </View>
         <View style={s.body}>
-          <Text style={s.title} numberOfLines={2}>
+          <Text style={s.title} numberOfLines={1}>
             {event.title}
           </Text>
           <Text style={s.where} numberOfLines={1}>
@@ -102,7 +102,7 @@ const TIME_W = 58;
 
 const useStyles = makeStyles((t) =>
   StyleSheet.create({
-    list: { gap: space.md },
+    list: { gap: space.sm },
     // the time line runs behind the dots
     line: {
       position: 'absolute',
@@ -123,16 +123,17 @@ const useStyles = makeStyles((t) =>
       alignItems: 'center',
       gap: space.md,
       marginLeft: space.md,
-      padding: space.md,
-      minHeight: 72,
+      paddingVertical: 10,
+      paddingHorizontal: space.md,
+      minHeight: 62,
       borderRadius: radius.md,
       backgroundColor: t.c.surface,
       borderWidth: t.outline,
       borderColor: t.c.border,
     },
-    bubble: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+    bubble: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
     body: { flex: 1, gap: 2 },
-    title: { color: t.c.text, fontSize: 16, fontWeight: '700', lineHeight: 20 },
+    title: { color: t.c.text, fontSize: 15, fontWeight: '700', lineHeight: 19 },
     where: { color: t.c.textDim, fontSize: 13 },
     friends: { fontSize: 13, fontWeight: '700' },
     sticker: { position: 'absolute', top: -10, right: 8 },

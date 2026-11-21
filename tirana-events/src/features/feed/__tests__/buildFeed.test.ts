@@ -16,16 +16,27 @@ describe('buildFeed', () => {
     expect(feed.upcoming).not.toContain(yesterday);
   });
 
-  it('applies filters below the bar only; the today row stays unfiltered', () => {
+  it('applies filters to the list (today included, since the rows hide); the today row stays unfiltered', () => {
     const feed = buildFeed(events, { ...NO_FILTERS, hood: 'blloku' }, NOW);
     expect(feed.list.map((e) => e.id)).toEqual([tomorrow.id]);
     expect(feed.today).toHaveLength(1);
+    expect(buildFeed(events, { ...NO_FILTERS, freeOnly: true }, NOW).list[0]).toBe(tonight);
   });
 
   it('treats a tag as a search, including today', () => {
     const feed = buildFeed(events, { ...NO_FILTERS, tag: 'jazz' }, NOW);
     expect(feed.list.map((e) => e.id)).toEqual([tonight.id, tomorrow.id]);
     expect(feed.sections.map((s) => s.key)).toEqual(['today', 'tomorrow']);
+  });
+
+  it('filters by spoken language, including today, counting it as one of the "more" filters', () => {
+    const english = makeEvent({ startsAt: at(2, 19), languages: ['sq', 'en'] });
+    const englishTonight = makeEvent({ startsAt: at(0, 21), languages: ['en'] });
+    const feed = buildFeed([...events, english, englishTonight], { ...NO_FILTERS, lang: 'en' }, NOW);
+    // a visitor wants tonight too, so (like a tag) it includes today
+    expect(feed.list).toEqual([englishTonight, english]);
+    expect(isFiltering({ ...NO_FILTERS, lang: 'it' })).toBe(true);
+    expect(extraFilterCount({ ...NO_FILTERS, lang: 'it' })).toBe(1);
   });
 
   it('filters free-only and by category', () => {
@@ -49,7 +60,8 @@ describe('filter helpers', () => {
   it('knows when anything is filtered and counts the hidden ones', () => {
     expect(isFiltering(NO_FILTERS)).toBe(false);
     expect(isFiltering({ ...NO_FILTERS, tag: 'x' })).toBe(true);
-    expect(extraFilterCount({ ...NO_FILTERS, cat: 'food', freeOnly: true })).toBe(2);
+    // categories have their own visible row, so only free + language count on the Filtra button
+    expect(extraFilterCount({ ...NO_FILTERS, cat: 'food', freeOnly: true, lang: 'en' })).toBe(2);
   });
 });
 

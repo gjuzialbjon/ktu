@@ -8,6 +8,7 @@ import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
 import { firstName, joinNames, lekToEur } from '@/lib/format';
 import { findOffer, findPartner } from '@/data/partners';
+import { foreignLangsOf, spokenLangs } from '@/data/languages';
 import { useEventFacts } from '@/features/event/useEventFacts';
 import { LikeSave } from '@/features/event/LikeSave';
 import { AvatarStack, Chip, Display, Emoji, Sticker, TagRow } from '@/components/ui';
@@ -35,6 +36,8 @@ export function EventCard({ event, popular }: { event: EventItem; popular?: bool
   const { when, where, askToJoin, isPrivate } = useEventFacts(event);
   const offer = findOffer(event.offerId);
   const partner = offer ? findPartner(offer.partnerId) : undefined;
+  // only worth a line when a visitor could join; Albanian-only is the default
+  const langLine = foreignLangsOf(event).length > 0 ? t.lang_list(spokenLangs(event).map((l) => t.lang_name[l])) : null;
 
   return (
     <View style={s.pressable}>
@@ -117,6 +120,11 @@ export function EventCard({ event, popular }: { event: EventItem; popular?: bool
                     {where}
                   </Text>
                 </View>
+                {langLine && (
+                  <Text style={s.meta} numberOfLines={1} accessibilityLabel={t.a11y_langs(langLine)}>
+                    🗣️ {langLine}
+                  </Text>
+                )}
                 {event.source === 'platform' && (
                   <Text style={s.meta} numberOfLines={1}>
                     ✨ {t.badge_platform}

@@ -6,6 +6,7 @@ import { useStore } from '@/data/store';
 import { makeStyles } from '@/lib/theme';
 import { CAN_PICK_CITY, CITIES, LIVE_CITIES, CityId, areaName, cityName } from '@/data/cities';
 import { Button, Chip } from '@/components/ui';
+import { ALL_LANGS } from '@/data/languages';
 import { DateTimeField } from '@/components/DateTimeField';
 import { Field, FieldError, FieldLabel } from '@/features/create/Field';
 import { PhotoField } from '@/features/create/PhotoField';
@@ -22,6 +23,7 @@ const EMPTY_FORM: FormState = {
   tags: '',
   price: '',
   photo: null,
+  langs: ['sq'],
 };
 
 /** Which error a form field clears when the user edits it. */
@@ -132,6 +134,26 @@ export default function CreateEvent() {
           error={err('tags')}
           placeholder="yoga, outdoor"
         />
+        <FieldLabel label={t.ev_langs} />
+        <Text style={s.fieldHint}>{t.ev_langs_hint}</Text>
+        <View style={s.hoodRow}>
+          {ALL_LANGS.map((l) => {
+            const on = form.langs.includes(l);
+            return (
+              <View key={l} style={{ marginBottom: 8 }}>
+                <Chip
+                  label={t.lang_name[l]}
+                  active={on}
+                  // keep at least one: an event has to be in some language
+                  onPress={() =>
+                    update('langs', on ? (form.langs.length > 1 ? form.langs.filter((x) => x !== l) : form.langs) : [...form.langs, l])
+                  }
+                />
+              </View>
+            );
+          })}
+        </View>
+
         <Field
           label={t.ev_price}
           value={form.price}
@@ -153,6 +175,7 @@ const useStyles = makeStyles((t) =>
     scroll: { flex: 1, backgroundColor: t.c.bg },
     content: { padding: 16, paddingBottom: 48, maxWidth: 640, width: '100%', alignSelf: 'center' },
     hint: { color: t.c.textDim, fontSize: 15, marginBottom: 8 },
+    fieldHint: { color: t.c.textDim, fontSize: 13, marginTop: -4, marginBottom: 8 },
     hoodRow: { flexDirection: 'row', flexWrap: 'wrap' },
   }),
 );
