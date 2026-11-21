@@ -1,48 +1,106 @@
-# Board verdict: Tirana Events App — Round 4 (two-tier model + verified evidence)
+# Board verdict: Tirana Events App, round 5 (working prototype, wider scope)
 
-**Vote: 3 FUND IF, unanimous. Average score: 4.3 / 10** — unchanged from round 3: the evidence confirmed the gap *and* confirmed the thin money, so they cancel out.
+**Vote: 3 FUND IF, unanimous. Average score: 3.7 / 10**, down from 4.3. The prototype raised the craft, but
+the scope spread wider before any real user, organizer or partner was involved. Two members lowered their score
+and none raised it.
 
-| Lens | R1 | R2 | R3 | R4 | R4 vote |
-|---|---|---|---|---|---|
-| Offers | 4 | 4 | 4 | 4 | FUND IF |
-| Monopoly | 3 PASS | 4 PASS | 4 | 4 | FUND IF |
-| Product | 4 | 5 | 5 | 5 | FUND IF |
+| Lens | R1 | R2 | R3 | R4 | R5 | R5 vote |
+|---|---|---|---|---|---|---|
+| Offers | 4 | 4 | 4 | 4 | 4 | FUND IF |
+| Monopoly | 3 PASS | 4 PASS | 4 | 4 | **3** | FUND IF |
+| Product | 4 | 5 | 5 | 5 | **4** | FUND IF |
 
-Round 4 reviewed `board/brief-v4.md` — the two-tier model plus the verified competitor research (`competitors.md`). Memos: `board/offers-v4.md`, `board/monopoly-v4.md`, `board/product-v4.md`. Earlier rounds preserved in the same folder.
+Round 5 reviewed `board/brief-v5.md`. Memos: `board/offers-v5.md`, `board/monopoly-v5.md`,
+`board/product-v5.md`. Round 4's verdict is preserved in `board/board-v4.md`.
 
-## What the evidence settled in the plan's favor
+## What moved the scores
 
-- **The "failed market" ghost is gone.** No general-discovery platform ever tried and died in Tirana; the supposed incumbents never attempted the product. Monopoly now calls the secret "real, verified, non-obvious": the incumbents are structurally uninterested because they only monetize the nightlife slice.
-- **The quality bar of the competition is visibly low.** Product: curation is "a craft moat the incumbents visibly lack" — the alternatives are a polluted aggregator, a reportedly dead government app, and a thin startup. Completeness-plus-accuracy is a difference a user feels in five minutes.
-- **The urgency/scarcity levers are honest.** One feed, limited top slots, real event dates — no fake scarcity needed (Offers).
+- **Down: building went ahead of the gates, and the gates went the other way.** Round 4 asked for focus on one
+  thing in Tirana, proven retention before organizer-facing work, and a full-time founder before any code. v5
+  delivered code first and more scope: eight cities, private and ask-to-join events, platform-run events,
+  partner offers and a stamp card. No stage-1 result, interview or commitment is reported. Monopoly: "the
+  opposite of owning a small market first". Product: "the craft got better and the focus got worse".
+- **Not up: a demo is not evidence.** Offers: "A demo cannot raise the likelihood score for a buyer who has
+  never been asked."
+- **What all three credited:** real craft (tests, copy rules, trust details). The attendee offer now answers
+  the panel's top condition ("I go if I see people I know"). The prototype is a useful sales demo for the
+  conversations still owed.
 
-## What the evidence settled against it
+## The new idea the board liked
 
-- **The revenue layer got weaker, not stronger.** All three members: ~€7 typical tickets (commission = cents-to-a-euro per ticket), 8.6% online-ticketing penetration, EasyPay owning the online slice *plus* a nationwide cash-agent network (owning exactly the seam this product can't), festivals and big promoters ticketing in-house, all pricing relationship-based and unpublished. Monopoly's bottom line: the demand spikes (Kanye: 10,000 tickets in 2 hours) belong to precisely the large events this platform will never ticket. The brief's own concession stands: placement may have to carry the model, and placement is priced on zero data.
-- **Even8 is live in the slot.** Thin, but it only needs to execute — and a successful stage-1 feed shows it (and EasyPay, and Enter Events) exactly what to copy. Until the community network effect demonstrably forms, there is no moat of any of the four kinds.
-- **Relationship-priced market, absentee team.** "Nobody publishes fees" means sales happen over coffee in Tirana, week after week — a ground game planned from Barcelona, London and Milan, part-time, with the full-time decision still open. Product adds: hand-curation is daily editorial labor; "a team structurally unable to sweat details will ship the same stale, polluted feed it is trying to replace."
+**Platform-run events with a named host** (stranger dinners, run club, newcomers' coffee). Monopoly calls this
+"the first candidate secret": running events is an operation, not a listing, and harder to copy than a feed.
+Product calls it the right answer to the round-4 problem of the offline moment nobody owns. Offers has no
+quarrel with it but wants its cost per host. This is the most promising thing added since round 1. It is also
+where the new risk lives (see shared risk 4).
 
 ## Shared risks (raised by more than one member)
 
-1. **The paying market may be too small to be worth winning** (all three — the #1 risk in every memo).
-2. **Full-time presence in Tirana is non-negotiable and still undecided** (all three; it is a *product* requirement, not an HR one).
-3. **Two products in one pitch, sequencing is not choosing** (Product #1, echoed by Offers #3: an audience of free book-club joiners is not automatically the ticket-buying audience — the overlap is asserted, not shown).
-4. **No moat before liquidity; the plan broadcasts the demand signal** (Monopoly #3, Offers #3).
-5. **Unowned seams:** the bad community event nobody answers for, and a buy-and-enter flow running through cash habits and venue doors the platform doesn't control (Product #2, Offers #2).
+1. **Scope went wide before any of it went deep** (all three, the top or near-top risk in every memo). Seven
+   cities have no research and no curator. An empty city feed is "the worst first five minutes possible"
+   (Product). Three revenue ideas exist with no evidence for any of them.
+2. **The paying market is still untested** (all three). Placement and commission are unpriced. The partner idea
+   arrived with no pricing, no partner approached, and no answer on who pays the discount.
+3. **The stamp card's economics are undefined** (Offers, Monopoly). "5 partners, get 20% off" either costs the
+   platform on every redemption or asks partners for discounts plus a fee before they see any foot traffic.
+4. **The new handoffs happen offline, nobody owns them, and safety is undesigned** (all three). Ask-to-join
+   needs a host who replies fast. Stranger dinners need reliable hosts and a no-show rule. Offers need a till
+   clerk who honours them. Meeting strangers needs reporting and host vetting. The demo simulates all of this.
+5. **Still no full-time founder in Tirana** (all three, every round since round 2). The new scope (hosting,
+   partner sales) is even more hands-on than the old one.
 
-## Conditions, merged (the final checklist)
+## Where the members disagree
 
-- [ ] **Declare the one thing in writing: community event discovery is the product.** Ticketing is a feature added only after week-two retention of the free loop is proven; no organizer-facing build or commission plumbing before that gate. (Product condition 1; resolves shared risk 3.)
-- [ ] **One named founder, full-time, resident in Tirana, before stage 2 / before any code.** All three lenses, in every round since round 2. Without it the board treats this as a side project, not a company.
-- [ ] **Pre-registered numeric stage-1 gate, written before the feed launches:** follower target AND verified follower-to-attendee conversion threshold, with the stop decision agreed in advance. (All three.)
-- [ ] **15–20 structured interviews with mid-tier promoters/venues** establishing real promotion spend, pain in their words, willingness to pay — closing the gaps public sources cannot. → `/founder-consumer` run on organizers. (Offers condition 2; Monopoly open questions.)
-- [ ] **A priced, guaranteed one-page commercial offer** — commission rate, placement price, risk-reversal guarantee the economics can afford — before anything is sold. → `/founder-pricing`, then `/founder-cfo`. (Offers condition 3.)
-- [ ] **Stage 3 honored literally with a named threshold:** a pre-declared minimum of signed commission-and-placement terms at real rates before the MVP is built; miss it and stop. (All three.)
-- [ ] **Proof the free audience buys tickets:** at least one hand-run commercial event where the community feed demonstrably sold tickets, before the MVP is funded. (Offers condition 5; tests shared risk 3 cheaply.)
-- [ ] **The salary bar:** `/founder-cfo`, on real stage-3 rates and interview data, must show a credible path to covering at least one full-time Tirana salary from the commercial layer within a defined period — otherwise Monopoly's vote reverts to PASS "regardless of how well the community layer grows." (Monopoly condition 4.)
-- [ ] **A written feed-integrity rule before the first placement is sold:** slot count, labeling, the right to refuse a bad event — the revenue layer must not cannibalize the experience that creates the audience. (Product condition 4.)
-- [ ] **Define and instrument the offline moment:** a minimum bar for seeded events (confirmed host, minimum-attendance handling, follow-up) — the event is the product; the app merely points at it. (Product condition 5.)
+- **What to keep from v5.** Monopoly would keep 2–3 hosted formats inside the Tirana wedge, as the candidate
+  moat. Product would ship only public discovery plus free join, and gate hosted events behind a safety plan
+  and named hosts. Offers would keep hosted events once each one's cost and a no-show policy are known.
+- **The partner idea.** Offers sees a third buyer who may be easier to reach than promoters (cafés and shops,
+  sold face to face) and wants 10+ partner interviews now. Monopoly and Product want partners and the stamp
+  card off the shipped product until retention is proven.
+
+## Conditions, merged (the checklist)
+
+Carried from round 4 and still open:
+
+- [ ] **One named founder, full-time and living in Tirana, by a dated deadline**, before any platform-run event
+  or partner is signed. (All three.)
+- [ ] **Run the stage-1 experience test with targets written in advance:** real Tirana events, real people
+  attending; follower growth, attendance, week-two return rate and the share who bring a friend, plus the
+  stop numbers. (All three.)
+- [ ] **15–20 promoter/venue interviews** on current spend and willingness to pay, using the prototype as the
+  demo. → `/founder-consumer` on organizers. (Offers, Monopoly.)
+- [ ] **One revenue line priced and signed before any backend or payments work**, at a pre-stated threshold
+  with a stop rule. `/founder-pricing` → `/founder-cfo` must show a path to one full-time Tirana salary, or
+  Monopoly reverts to PASS. (All three.)
+
+New in round 5:
+
+- [ ] **Freeze scope to Tirana.** Move the other seven cities, Perks/partner offers, the stamp card and the
+  roadmap (engagement score, auto-generated events, AI profiles) out of the shipped product and behind a gate.
+  Keeping them in a branch or the demo is fine. (All three; the exact line is disputed, see above.)
+- [ ] **Own the offline moment before any platform-run event goes live:** named hosts for the first 10 events,
+  a cost per host, a minimum-attendance and cancellation rule, a no-show policy, and basic safety/reporting and
+  host vetting for meeting strangers. (All three.)
+- [ ] **Partner evidence before partner features:** 10+ interviews with prospective partners covering what they
+  would pay and who funds the discount, then a stamp-card model that does not lose money per redemption.
+  → `/founder-consumer` on partners, `/founder-pricing`, `/founder-cfo`. (Offers, Monopoly.)
+- [ ] **A guarantee for each paying buyer type** (for example "no measurable foot traffic, no fee") that the
+  unit economics can afford. → `/founder-cfo`. (Offers.)
+- [ ] **Check the two copy risks with real Albanian speakers:** "tajfa" and the hero line
+  "Ke nai mendje tkeqe per sonte ëë?". (Product.)
 
 ## The chair's closing read
 
-Four rounds: 3.7 → 4.3 → 4.3 → 4.3, votes from split to unanimous FUND IF, and the conditions have converged — the same list now comes back in every round, shrinking rather than growing. The board's position is final and consistent: **the community product is believed; the business attached to it is not yet.** What the evidence changed is *which* risk is king: it is no longer "does the gap exist" (verified: it does) but "is there a business on the other side of it" — and that question has exactly three answers left to collect: the organizer interviews (`/founder-consumer`), the priced offer (`/founder-pricing` → `/founder-cfo` salary bar), and the full-time decision, which no skill can run for the founders. The cheapest next step remains the one available since round 2: start the stage-1 feed with the numeric gate written down, and let Tirana vote.
+Five rounds: 3.7 → 4.3 → 4.3 → 4.3 → 3.7. The board does not doubt the team can build. It doubts the team
+will go out and test. The strongest version of this business the board can see is **narrower than v5 and
+different from v1**:
+
+> One city, Tirana. A complete, honest feed of what is on, plus a small number of platform-run events (a
+> stranger dinner, a run club, a newcomers' coffee) with named hosts the team recruits by hand. Free for
+> attendees. Money comes later from the places those events fill: first venues and partners paying for
+> guaranteed foot traffic, then placement. Ticketing commission is the last line, not the first.
+
+That is closer to an events operator with a great app than to an events marketplace. It plays to the one edge
+the board found hard to copy, and it is cheap to test this month without a line of new code: run ten hosted
+events in Tirana, count who comes back, and ask the venues what they would pay. The prototype is already good
+enough to sell that test. What is missing is not software. It is a founder in Tirana doing it.

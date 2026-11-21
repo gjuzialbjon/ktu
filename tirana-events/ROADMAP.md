@@ -11,12 +11,24 @@ is simulated and marked as such in the code.
 - **Navigation:** create button in the centre of the tab bar; profile top right; weather top left.
 - **Weather:** temperature chip, tap for today (hours, rain chance, sunrise/sunset, one tip).
   Open-Meteo, free, sends only the city's centre coordinates.
-- **Feed:** today as a timeline from earliest to latest, "Ku po shkon tajfa", "Mbase te pelqen"
-  (from the interests you picked), one carousel per category, then the filterable week.
+- **Feed:** the filter bar sits right under the greeting and sticks while you scroll: three
+  buttons (Kur, zone, Filtra) that open bottom sheets, and the categories as one swipeable row. With no
+  filter: a featured row, today as a timeline, "Mbase te pelqen" (from the interests you
+  picked), one carousel per category, then the week. With any filter on, the rows step aside
+  and only the matching list shows, today included.
 - **Public / private / ask to join:** ask-to-join events hide their exact place and time (and
   map pin) until you are accepted; private ones only reach feeds with shared interests or a
   followed person going; invite-only never shows in feeds. Hosts answer after ~6 s in the demo.
+- **"Mos me trego" (hidden topics):** in the profile, or from any event page ("Mos me trego
+  evente si ky"), pick topics you never want (e.g. #chess). Those events leave the feed, rows,
+  map, dice and "similar"; anything you joined or asked to join stays. The feed ends with
+  "N evente te fshehura… Ndrysho" so nothing disappears silently. A topic is liked or hidden, never both.
 - **Like, save, join;** saved and pending events listed under Plans.
+- **Spoken languages (for visitors):** each event can say which languages work there (Albanian,
+  English, Italian, Spanish; missing = Albanian only). Shown as EN/IT/ES on cards and a
+  "Gjuha" row on the event page; a filter chip per language that has events; a row per
+  language with 3+ events ("English-friendly", "Si parla italiano", "Se habla español"), with
+  the English row first when the app is in English. Hosts pick languages when creating.
 - **Hashtags:** "Similar vibes" on each event, by shared tags; tapping a tag filters the feed.
 - **Platform events with a host (facilitator)** shown on the event page.
 - **Partners and offers:** an event can carry one partner offer for everyone who comes; Perks
@@ -44,7 +56,7 @@ is simulated and marked as such in the code.
    `react-native-share`/Instagram's story intent; web falls back to downloading the image.
 6. **"Sapo erdha" mode (newcomers / short stays).** Research first: interview 5–8 people new
    to Tirana (students, remote workers, visitors staying 1–4 weeks). Likely shape: a toggle
-   in profile, English-friendly and newcomer events first, and a weekly "newcomers' coffee"
+   in profile, English-friendly (built: the languages filter and rows) and newcomer events first, and a weekly "newcomers' coffee"
    run by a host (a seed version exists: e31).
 7. **Own events by engagement.** Your created events sorted by how they did, once there is data.
 8. **Hotspots map.** Heat layer of where things are happening tonight.

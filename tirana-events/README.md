@@ -92,6 +92,22 @@ Copy makes the app feel personal, so it has rules. Every new string, in both lan
 
 When unsure about a phrase, ask a second native speaker before shipping it.
 
+## No layout shift, ever
+
+Nothing on screen may move by itself: not on first load, not when saved data, fonts, images
+or the weather arrive, not when a host answers, and not in either language or any theme.
+
+- The app draws nothing until fonts, language, theme and saved data are ready (each provider
+  returns `null` until loaded), so the first frame is already the real one.
+- Anything that arrives late gets its space up front: fixed sizes (weather chip, event action
+  bar, cards), not `min` sizes that grow.
+- Text that changes (labels, statuses, translations) sits in boxes sized for the longest
+  version in either language. Controls keep fixed labels and never cut words with "…": a
+  picked value is shown in full somewhere with room (e.g. the filter chips), not squeezed into a button.
+- Check before shipping: load each screen at 375 and 320 px wide in Albanian and English and
+  read Chrome's layout-shift score (aim for 0). Content changing right after your own tap
+  (a filter) is expected and not counted.
+
 ## Quality and debugging
 
 ```bash
