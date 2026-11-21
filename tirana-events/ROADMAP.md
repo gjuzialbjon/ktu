@@ -23,6 +23,13 @@ is simulated and marked as such in the code.
   evente si ky"), pick topics you never want (e.g. #chess). Those events leave the feed, rows,
   map, dice and "similar"; anything you joined or asked to join stays. The feed ends with
   "N evente te fshehura… Ndrysho" so nothing disappears silently. A topic is liked or hidden, never both.
+- **Event page, route-app style (after Komoot's tour page):** a trust line under the title
+  (category, "Per fillestare", like/save), a stats card with big numbers (how long, entry, spots
+  or turnout, languages), the forecast for the event's hour when it is within ~12 h, and
+  "Programi" as waypoints A → 1 → 2 → B (offsets like "+45m" while ask-to-join details are hidden).
+- **Koleksione:** curated lists with a cover and a point of view ("Sapo erdhe ne Tirane", "Vjen
+  vetem? S'ka gje", "Jashte, ne ajer te paster", "Fundjave pa para", "Nata e gjate"), filled by a
+  rule, shown once they hold 3+ events, each with its own cover.
 - **Like, save, join;** saved and pending events listed under Plans.
 - **Spoken languages (for visitors):** each event can say which languages work there (Albanian,
   English, Italian, Spanish; missing = Albanian only). Shown as EN/IT/ES on cards and a
@@ -61,6 +68,13 @@ is simulated and marked as such in the code.
 7. **Own events by engagement.** Your created events sorted by how they did, once there is data.
 8. **Hotspots map.** Heat layer of where things are happening tonight.
 9. **Ticket sales.** After hosts and partners are working.
+
+10. **Komoot ideas that need real users first.**
+    - *Venue Highlights:* places people recommend, with short tips ("eja 10 min me heret") and a
+      "recommended by 92% of N who went" score, collected after an event ("Si ishte? Ta rekomandosh?").
+    - *Photos from who went:* the event page fills with attendees' photos, like a route's photo count.
+    - *Collections by people,* not only by the team ("Te dielat e Elises").
+    - *A local "Pioneer":* the person whose tips get the most upvotes in an area/category.
 
 ## Open questions for the team
 

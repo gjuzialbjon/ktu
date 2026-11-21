@@ -34,6 +34,12 @@ export interface Organizer {
   verified: boolean;
 }
 
+export interface ProgramStop {
+  /** minutes after the start (0 = the start) */
+  min: number;
+  text: string;
+}
+
 export interface FaqItem {
   q: string;
   a: string;
@@ -65,6 +71,11 @@ export interface EventItem {
   faq?: FaqItem[];
   /** "Good to know" bullets: bring a mat, cash only, dress code... */
   goodToKnow?: string[];
+  /**
+   * The evening step by step, like waypoints on a route: minutes from the start + what happens.
+   * The first stop is where you meet; the last is how it ends. Shown as A → 1 → 2 → B.
+   */
+  program?: ProgramStop[];
   venueName: string;
   address: string;
   city: CityId;

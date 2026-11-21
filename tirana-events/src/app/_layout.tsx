@@ -31,6 +31,7 @@ function ThemedStack() {
         <Stack.Screen name="event/[id]" options={{ title: '' }} />
         <Stack.Screen name="create" options={{ title: '', presentation: 'modal' }} />
         <Stack.Screen name="profile" options={{ title: '' }} />
+        <Stack.Screen name="collection/[id]" options={{ title: '' }} />
         <Stack.Screen name="+not-found" options={{ title: '' }} />
       </Stack>
     </>

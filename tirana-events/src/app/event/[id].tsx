@@ -7,12 +7,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
 import { spotsLeft } from '@/data/events';
-import { CATEGORY_EMOJI, makeStyles, radius, useTheme } from '@/lib/theme';
+import { CATEGORY_EMOJI, makeStyles, radius, space, useTheme } from '@/lib/theme';
 import { firstName, joinNames } from '@/lib/format';
 import { hiddenTopicOf, isIn, sharedInterests, similarEvents } from '@/data/access';
 import { HideTopicsSheet } from '@/features/profile/HideTopicsSheet';
+import { EventStats } from '@/features/event/EventStats';
+import { Program } from '@/features/event/Program';
 import { findOffer, findPartner } from '@/data/partners';
-import { spokenLangs } from '@/data/languages';
 import { useEventFacts } from '@/features/event/useEventFacts';
 import { LikeSave } from '@/features/event/LikeSave';
 import { StoryCard } from '@/components/StoryCard';
@@ -119,8 +120,20 @@ function EventPage({ event }: { event: EventItem }) {
           {event.photoCredit ? <Text style={s.credit}>{event.photoCredit}</Text> : null}
           <Text style={s.whenTop}>{when}</Text>
           <Display size={30}>{event.title}</Display>
-          <View style={s.titleActions}>
-            <LikeSave event={event} size={22} />
+          {/* trust line, like a route's "Expert ★4.8": what it is, who it suits, and your like/save */}
+          <View style={s.trustRow}>
+            <View style={[s.catPill, { borderColor: theme.cat[event.category] }]}>
+              <Emoji size={14}>{CATEGORY_EMOJI[event.category]}</Emoji>
+              <Text style={s.catPillText}>{t[`cat_${event.category}` as const]}</Text>
+            </View>
+            {event.tags.includes('beginner-friendly') && (
+              <View style={[s.catPill, { borderColor: theme.c.free, backgroundColor: theme.c.free }]}>
+                <Text style={[s.catPillText, { color: theme.c.onFree }]}>🌱 {t.level_beginner}</Text>
+              </View>
+            )}
+            <View style={{ marginLeft: 'auto' }}>
+              <LikeSave event={event} size={22} />
+            </View>
           </View>
 
           {friendsGoing.length > 0 && (
@@ -147,18 +160,17 @@ function EventPage({ event }: { event: EventItem }) {
             />
           </View>
 
+          <EventStats event={event} hidden={hidden} spots={spots} going={totalGoing} nowMs={nowMs} />
+
           <View style={s.infoBox}>
-            <Row label={t.when} value={when} />
             <Row
               label={t.where}
               value={where}
               link={hidden ? undefined : t.open_map}
               onLink={hidden ? undefined : () => openInMaps(event)}
             />
-            <Row label={t.languages_label} value={t.lang_list(spokenLangs(event).map((l) => t.lang_name[l]))} />
             <Row label={t.organizer} value={event.organizer.name + (event.organizer.verified ? ' ✓' : '')} />
             {host && <Row label={t.host} value={`${host.name} ✦`} />}
-            {spots != null && <Row label="" value={t.capacity_left(spots)} />}
             {hidden && <Text style={s.hiddenNote}>🔒 {t.hidden_note}</Text>}
           </View>
 
@@ -208,6 +220,8 @@ function EventPage({ event }: { event: EventItem }) {
             {t.about}
           </Display>
           <Text style={s.desc}>{event.description}</Text>
+
+          <Program event={event} hidden={hidden} />
 
           {event.goodToKnow && event.goodToKnow.length > 0 && (
             <View style={[s.infoBox, { marginTop: 18 }]}>
@@ -315,6 +329,17 @@ function Row({ label, value, link, onLink }: { label: string; value: string; lin
 const useStyles = makeStyles((t) =>
   StyleSheet.create({
     scroll: { flex: 1, backgroundColor: t.c.bg },
+    trustRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: space.sm, marginTop: 10 },
+    catPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+      minHeight: 30,
+      paddingHorizontal: 10,
+      borderRadius: 999,
+      borderWidth: 2,
+    },
+    catPillText: { color: t.c.text, fontSize: 13, fontWeight: '700' },
     hideLink: { alignSelf: 'center', minHeight: 44, justifyContent: 'center', marginTop: 24 },
     hideLinkText: { color: t.c.textDim, fontSize: 14, fontWeight: '600', textDecorationLine: 'underline' },
     missing: { flex: 1, alignItems: 'flex-start', justifyContent: 'center', gap: 14, padding: 24, backgroundColor: t.c.bg },
@@ -369,7 +394,6 @@ const useStyles = makeStyles((t) =>
       padding: 16,
       gap: 12,
     },
-    titleActions: { flexDirection: 'row', marginTop: 4, marginLeft: -4 },
     hiddenNote: { color: t.c.textDim, fontSize: 13, lineHeight: 18, marginTop: 2 },
     shared: { color: t.c.social, fontSize: 14, fontWeight: '700', marginTop: 12 },
     platform: {

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, RefreshControl, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Animated, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useI18n } from '@/lib/i18n';
@@ -28,6 +28,8 @@ import ArrowUp from 'lucide-react-native/icons/arrow-up';
 import { DiceOrigin, DiceRoll } from '@/features/feed/DiceRoll';
 import type { Category, EventItem, SpokenLang } from '@/data/types';
 import { LANG_ROW_TITLE, langsAvailable, railsByLanguage } from '@/data/languages';
+import { liveCollections } from '@/data/collections';
+import { CollectionCard } from '@/features/collections/CollectionCard';
 
 const GAP = space.lg;
 const TONIGHT_FROM_HOUR = 17;
@@ -99,6 +101,8 @@ export default function Home() {
   // rows for visitors: events that work in English / Italian / Spanish. Uses everything
   // upcoming (today included): someone here for three days wants tonight too.
   const langRails = useMemo(() => railsByLanguage(feed.upcoming), [feed.upcoming]);
+  // curated lists ("Sapo erdhe ne Tirane", "Fundjave pa para"…), only those with enough events
+  const collections = useMemo(() => liveCollections(feed.upcoming, now), [feed.upcoming, now]);
   const langChips = useMemo(() => langsAvailable(feed.upcoming), [feed.upcoming]);
   // with the app in English, the English row leads; otherwise language rows follow the categories
   const langFirst = lang === 'en' ? langRails.filter((r) => r.lang === 'en') : [];
@@ -346,6 +350,22 @@ export default function Home() {
             <View style={[s.column, column, s.rails]}>
               {langFirst.map(langRail)}
               <EventRail title={t.for_you_title} note={t.for_you_hint} events={suggested} source="for_you" />
+              {collections.length > 0 && (
+                <View style={{ gap: 2 }}>
+                  <Display size={19}>{t.collections_title}</Display>
+                  <Text style={s.railNote}>{t.collections_note}</Text>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={s.collectionRail}
+                    contentContainerStyle={s.collectionRailContent}
+                  >
+                    {collections.map(({ collection, items, cover }) => (
+                      <CollectionCard key={collection.id} collection={collection} items={items} cover={cover} />
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
               {rails.length > 0 && (
                 <View style={s.vibeHead}>
                   <Display size={wide ? 26 : 22}>{t.by_vibe}</Display>
@@ -509,6 +529,9 @@ const useStyles = makeStyles((t) =>
       justifyContent: 'center',
     },
     emptyBtnText: { color: t.c.onPrimary, fontWeight: '700', fontSize: 15 },
+    railNote: { color: t.c.textDim, fontSize: 13 },
+    collectionRail: { flexGrow: 0, marginHorizontal: -space.lg },
+    collectionRailContent: { paddingHorizontal: space.lg, paddingTop: 6, paddingBottom: 10 },
     hiddenNote: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', marginTop: space.xl, minHeight: 44 },
     hiddenText: { color: t.c.textDim, fontSize: 14 },
     hiddenLink: { color: t.c.text, fontSize: 14, fontWeight: '700', textDecorationLine: 'underline' },
