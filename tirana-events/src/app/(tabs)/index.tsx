@@ -14,7 +14,8 @@ import { Chevron, Display, Emoji, Hand, Sticker } from '@/components/ui';
 import { TopBar } from '@/components/TopBar';
 import { track } from '@/lib/analytics';
 import { useNow } from '@/hooks/useNow';
-import { FeedSection, NO_FILTERS, buildFeed, isFiltering, pickHighlights, railsByCategory } from '@/features/feed/buildFeed';
+import { FeedRanking, FeedSection, HIGHLIGHTS_MAX, NO_FILTERS, buildFeed, isFiltering, pickHighlights, railsByCategory } from '@/features/feed/buildFeed';
+import { TIER_WEIGHT, arrangeRail } from '@/data/hostStanding';
 import { TodayTimeline } from '@/features/feed/TodayTimeline';
 import { pickToday } from '@/features/feed/todayTop';
 import { CountPill, EventRail } from '@/features/feed/EventRail';
@@ -60,7 +61,7 @@ export default function Home() {
   const { t, lang } = useI18n();
   const theme = useTheme();
   const s = useStyles();
-  const { cityEvents: events, profile, rsvps, events: allEvents, hiddenEvents, likes } = useStore();
+  const { cityEvents: events, profile, rsvps, events: allEvents, hiddenEvents, likes, tierOf } = useStore();
   const { height: viewportH, width: viewportW } = useWindowDimensions();
   const [cityOpen, setCityOpen] = useState(false);
   const router = useRouter();
@@ -80,7 +81,17 @@ export default function Home() {
     setTimeout(() => setRefreshing(false), 450);
   };
 
-  const feed = useMemo(() => buildFeed(events, filters, now), [events, filters, now]);
+  // host standing (data/hostStanding): reliable hosts rise, empty or flaky ones sink. Your own
+  // events, ones you are in, and ones someone you follow is going to keep their place.
+  const ranking = useMemo<FeedRanking>(
+    () => ({
+      tier: tierOf,
+      vouched: (e) => e.organizer.id === 'me' || !!rsvps[e.id] || e.goingUserIds.some((id) => profile.follows.includes(id)),
+    }),
+    [tierOf, rsvps, profile.follows],
+  );
+  const feed = useMemo(() => buildFeed(events, filters, now, ranking), [events, filters, now, ranking]);
+  const [unfolded, setUnfolded] = useState<ReadonlySet<string>>(() => new Set());
   const filtering = isFiltering(filters);
   const reduceMotion = useReducedMotion();
   // what your "never show me" topics took out this week, so nothing vanishes without a word
@@ -96,26 +107,38 @@ export default function Home() {
     const joinedTags = allEvents.filter((e) => isIn(rsvps[e.id])).flatMap((e) => e.tags);
     const todayIds = new Set(feed.today.map((e) => e.id));
     return forYou(
-      feed.upcoming.filter((e) => !todayIds.has(e.id) && !isIn(rsvps[e.id])),
+      feed.railPool.filter((e) => !todayIds.has(e.id) && !isIn(rsvps[e.id])),
       profile.interests,
       joinedTags,
     );
-  }, [allEvents, rsvps, feed.upcoming, feed.today, profile.interests]);
+  }, [allEvents, rsvps, feed.railPool, feed.today, profile.interests]);
   // a busy day shows its favourites (yours first), still in time order
   const todayShown = useMemo(
-    () => pickToday(feed.today, TODAY_MAX, new Set(Object.keys(rsvps)), new Set(Object.keys(likes))),
-    [feed.today, rsvps, likes],
+    () =>
+      pickToday(feed.today, TODAY_MAX, new Set(Object.keys(rsvps)), new Set(Object.keys(likes)), (e) =>
+        ranking.vouched(e) ? 1 : TIER_WEIGHT[ranking.tier(e)],
+      ),
+    [feed.today, rsvps, likes, ranking],
   );
-  const highlights = useMemo(() => pickHighlights(feed.upcoming, profile.follows, now), [feed.upcoming, profile.follows, now]);
+  const highlights = useMemo(
+    () => pickHighlights(feed.curatedPool, profile.follows, now, HIGHLIGHTS_MAX, ranking),
+    [feed.curatedPool, profile.follows, now, ranking],
+  );
   const rails = useMemo(() => {
     const todayIds = new Set(feed.today.map((e) => e.id));
-    return railsByCategory(feed.upcoming.filter((e) => !todayIds.has(e.id)));
-  }, [feed.upcoming, feed.today]);
+    return railsByCategory(feed.railPool.filter((e) => !todayIds.has(e.id))).map((r) => ({
+      ...r,
+      items: arrangeRail(r.items, ranking.tier, ranking.vouched),
+    }));
+  }, [feed.railPool, feed.today, ranking]);
   // rows for visitors: events that work in English / Italian / Spanish. Uses everything
   // upcoming (today included): someone here for three days wants tonight too.
-  const langRails = useMemo(() => railsByLanguage(feed.upcoming), [feed.upcoming]);
+  const langRails = useMemo(
+    () => railsByLanguage(feed.railPool).map((r) => ({ ...r, items: arrangeRail(r.items, ranking.tier, ranking.vouched) })),
+    [feed.railPool, ranking],
+  );
   // curated lists ("Sapo erdhe ne Tirane", "Fundjave pa para"…), only those with enough events
-  const collections = useMemo(() => liveCollections(feed.upcoming, now), [feed.upcoming, now]);
+  const collections = useMemo(() => liveCollections(feed.curatedPool, now), [feed.curatedPool, now]);
   const langChips = useMemo(() => langsAvailable(feed.upcoming), [feed.upcoming]);
   // with the app in English, the English row leads; otherwise language rows follow the categories
   const langFirst = lang === 'en' ? langRails.filter((r) => r.lang === 'en') : [];
@@ -241,7 +264,7 @@ export default function Home() {
   const diceRef = useRef<React.ComponentRef<typeof View>>(null);
   const [roll, setRoll] = useState<{ event: EventItem; origin: DiceOrigin; key: number } | null>(null);
   const surprise = () => {
-    const pool = feed.upcoming.filter((e) => new Date(e.startsAt).getTime() > Date.now());
+    const pool = feed.railPool.filter((e) => new Date(e.startsAt).getTime() > Date.now());
     if (pool.length === 0 || roll) return;
     const pick = pool[Math.floor(Math.random() * pool.length)];
     track('surprise_me', { eventId: pick.id, tags: pick.tags });
@@ -488,7 +511,7 @@ export default function Home() {
                 </Pressable>
               </View>
             ) : (
-              feed.sections.map(({ key, items }) => (
+              feed.sections.map(({ key, items, folded }) => (
                 <View key={key} style={s.section}>
                   <View style={s.sectionHead}>
                     <Display size={wide ? 30 : 26} style={{ flexShrink: 1 }}>
@@ -502,6 +525,28 @@ export default function Home() {
                         <EventCard event={e} popular={feed.popularIds.has(e.id)} />
                       </View>
                     ))}
+                    {/* a host's events past their cap: one line each, opened on tap */}
+                    {folded.flatMap((f) =>
+                      unfolded.has(`${key}:${f.hostId}`)
+                        ? f.events.map((e) => (
+                            <View key={e.id} style={{ width: itemWidth }}>
+                              <EventCard event={e} />
+                            </View>
+                          ))
+                        : [
+                            <Pressable
+                              key={`more-${f.hostId}`}
+                              accessibilityRole="button"
+                              onPress={() => {
+                                track('host_unfold', { hostId: f.hostId, n: f.events.length });
+                                setUnfolded((prev) => new Set(prev).add(`${key}:${f.hostId}`));
+                              }}
+                              style={({ pressed }) => [s.foldedRow, { width: itemWidth }, pressed && { opacity: 0.85 }]}
+                            >
+                              <Text style={s.foldedText}>{t.more_from(f.events.length, f.hostName)}</Text>
+                            </Pressable>,
+                          ],
+                    )}
                   </View>
                 </View>
               ))
@@ -627,6 +672,17 @@ const useStyles = makeStyles((t) =>
     emptyBtnText: { color: t.c.onPrimary, fontWeight: '700', fontSize: 15 },
     railNote: { color: t.c.textDim, fontSize: 13 },
     collectionRail: { flexGrow: 0, marginHorizontal: -space.lg },
+    foldedRow: {
+      minHeight: 48,
+      justifyContent: 'center',
+      paddingHorizontal: space.lg,
+      marginBottom: 18,
+      borderRadius: radius.lg,
+      borderWidth: t.outline,
+      borderColor: t.c.border,
+      backgroundColor: t.c.surface,
+    },
+    foldedText: { color: t.c.social, fontSize: 15, fontWeight: '700' },
     collectionRailContent: { paddingHorizontal: space.lg, paddingTop: 6, paddingBottom: 10 },
     hiddenNote: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', marginTop: space.xl, minHeight: 44 },
     hiddenText: { color: t.c.textDim, fontSize: 14 },

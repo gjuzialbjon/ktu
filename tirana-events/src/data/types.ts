@@ -54,6 +54,9 @@ export interface Comment {
   createdAt: string; // ISO
 }
 
+/** Why a host cancelled; weather, illness and venue can be excused (see hostStanding). */
+export type CancelReason = 'weather' | 'venue' | 'illness' | 'low_signups' | 'other';
+
 /** How often a recurring event comes back. */
 export type Repeat = 'weekly' | 'biweekly' | 'monthly';
 
@@ -127,6 +130,9 @@ export interface EventItem {
   /** set when the event repeats (see Series) */
   series?: Series;
   status: 'draft' | 'published' | 'cancelled';
+  /** when the host cancelled (status 'cancelled'): a late cancel lowers their standing */
+  cancelledAt?: string; // ISO
+  cancelReason?: CancelReason;
   isSponsored: boolean;
   sponsoredLabel?: string;
   organizer: Organizer;

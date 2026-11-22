@@ -1,12 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Animated, Easing, Platform } from 'react-native';
+import { Animated, Easing, Platform, type ViewStyle } from 'react-native';
 import { useTheme } from '@/lib/theme';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 /**
+ * For the pressable that wraps a card: the card draws its own rounded focus ring, so the
+ * browser's square outline is switched off. 'none' is valid CSS that RN's types do not list.
+ */
+export const NO_BROWSER_OUTLINE = (Platform.OS === 'web' ? { outlineStyle: 'none' } : {}) as ViewStyle;
+
+/**
  * Shared hover/focus treatment for event cards: one short ease-out lift with a
  * soft shadow, and a slow photo zoom inside the card's frame. Keyboard focus
- * gets the same lift plus a visible ring. With reduced motion, nothing moves;
+ * (not a click or tap) gets the same lift plus a visible ring. With reduced motion, nothing moves;
  * only the shadow and ring change.
  */
 export function useHoverLift() {
@@ -52,7 +58,12 @@ export function useHoverLift() {
     handlers: {
       onHoverIn: () => setHovered(true),
       onHoverOut: () => setHovered(false),
-      onFocus: () => setFocused(true),
+      // the ring is for keyboard users: a click or tap also focuses the card, and should not
+      // leave a dark frame around it. On web, ask the browser whether this focus is "visible".
+      onFocus: (e: { target?: unknown; nativeEvent?: { target?: unknown } }) => {
+        const el = (e?.nativeEvent?.target ?? e?.target) as { matches?: (q: string) => boolean } | undefined;
+        setFocused(Platform.OS !== 'web' || !el?.matches || el.matches(':focus-visible'));
+      },
       onBlur: () => setFocused(false),
     },
     translateY,

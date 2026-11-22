@@ -11,7 +11,7 @@ import { LANG_CODE, foreignLangsOf, spokenLangs } from '@/data/languages';
 import { useEventFacts } from '@/features/event/useEventFacts';
 import { Emoji } from '@/components/ui';
 import { track } from '@/lib/analytics';
-import { useHoverLift } from '@/hooks/useHoverLift';
+import { NO_BROWSER_OUTLINE, useHoverLift } from '@/hooks/useHoverLift';
 import { EventPhoto } from '@/components/EventPhoto';
 
 /**
@@ -136,7 +136,8 @@ export function StoryCard({
 const useStyles = makeStyles((t) =>
   StyleSheet.create({
     // vertical padding gives the lift and shadow room inside the horizontal scroller
-    pressable: { marginRight: 12, paddingTop: 6, paddingBottom: 14 },
+    // Link asChild needs one flat style; the card draws its own focus ring
+    pressable: { marginRight: 12, paddingTop: 6, paddingBottom: 14, ...NO_BROWSER_OUTLINE },
     card: {
       borderRadius: radius.lg,
       backgroundColor: t.c.surfaceAlt,

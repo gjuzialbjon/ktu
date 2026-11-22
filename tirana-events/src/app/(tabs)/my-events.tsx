@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-n
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
-import { makeStyles } from '@/lib/theme';
+import { makeStyles, radius } from '@/lib/theme';
 import { EventCard } from '@/components/EventCard';
 import { Display } from '@/components/ui';
 import { TopBar } from '@/components/TopBar';
@@ -12,7 +12,9 @@ import { isIn } from '@/data/access';
 export default function MyEvents() {
   const { t } = useI18n();
   const s = useStyles();
-  const { events, rsvps, saved } = useStore();
+  const { events, rsvps, saved, myDrafts, standings } = useStore();
+  // your standing as a host: only you see it, and only once you have created something
+  const hostTier = standings.me?.tier ?? 'new';
   const { width } = useWindowDimensions();
   const cols = width >= 1280 ? 3 : width >= 768 ? 2 : 1;
   const maxW = cols > 1 ? 1240 : 640;
@@ -44,6 +46,13 @@ export default function MyEvents() {
           {t.my_events}
         </Display>
         {upcoming.length === 0 ? <Text style={s.empty}>{t.no_events}</Text> : grid(upcoming)}
+        {myDrafts.length > 0 && (
+          <View style={s.hostCard}>
+            <Text style={s.hostTitle}>{t.host_title}</Text>
+            <Text style={s.hostBody}>{t.host_status[hostTier]}</Text>
+            <Text style={s.hostMeta}>{t.host_pending(myDrafts.length)}</Text>
+          </View>
+        )}
         {waiting.length > 0 && (
           <>
             <Display size={22} style={{ marginTop: 12, marginBottom: 12 }}>
@@ -79,5 +88,17 @@ const useStyles = makeStyles((t) =>
     content: { padding: 16, paddingBottom: 48, width: '100%', alignSelf: 'center' },
     grid: { flexDirection: 'row', flexWrap: 'wrap' },
     empty: { color: t.c.textDim, fontSize: 16, marginTop: 8, marginBottom: 16 },
+    hostCard: {
+      backgroundColor: t.c.surface,
+      borderRadius: radius.md,
+      borderWidth: t.outline,
+      borderColor: t.c.border,
+      padding: 16,
+      gap: 6,
+      marginBottom: 20,
+    },
+    hostTitle: { color: t.c.text, fontSize: 16, fontWeight: '700' },
+    hostBody: { color: t.c.text, fontSize: 15, lineHeight: 21 },
+    hostMeta: { color: t.c.textDim, fontSize: 14 },
   }),
 );

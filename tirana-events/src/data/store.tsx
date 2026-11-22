@@ -5,6 +5,8 @@ import { DraftInput, eventsForCity, makeComment, makeDraftEvent, makeRsvp, order
 import { CityId, DEFAULT_CITY, isLiveCity } from './cities';
 import { DEMO_APPROVE_AFTER_MS, hiddenTopicOf, visibleInFeed } from './access';
 import { nextEditions, nextRollAt } from './recurrence';
+import { HostStanding, HostTier, eventTier, outcomeOf, standingsFor } from './hostStanding';
+import { hostHistory } from './hostHistory';
 import { KEYS, asArray, asRecord, clearStorage, migrateStorage, readJson, writeJson } from './storage';
 import { track } from '@/lib/analytics';
 import { createLogger } from '@/lib/log';
@@ -46,6 +48,12 @@ interface StoreCtx {
   stamps: Record<string, string>;
   collectStamp: (partnerId: string) => void;
   submitDraft: (input: DraftInput) => void;
+  /** host id → standing, from past outcomes (see hostStanding) */
+  standings: Record<string, HostStanding>;
+  /** the feed tier of an event's host */
+  tierOf: (e: EventItem) => HostTier;
+  /** events you created, still waiting for a curator */
+  myDrafts: EventItem[];
   /** Debug only: wipe device data and return to first-run state. */
   resetLocalData: () => Promise<void>;
 }
@@ -144,6 +152,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(timer);
   }, [allEvents, clock]);
   const events = useMemo(() => orderFeedEvents(allEvents), [allEvents]);
+  // host standing: the demo history plus every event that has ended or was cancelled since.
+  // Recomputed when `clock` moves (an edition starting), which is often enough for a ranking.
+  const standings = useMemo(() => {
+    const now = new Date(clock);
+    const ended = allEvents.map((e) => outcomeOf(e, now)).filter((o) => o != null);
+    return standingsFor([...hostHistory(now), ...ended], now);
+  }, [allEvents, clock]);
+  const tierOf = useCallback((e: EventItem) => eventTier(e, standings), [standings]);
+  const myDrafts = useMemo(() => drafts.filter((d) => d.status === 'draft' && isLiveCity(d.city)), [drafts]);
   const cityEvents = useMemo(
     () => eventsForCity(allEvents, profile.city).filter((e) => visibleInFeed(e, profile, rsvps[e.id])),
     [allEvents, profile, rsvps],
@@ -323,9 +340,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       stamps,
       collectStamp,
       submitDraft,
+      standings,
+      tierOf,
+      myDrafts,
       resetLocalData,
     }),
     [
+      standings,
+      tierOf,
+      myDrafts,
       toggleInterest,
       toggleHidden,
       requestJoin,

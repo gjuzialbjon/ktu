@@ -12,7 +12,7 @@ import { useEventFacts } from '@/features/event/useEventFacts';
 import { LikeSave } from '@/features/event/LikeSave';
 import { AvatarStack, Chip, Display, Emoji, Sticker } from '@/components/ui';
 import { track } from '@/lib/analytics';
-import { useHoverLift } from '@/hooks/useHoverLift';
+import { NO_BROWSER_OUTLINE, useHoverLift } from '@/hooks/useHoverLift';
 import { EventPhoto } from '@/components/EventPhoto';
 
 /** Room kept free at the footer's right for the like/save buttons laid over it. */
@@ -151,7 +151,8 @@ const useStyles = makeStyles((t) =>
   StyleSheet.create({
     // flex: 1 down the chain lets a card fill the row height its grid cell stretches to
     pressable: { marginBottom: 18, flex: 1 },
-    link: { flex: 1 },
+    // Link asChild needs one flat style; the card draws its own focus ring
+    link: { flex: 1, ...NO_BROWSER_OUTLINE },
     likeSave: { position: 'absolute', right: 8, bottom: 4 },
     card: {
       backgroundColor: t.c.surface,

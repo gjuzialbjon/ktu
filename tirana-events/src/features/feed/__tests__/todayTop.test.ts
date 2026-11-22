@@ -35,3 +35,17 @@ describe('pickToday', () => {
     expect(pickToday(day, 2, new Set(['quiet'])).map((e) => e.id)).toEqual(['hit', 'quiet']);
   });
 });
+
+describe('pickToday with host standing', () => {
+  const day = [ev('early', 8, 2), ev('hit', 12, 60), ev('series', 18, 5, 9), ev('quiet', 20, 1), ev('late', 23, 30)];
+
+  it('keeps a Limited/Low host (weight 0) out of the top, however liked', () => {
+    const weight = (e: EventItem) => (e.id === 'hit' ? 0 : 1);
+    expect(pickToday(day, 3, new Set(), new Set(), weight).map((e) => e.id)).toEqual(['early', 'series', 'late']);
+  });
+
+  it('still shows it when it is yours', () => {
+    const weight = (e: EventItem) => (e.id === 'hit' ? 0 : 1);
+    expect(pickToday(day, 2, new Set(['hit']), new Set(), weight).map((e) => e.id)).toContain('hit');
+  });
+});

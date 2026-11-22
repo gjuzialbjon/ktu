@@ -59,7 +59,7 @@ function EventPage({ event }: { event: EventItem }) {
   const theme = useTheme();
   const s = useStyles();
   const { t, lang } = useI18n();
-  const { events, people, profile, rsvps, join, requestJoin, cancel, comments, addComment } = useStore();
+  const { events, people, profile, rsvps, join, requestJoin, cancel, comments, addComment, standings } = useStore();
   const insets = useSafeAreaInsets();
   const keyboardOpen = useKeyboardVisible();
   const nowMs = useNow();
@@ -140,6 +140,12 @@ function EventPage({ event }: { event: EventItem }) {
                 accessibilityLabel={t.a11y_series(t.repeat_name[event.series.repeat], event.series.edition)}
               >
                 <Text style={s.catPillText}>🔁 {t.repeat_name[event.series.repeat]}</Text>
+              </View>
+            )}
+            {/* only ever a positive mark: a weaker standing is never shown to attendees */}
+            {event.source !== 'platform' && standings[event.organizer.id]?.tier === 'trusted' && (
+              <View style={[s.catPill, { borderColor: theme.c.border }]}>
+                <Text style={s.catPillText}>✓ {t.host_trusted}</Text>
               </View>
             )}
             <View style={{ marginLeft: 'auto' }}>

@@ -17,17 +17,24 @@ export function todayScore(e: EventItem, likedByYou = false): number {
   return (e.likeCount ?? 0) + (likedByYou ? 1 : 0) + runs * SERIES_BOOST_PER_EDITION;
 }
 
+/**
+ * `weight` comes from the host's standing (data/hostStanding TIER_WEIGHT): Trusted hosts get a
+ * nudge, Limited and Low hosts (weight 0) only make the top when there is room for everyone.
+ */
 export function pickToday(
   today: EventItem[],
   max: number,
   mine: ReadonlySet<string> = new Set(),
   liked: ReadonlySet<string> = new Set(),
+  weight: (e: EventItem) => number = () => 1,
 ): EventItem[] {
   if (today.length <= max) return today;
+  const score = (e: EventItem) => weight(e) * todayScore(e, liked.has(e.id));
   const ranked = [...today].sort(
     (a, b) =>
       Number(mine.has(b.id)) - Number(mine.has(a.id)) ||
-      todayScore(b, liked.has(b.id)) - todayScore(a, liked.has(a.id)) ||
+      Number(weight(b) > 0) - Number(weight(a) > 0) ||
+      score(b) - score(a) ||
       a.startsAt.localeCompare(b.startsAt),
   );
   return ranked.slice(0, max).sort((a, b) => a.startsAt.localeCompare(b.startsAt));

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { KEYS, migrateStorage, readString, writeString } from '@/data/storage';
 import type { Repeat } from '@/data/types';
+import type { HostTier } from '@/data/hostStanding';
 
 export type Lang = 'sq' | 'en';
 export const LANGS: readonly Lang[] = ['sq', 'en'];
@@ -185,6 +186,7 @@ const sq = {
   a11y_collection: (title: string, n: number) => `Koleksioni ${title}, ${n} evente`,
   see_all: (n: number) => `Të gjitha ${n}`,
   today_all: (n: number) => `Të gjitha ${n} eventet e sotme`,
+  more_from: (n: number, host: string) => (n === 1 ? `Edhe 1 event nga ${host}` : `Edhe ${n} evente nga ${host}`),
   a11y_see_all: (what: string, n: number) => `Shiko të gjitha ${n} për ${what}`,
   lang_name: { sq: 'Shqip', en: 'Anglisht', it: 'Italisht', es: 'Spanjisht' },
   /** "Shqip, anglisht": only the first one capitalised, as Albanian writes it */
@@ -231,6 +233,17 @@ const sq = {
   platform_note: 'Këtë e organizojmë ne. Një mikpritës kujdeset për gjërat e vogla, që ti vetëm të vish.',
   host: 'Mikpritësi',
   host_badge: 'Mikpritës',
+  host_trusted: 'Organizator i besuar',
+  // your standing as a host (data/hostStanding), shown only to you in Planet
+  host_title: 'Si organizator',
+  host_pending: (n: number) => (n === 1 ? '1 event në pritje të shqyrtimit.' : `${n} evente në pritje të shqyrtimit.`),
+  host_status: {
+    new: '3 eventet e para i shohim ne para se të dalin. Pastaj publikon vetë.',
+    normal: 'Eventet e tua dalin normalisht në faqe.',
+    trusted: 'Organizator i besuar ✓: eventet e tua dalin më lart dhe publikohen pa pritur.',
+    limited: 'Disa nga eventet e fundit mbetën bosh, ndaj tani dalin më poshtë. Provo kapacitet më të vogël, orar tjetër, ose një event që përsëritet.',
+    low: 'Anulimet në minutën e fundit i çojnë eventet e tua në fund. Bëj 2 evente pa anulime dhe ngjitesh sërish.',
+  } as Record<HostTier, string>,
   // partner offers
   offer_title: 'Për të gjithë ata që vijnë',
   offer_at: (partner: string) => `te ${partner}`,
@@ -464,6 +477,7 @@ const en: Dict = {
   a11y_collection: (title: string, n: number) => `Collection ${title}, ${n} events`,
   see_all: (n: number) => `All ${n}`,
   today_all: (n: number) => `All ${n} events today`,
+  more_from: (n: number, host: string) => `${n} more from ${host}`,
   a11y_see_all: (what: string, n: number) => `See all ${n} in ${what}`,
   lang_name: { sq: 'Albanian', en: 'English', it: 'Italian', es: 'Spanish' },
   lang_list: (names: string[]) => names.join(', '),
@@ -505,6 +519,16 @@ const en: Dict = {
   platform_note: 'We set this one up. A host takes care of the small stuff, so you can just show up.',
   host: 'Host on the day',
   host_badge: 'Host',
+  host_trusted: 'Trusted host',
+  host_title: 'As a host',
+  host_pending: (n: number) => (n === 1 ? '1 event waiting for review.' : `${n} events waiting for review.`),
+  host_status: {
+    new: 'We check your first 3 events before they go live. After that you publish on your own.',
+    normal: 'Your events show up in the feed as usual.',
+    trusted: 'Trusted host ✓: your events rank higher and go live without waiting.',
+    limited: 'Some of your recent events ended empty, so new ones show lower for now. Try fewer seats, another time, or a repeating event.',
+    low: 'Last-minute cancels put your events at the end. Run 2 events without cancelling to move back up.',
+  },
   offer_title: 'For everyone who comes',
   offer_at: (partner: string) => `at ${partner}`,
   similar_title: 'Similar vibes',
