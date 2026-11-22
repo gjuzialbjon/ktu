@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Rail } from '@/components/Rail';
+
+import { Animated, Platform, Pressable, RefreshControl, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useI18n } from '@/lib/i18n';
@@ -14,7 +16,9 @@ import { track } from '@/lib/analytics';
 import { useNow } from '@/hooks/useNow';
 import { FeedSection, NO_FILTERS, buildFeed, isFiltering, pickHighlights, railsByCategory } from '@/features/feed/buildFeed';
 import { TodayTimeline } from '@/features/feed/TodayTimeline';
+import { pickToday } from '@/features/feed/todayTop';
 import { CountPill, EventRail } from '@/features/feed/EventRail';
+import { HighlightsCarousel } from '@/features/feed/HighlightsCarousel';
 import { SkyBackdrop } from '@/features/feed/SkyBackdrop';
 import { latenessOf, skyStops } from '@/features/feed/sky';
 import { forYou, isIn } from '@/data/access';
@@ -30,6 +34,9 @@ import type { Category, EventItem, SpokenLang } from '@/data/types';
 import { LANG_ROW_TITLE, langsAvailable, railsByLanguage } from '@/data/languages';
 import { liveCollections } from '@/data/collections';
 import { CollectionCard } from '@/features/collections/CollectionCard';
+
+/** today's timeline shows the next few; a busy day (30+ events) would bury everything below */
+const TODAY_MAX = 5;
 
 const GAP = space.lg;
 const TONIGHT_FROM_HOUR = 17;
@@ -53,7 +60,7 @@ export default function Home() {
   const { t, lang } = useI18n();
   const theme = useTheme();
   const s = useStyles();
-  const { cityEvents: events, profile, rsvps, events: allEvents, hiddenEvents } = useStore();
+  const { cityEvents: events, profile, rsvps, events: allEvents, hiddenEvents, likes } = useStore();
   const { height: viewportH, width: viewportW } = useWindowDimensions();
   const [cityOpen, setCityOpen] = useState(false);
   const router = useRouter();
@@ -75,6 +82,7 @@ export default function Home() {
 
   const feed = useMemo(() => buildFeed(events, filters, now), [events, filters, now]);
   const filtering = isFiltering(filters);
+  const reduceMotion = useReducedMotion();
   // what your "never show me" topics took out this week, so nothing vanishes without a word
   const hiddenCount = useMemo(() => buildFeed(hiddenEvents, NO_FILTERS, now).upcoming.length, [hiddenEvents, now]);
 
@@ -93,6 +101,11 @@ export default function Home() {
       joinedTags,
     );
   }, [allEvents, rsvps, feed.upcoming, feed.today, profile.interests]);
+  // a busy day shows its favourites (yours first), still in time order
+  const todayShown = useMemo(
+    () => pickToday(feed.today, TODAY_MAX, new Set(Object.keys(rsvps)), new Set(Object.keys(likes))),
+    [feed.today, rsvps, likes],
+  );
   const highlights = useMemo(() => pickHighlights(feed.upcoming, profile.follows, now), [feed.upcoming, profile.follows, now]);
   const rails = useMemo(() => {
     const todayIds = new Set(feed.today.map((e) => e.id));
@@ -134,23 +147,55 @@ export default function Home() {
   // "back to top" shows once you are about a screen down; state flips only when crossing that line
   const scrollRef = useRef<React.ComponentRef<typeof Animated.ScrollView>>(null);
   const [showTop, setShowTop] = useState(false);
+  // "see all" on a category row: filter the week list below to it and jump there
+  const [leadH, setLeadH] = useState(0);
+  // is the filter bar docked at the top (scrolled past everything above it)?
+  const [docked, setDocked] = useState(false);
+  // where the sky is drawn (the safe area box) relative to the scroll view, for the docked bar
+  const [skyBox, setSkyBox] = useState({ top: 0, h: 0 });
+  // the bar's sky follows the scroll (same value that moves the bar), so it always lines up
+  // with the sky around it: invisible at rest, a solid cover once docked, no switch between
+  const skyShift = useMemo(() => {
+    // where the bar's top is in the scroll view: leadH - y until it docks at 0
+    const barTop = scrollY.interpolate({
+      inputRange: [0, Math.max(leadH, 1)],
+      outputRange: [leadH, 0],
+      extrapolateLeft: 'extend',
+      extrapolateRight: 'clamp',
+    });
+    return Animated.multiply(Animated.add(barTop, skyBox.top), -1);
+  }, [scrollY, leadH, skyBox.top]);
+  // the bar's bottom edge fades in over the last few pixels before docking
+  const edgeOpacity = useMemo(
+    () =>
+      scrollY.interpolate({
+        inputRange: leadH > 16 ? [leadH - 16, leadH] : [0, 1],
+        outputRange: leadH > 16 ? [0, 1] : [0, 0],
+        extrapolate: 'clamp',
+      }),
+    [scrollY, leadH],
+  );
   const onScroll = useMemo(
     () =>
       Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
         useNativeDriver: Platform.OS !== 'web',
         listener: (e: { nativeEvent: { contentOffset: { y: number } } }) => {
-          const past = e.nativeEvent.contentOffset.y > viewportH * 0.9;
+          const y = e.nativeEvent.contentOffset.y;
+          const past = y > viewportH * 0.9;
           setShowTop((v) => (v === past ? v : past));
+          const isDocked = leadH > 0 && y >= leadH - 2;
+          setDocked((v) => (v === isDocked ? v : isDocked));
         },
       }),
-    [scrollY, viewportH],
+    [scrollY, viewportH, leadH],
   );
-  // "see all" on a category row: filter the week list below to it and jump there
-  const [leadH, setLeadH] = useState(0);
   const jumpToList = () => scrollRef.current?.scrollTo({ y: leadH, animated: !reduceMotion });
-  // when filters change while you are far down, bring the results' start up under the bar
+  // picking a filter docks the bar at the top so the results get the screen: a glide from
+  // above (you see where you went), a jump from far below (the list just got shorter)
   const onFiltersChanged = useEffectEvent(() => {
-    if (showTop) scrollRef.current?.scrollTo({ y: leadH, animated: false });
+    if (!filtering && !showTop) return;
+    if (!docked) scrollRef.current?.scrollTo({ y: leadH, animated: !reduceMotion });
+    else if (showTop) scrollRef.current?.scrollTo({ y: leadH, animated: false });
   });
   useEffect(() => onFiltersChanged(), [filters]);
   const seeCategory = (cat: Category) => {
@@ -183,7 +228,6 @@ export default function Home() {
   const heroSize = Math.max(15, Math.min(wide ? 40 : 22, Math.floor((Math.min(viewportW, maxW) - space.lg * 2) / (t.hero_q.length * 0.56))));
 
   // one orchestrated moment: the greeting sticker is pressed on when home first appears
-  const reduceMotion = useReducedMotion();
   const [stick] = useState(() => new Animated.Value(0));
   useEffect(() => {
     if (reduceMotion) {
@@ -218,10 +262,21 @@ export default function Home() {
     key === 'today' ? todayTitle : key === 'tomorrow' ? t.sec_tomorrow : key === 'weekend' ? t.sec_weekend : t.sec_later;
 
   return (
-    <SafeAreaView style={s.safe} edges={['top']}>
+    <SafeAreaView
+      style={s.safe}
+      edges={['top']}
+      onLayout={(e) => {
+        const h = e.nativeEvent.layout.height;
+        setSkyBox((p) => (p.h === h ? p : { ...p, h }));
+      }}
+    >
       <SkyBackdrop lateness={lateness} />
       <Animated.ScrollView
         ref={scrollRef}
+        onLayout={(e) => {
+          const top = e.nativeEvent.layout.y;
+          setSkyBox((p) => (p.top === top ? p : { ...p, top }));
+        }}
         stickyHeaderIndices={[1]}
         onScroll={onScroll}
         scrollEventThrottle={16}
@@ -307,19 +362,35 @@ export default function Home() {
           </View>
 
           </View>
-        </View>
 
-        {/* 1 — sticky filter bar, right under the greeting so it is one thumb away */}
-        <FilterBar state={filterState} city={profile.city} maxWidth={maxW} langs={langChips} resultCount={feed.list.length} />
-
-        {/* 2 — browsing: the rows; with any filter on, they step aside for the matching list */}
-        <View onLayout={(e) => setBodyY(e.nativeEvent.layout.y)}>
-          {/* a few events worth opening, before anything else */}
-          {!filtering && highlights.length > 0 && (
+          {/* events before controls: the carousel leads; it sits above the bar, so it stays put
+              (and visible) while filters change what is below */}
+          {highlights.length > 0 && (
             <View style={[s.column, column, s.highlights]}>
-              <EventRail title={t.highlights_title} events={highlights} source="highlights" size="wide" maxWidth={maxW} />
+              <HighlightsCarousel title={t.highlights_title} events={highlights} maxWidth={maxW} />
             </View>
           )}
+        </View>
+
+        {/* 1 — sticky filter bar, under the carousel; docks at the top once you scroll past it */}
+        <FilterBar state={filterState} city={profile.city} maxWidth={maxW} langs={langChips} resultCount={feed.list.length}
+          backdrop={
+            <Animated.View
+              style={{ position: 'absolute', left: 0, right: 0, top: 0, height: skyBox.h, transform: [{ translateY: skyShift }] }}
+            >
+              {/* the sky's top colour carried on above it: on a fast flick the browser docks the
+                  bar a frame before this shift catches up, and that frame then shows sky, not
+                  the rows behind (the gap would open across the top of the buttons) */}
+              <View style={[s.skyAbove, { backgroundColor: theme.sky.day[0] }]} />
+              <Animated.View style={[s.skyAbove, { backgroundColor: theme.sky.evening[0], opacity: lateness }]} />
+              <SkyBackdrop lateness={lateness} />
+            </Animated.View>
+          }
+          edgeOpacity={edgeOpacity}
+        />
+
+        {/* 2 — browsing: the rows; with any filter on, they step aside for the matching list */}
+        <View style={{ paddingTop: space.sm }} onLayout={(e) => setBodyY(e.nativeEvent.layout.y)}>
 
           {!filtering && feed.today.length > 0 && (
             <View
@@ -332,7 +403,7 @@ export default function Home() {
               <View style={s.todayHead}>
                 <Display size={wide ? 26 : 19}>{todayTitle}</Display>
                 <Hand size={18} color={theme.c.textDim}>
-                  {t.today_note} ↓
+                  {feed.today.length > TODAY_MAX ? t.today_top_note : t.today_note} ↓
                 </Hand>
               </View>
               <View
@@ -341,8 +412,22 @@ export default function Home() {
                   setTodayTop((p) => (p?.list === list ? p : { section: p?.section ?? 0, list }));
                 }}
               >
-                <TodayTimeline events={feed.today} onRowLayout={onRowLayout} />
+                <TodayTimeline events={todayShown} onRowLayout={onRowLayout} />
               </View>
+              {/* a busy day stays one glance long: the rest are one tap away, in the Sot list */}
+              {feed.today.length > TODAY_MAX && (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => {
+                    track('today_see_all', { n: feed.today.length });
+                    filterState.setWhen('today');
+                    jumpToList();
+                  }}
+                  style={({ pressed }) => [s.todayAll, pressed && { opacity: 0.7 }]}
+                >
+                  <Text style={s.todayAllText}>{t.today_all(feed.today.length)} →</Text>
+                </Pressable>
+              )}
             </View>
           )}
 
@@ -354,16 +439,14 @@ export default function Home() {
                 <View style={{ gap: 2 }}>
                   <Display size={19}>{t.collections_title}</Display>
                   <Text style={s.railNote}>{t.collections_note}</Text>
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
+                  <Rail
                     style={s.collectionRail}
                     contentContainerStyle={s.collectionRailContent}
                   >
                     {collections.map(({ collection, items, cover }) => (
                       <CollectionCard key={collection.id} collection={collection} items={items} cover={cover} />
                     ))}
-                  </ScrollView>
+                  </Rail>
                 </View>
               )}
               {rails.length > 0 && (
@@ -455,6 +538,7 @@ const useStyles = makeStyles((t) =>
   StyleSheet.create({
     // the sky sits behind the scroll view, so the screen itself stays see-through
     safe: { flex: 1, backgroundColor: t.c.bg },
+    skyAbove: { position: 'absolute', left: 0, right: 0, bottom: '100%', height: 600 },
     // bottom-right, above the tab bar, clear of the thumb's scroll path
     toTop: {
       position: 'absolute',
@@ -496,7 +580,7 @@ const useStyles = makeStyles((t) =>
     heroArea: { paddingBottom: space.md, marginBottom: space.sm },
     // full-bleed, faded, anchored to the bottom of the hero: scenery, not content
     bandBehind: { position: 'absolute', left: 0, right: 0, bottom: 0, opacity: 0.35 },
-    highlights: { marginTop: space.md, marginBottom: space.xs },
+    highlights: { marginTop: space.md, marginBottom: space.sm },
 
     today: { marginBottom: space.xl, gap: space.sm },
     rails: { gap: space.md, marginBottom: space.md },
@@ -506,6 +590,18 @@ const useStyles = makeStyles((t) =>
     results: { paddingTop: space.md },
     count: { color: t.c.textDim, fontSize: 14, fontWeight: '600' },
     section: { marginTop: space.xl, gap: space.md },
+    todayAll: {
+      marginTop: space.sm,
+      minHeight: 48,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: space.lg,
+      borderRadius: radius.lg,
+      borderWidth: t.outline,
+      borderColor: t.c.border,
+      backgroundColor: t.c.surface,
+    },
+    todayAllText: { color: t.c.social, fontSize: 15, fontWeight: '700', fontVariant: ['tabular-nums'] },
     todayHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: space.md, flexWrap: 'wrap' },
     sectionHead: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
     grid: { flexDirection: 'row', flexWrap: 'wrap' },

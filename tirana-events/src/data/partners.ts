@@ -53,10 +53,10 @@ export const PARTNERS: Partner[] = [
     name: 'Libraria Kapaku',
     lat: 41.3262,
     lng: 19.8189,
-    blurb: { sq: 'Libra te rinj e te vjeter, kafe ne cep.', en: 'New and used books, coffee in the corner.' },
+    blurb: { sq: 'Libra të rinj e të vjetër, kafe në qoshe.', en: 'New and used books, coffee in the corner.' },
     offers: [
-      offer('p1', 1, 10, '10% zbritje per librin e klubit', '10% off the book club pick'),
-      offer('p1', 2, 15, '15% per cdo liber, diten e eventit', '15% off any book on the day'),
+      offer('p1', 1, 10, '10% zbritje për librin e klubit', '10% off the book club pick'),
+      offer('p1', 2, 15, '15% për çdo libër, ditën e eventit', '15% off any book on the day'),
     ],
   },
   {
@@ -66,8 +66,8 @@ export const PARTNERS: Partner[] = [
     name: 'Te Sofra e Madhe',
     lat: 41.3215,
     lng: 19.8128,
-    blurb: { sq: 'Tavoline e gjate, gatim shtepie.', en: 'One long table, home cooking.' },
-    offers: [offer('p2', 1, 5, '5% ne darke, per gjithe tavolinen', '5% off dinner for the whole table')],
+    blurb: { sq: 'Tavolinë e gjatë, gatim shtëpie.', en: 'One long table, home cooking.' },
+    offers: [offer('p2', 1, 5, '5% në darkë, për gjithë tavolinën', '5% off dinner for the whole table')],
   },
   {
     id: 'p3',
@@ -76,8 +76,8 @@ export const PARTNERS: Partner[] = [
     name: 'Kafja e Mengjesit',
     lat: 41.3288,
     lng: 19.8235,
-    blurb: { sq: 'Kafe e pjekur ketu, nga ora 7.', en: 'Roasted in-house, open from 7.' },
-    offers: [offer('p3', 1, 15, 'Kafja e dyte me 15% pas eventit', '15% off your second coffee after')],
+    blurb: { sq: 'Kafe e pjekur këtu, hapur nga ora 7.', en: 'Roasted in-house, open from 7.' },
+    offers: [offer('p3', 1, 15, 'Kafja e dytë me 15% pas eventit', '15% off your second coffee after')],
   },
   {
     id: 'p4',
@@ -86,8 +86,8 @@ export const PARTNERS: Partner[] = [
     name: 'Hapi Running',
     lat: 41.3172,
     lng: 19.8205,
-    blurb: { sq: 'Kepuce vrapimi, prova falas ne park.', en: 'Running shoes, free try-outs in the park.' },
-    offers: [offer('p4', 1, 10, '10% per veshje vrapimi', '10% off running gear')],
+    blurb: { sq: 'Këpucë vrapimi, provë falas në park.', en: 'Running shoes, free try-outs in the park.' },
+    offers: [offer('p4', 1, 10, '10% për veshje vrapimi', '10% off running gear')],
   },
   {
     id: 'p5',
@@ -96,8 +96,8 @@ export const PARTNERS: Partner[] = [
     name: 'Bar Muzgu',
     lat: 41.3205,
     lng: 19.8172,
-    blurb: { sq: 'Taraca me pamje, pije pa alkool gjithashtu.', en: 'Terrace with a view, alcohol-free drinks too.' },
-    offers: [offer('p5', 1, 10, '10% ne pije pas eventit', '10% off drinks after the event')],
+    blurb: { sq: 'Tarracë me pamje, edhe pije pa alkool.', en: 'Terrace with a view, alcohol-free drinks too.' },
+    offers: [offer('p5', 1, 10, '10% në pije pas eventit', '10% off drinks after the event')],
   },
   {
     id: 'p6',
@@ -106,8 +106,8 @@ export const PARTNERS: Partner[] = [
     name: 'Punishtja e Baltes',
     lat: 41.3312,
     lng: 19.8102,
-    blurb: { sq: 'Qeramike me duar, kurse te vogla.', en: 'Hand-made ceramics, small classes.' },
-    offers: [offer('p6', 1, 20, '20% ne kursin e pare', '20% off your first class')],
+    blurb: { sq: 'Qeramikë me dorë, kurse të vogla.', en: 'Hand-made ceramics, small classes.' },
+    offers: [offer('p6', 1, 20, '20% në kursin e parë', '20% off your first class')],
   },
   {
     id: 'p7',
@@ -116,8 +116,8 @@ export const PARTNERS: Partner[] = [
     name: 'Peshku i Dites',
     lat: 41.3122,
     lng: 19.4465,
-    blurb: { sq: 'Peshk i fresket ne mole.', en: 'Fresh fish on the pier.' },
-    offers: [offer('p7', 1, 10, '10% ne darke per pjesemarresit', '10% off dinner for participants')],
+    blurb: { sq: 'Peshk i freskët në mol.', en: 'Fresh fish on the pier.' },
+    offers: [offer('p7', 1, 10, '10% në darkë për pjesëmarrësit', '10% off dinner for participants')],
   },
   {
     id: 'p8',
@@ -126,7 +126,7 @@ export const PARTNERS: Partner[] = [
     name: 'Kafe Lungo',
     lat: 40.4575,
     lng: 19.4855,
-    blurb: { sq: 'Kafe buze detit.', en: 'Coffee by the sea.' },
+    blurb: { sq: 'Kafe buzë detit.', en: 'Coffee by the sea.' },
     offers: [offer('p8', 1, 10, '10% pas vozitjes me kajak', '10% off after the kayak trip')],
   },
 ];

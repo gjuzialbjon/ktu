@@ -1,4 +1,5 @@
-import type { Comment, EventItem, Rsvp } from './types';
+import type { Comment, EventItem, Repeat, Rsvp } from './types';
+import { startSeries } from './recurrence';
 import type { CityId } from './cities';
 
 /**
@@ -29,13 +30,17 @@ export type DraftInput = Pick<
   ticketPriceLek?: number;
   /** data-URL or file URI from the image picker */
   coverImage?: string;
+  /** set when it repeats: the title becomes "… #1" and the next edition follows by itself */
+  repeat?: Repeat;
 };
 
 /** A user-submitted event. It waits as a draft until a curator publishes it. */
 export function makeDraftEvent(input: DraftInput, id: string): EventItem {
+  const recurring = input.repeat ? startSeries(id, input.title, input.repeat) : null;
   return {
     id,
-    title: input.title,
+    title: recurring ? recurring.title : input.title,
+    series: recurring?.series,
     description: input.description,
     category: 'community',
     tags: input.tags,

@@ -3,6 +3,7 @@ import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Theme, makeStyles, radius, useTheme } from '@/lib/theme';
 import { useI18n } from '@/lib/i18n';
+import { formatDate } from '@/lib/format';
 
 /**
  * Cross-platform date + time picking.
@@ -86,8 +87,6 @@ export function DateTimeField({
     next.setHours(picked.getHours(), picked.getMinutes(), 0, 0);
     onChange(next);
   };
-
-  const locale = lang === 'sq' ? 'sq-AL' : 'en-GB';
 
   const label = (text: string) => (
     <Text style={styles.label}>
@@ -183,7 +182,7 @@ export function DateTimeField({
         >
           <Text style={value ? styles.pickText : styles.pickPlaceholder}>
             {value
-              ? value.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' })
+              ? formatDate(value, lang, true)
               : '--.--'}
           </Text>
         </Pressable>

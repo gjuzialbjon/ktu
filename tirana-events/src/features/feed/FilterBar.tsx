@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Rail } from '@/components/Rail';
+import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import CalendarDays from 'lucide-react-native/icons/calendar-days';
 import MapPin from 'lucide-react-native/icons/map-pin';
 import SlidersHorizontal from 'lucide-react-native/icons/sliders-horizontal';
@@ -31,6 +32,8 @@ export function FilterBar({
   maxWidth,
   langs,
   resultCount,
+  backdrop,
+  edgeOpacity,
 }: {
   state: FeedFiltersState;
   city: CityId;
@@ -39,6 +42,13 @@ export function FilterBar({
   langs: SpokenLang[];
   /** how many events the current filters show, for the sheet's confirm button */
   resultCount: number;
+  /**
+   * Painted behind the bar at all times, clipped to it: the page's own sky, kept lined up
+   * with the sky around it as you scroll, so the bar never switches backgrounds.
+   */
+  backdrop?: React.ReactNode;
+  /** 0 at rest → 1 docked: fades in the bottom edge, driven by the scroll itself */
+  edgeOpacity?: Animated.AnimatedInterpolation<number>;
 }) {
   const { t, lang } = useI18n();
   const s = useStyles();
@@ -51,6 +61,12 @@ export function FilterBar({
 
   return (
     <View style={s.barWrap}>
+      {backdrop ? (
+        <View pointerEvents="none" style={s.backdropClip}>
+          {backdrop}
+        </View>
+      ) : null}
+      {edgeOpacity ? <Animated.View pointerEvents="none" style={[s.edge, { opacity: edgeOpacity }]} /> : null}
       <View style={[s.column, { maxWidth }]}>
         <View style={s.buttons}>
           <BarButton
@@ -76,9 +92,8 @@ export function FilterBar({
           />
         </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
+        <Rail
+          compact
           style={s.catScroll}
           contentContainerStyle={s.catRow}
         >
@@ -136,7 +151,7 @@ export function FilterBar({
               onPress={() => state.setCat(filters.cat === c ? null : c)}
             />
           ))}
-        </ScrollView>
+        </Rail>
       </View>
 
       {/* when */}
@@ -306,12 +321,21 @@ const useStyles = makeStyles((t) =>
   StyleSheet.create({
     column: { width: '100%', alignSelf: 'center', paddingHorizontal: space.lg },
     barWrap: {
-      // solid: rows scrolling under it must not show through the buttons
-      backgroundColor: t.c.surface,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: t.c.border,
+      // no colour of its own: the backdrop paints the page's sky behind it (see props), so at
+      // rest it is part of the page and docked it still hides the rows scrolling under it
+      backgroundColor: 'transparent',
       paddingTop: space.sm,
       paddingBottom: 2,
+    },
+    backdropClip: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, overflow: 'hidden' },
+    // drawn over the bar's bottom pixels, so it takes no room and fading it moves nothing
+    edge: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: t.c.border,
     },
     buttons: { flexDirection: 'row', gap: space.sm },
     // three equal buttons with fixed labels: always fit, never resize
@@ -345,7 +369,8 @@ const useStyles = makeStyles((t) =>
     badgeText: { fontSize: 12, fontWeight: '800', fontVariant: ['tabular-nums'] },
     // vertical padding gives the chips' hit slop room inside the scroller
     catScroll: { marginHorizontal: -space.lg },
-    catRow: { alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, paddingVertical: space.sm },
+    // chips bring their own 8px right margin: no extra gap, so they read as one row
+    catRow: { alignItems: 'center', paddingHorizontal: space.lg, paddingVertical: space.sm },
     sheetLabel: { color: t.c.textDim, fontSize: 14, fontWeight: '700' },
     wrapRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
     option: {

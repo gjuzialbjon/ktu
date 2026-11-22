@@ -54,6 +54,23 @@ export interface Comment {
   createdAt: string; // ISO
 }
 
+/** How often a recurring event comes back. */
+export type Repeat = 'weekly' | 'biweekly' | 'monthly';
+
+/**
+ * A recurring event: every edition is its own event (own id, own people going, own comments),
+ * numbered in its title ("Yoga në Liqen #4"). The next edition appears once the latest starts.
+ */
+export interface Series {
+  /** shared by every edition */
+  id: string;
+  repeat: Repeat;
+  /** 1 for the first time it ran */
+  edition: number;
+  /** the title without " #N" */
+  baseTitle: string;
+}
+
 export interface EventItem {
   id: string;
   title: string;
@@ -107,6 +124,8 @@ export interface EventItem {
   offerId?: string;
   /** seeded likes for the demo */
   likeCount?: number;
+  /** set when the event repeats (see Series) */
+  series?: Series;
   status: 'draft' | 'published' | 'cancelled';
   isSponsored: boolean;
   sponsoredLabel?: string;

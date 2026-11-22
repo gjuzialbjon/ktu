@@ -1,6 +1,6 @@
 import { AreaId, CITIES, CityId } from '@/data/cities';
 import type { DraftInput } from '@/data/events';
-import type { SpokenLang } from '@/data/types';
+import type { Repeat, SpokenLang } from '@/data/types';
 import { normalizeLangs } from '@/data/languages';
 
 /**
@@ -24,6 +24,8 @@ export interface DraftForm {
   photo: string | null;
   /** languages people can use there; starts as Albanian */
   langs: SpokenLang[];
+  /** null = it happens once */
+  repeat: Repeat | null;
 }
 
 export const TITLE_MIN = 5;
@@ -79,6 +81,7 @@ export function validateDraft(form: DraftForm, now: Date): ValidationResult {
       languages: normalizeLangs(form.langs),
       ticketPriceLek,
       coverImage: form.photo ?? undefined,
+      repeat: form.repeat ?? undefined,
     },
   };
 }

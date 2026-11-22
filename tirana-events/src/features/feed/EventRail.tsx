@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Rail } from '@/components/Rail';
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import type { EventItem } from '@/data/types';
 import { makeStyles, space } from '@/lib/theme';
 import { useI18n } from '@/lib/i18n';
@@ -60,9 +61,7 @@ export function EventRail({
         ) : null}
       </View>
       {note ? <Text style={s.note}>{note}</Text> : null}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
+      <Rail
         style={s.rail}
         contentContainerStyle={s.railContent}
         snapToInterval={cardW ? cardW + CARD_GAP : undefined}
@@ -71,7 +70,7 @@ export function EventRail({
         {events.map((e) => (
           <StoryCard key={e.id} event={e} source={source} size={size} width={cardW} />
         ))}
-      </ScrollView>
+      </Rail>
     </View>
   );
 }

@@ -47,7 +47,7 @@ export function StoryCard({
   const { t } = useI18n();
   const { people, profile } = useStore();
   const friends = people.filter((p) => event.goingUserIds.includes(p.id) && profile.follows.includes(p.id));
-  const { when, askToJoin } = useEventFacts(event);
+  const { when, whenShort, askToJoin } = useEventFacts(event);
   const langs = foreignLangsOf(event);
   const langNames = t.lang_list(spokenLangs(event).map((l) => t.lang_name[l]));
 
@@ -102,7 +102,7 @@ export function StoryCard({
               )}
               <View style={s.bottom}>
                 <Text style={[s.when, { fontSize: dims.when }]} numberOfLines={1}>
-                  {when}
+                  {whenShort}
                 </Text>
                 <Text
                   style={[s.title, { fontFamily: theme.font, fontSize: dims.title, lineHeight: Math.round(dims.title * 1.2) }]}

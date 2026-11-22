@@ -52,7 +52,7 @@ export const CITIES: Record<CityId, City> = {
       { id: 'blloku', sq: 'Blloku', en: 'Blloku' },
       { id: 'liqeni', sq: 'Liqeni & Parku', en: 'Lake and park' },
       { id: 'pazari', sq: 'Pazari i Ri', en: 'New Bazaar' },
-      { id: 'periferia', sq: 'Jashte qendres', en: 'Outside the centre' },
+      { id: 'periferia', sq: 'Jashtë qendrës', en: 'Outside the centre' },
     ],
     bounds: { latMin: 41.3, latMax: 41.345, lngMin: 19.77, lngMax: 19.875 },
   },
@@ -97,7 +97,7 @@ export const CITIES: Record<CityId, City> = {
     name: { sq: 'Korça', en: 'Korçë' },
     areas: [
       CENTRE,
-      { id: 'pazari', sq: 'Pazari i Vjeter', en: 'Old Bazaar' },
+      { id: 'pazari', sq: 'Pazari i Vjetër', en: 'Old Bazaar' },
       { id: 'parku', sq: 'Parku Rinia', en: 'Rinia park' },
       { id: 'dardha', sq: 'Dardha', en: 'Dardhë' },
     ],

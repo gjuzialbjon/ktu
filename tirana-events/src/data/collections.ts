@@ -24,9 +24,9 @@ export const COLLECTIONS: Collection[] = [
   {
     id: 'sapo-erdhe',
     emoji: '🧳',
-    title: { sq: 'Sapo erdhe ne Tirane', en: 'New in Tirana' },
+    title: { sq: 'Sapo erdhe në Tiranë', en: 'New in Tirana' },
     blurb: {
-      sq: 'Vende ku flitet edhe anglisht dhe ku njerezit jane mesuar me fytyra te reja.',
+      sq: 'Vende ku flitet edhe anglisht dhe ku njerëzit janë mësuar me fytyra të reja.',
       en: 'Places where English works and people are used to new faces.',
     },
     match: (e) => hasTag(e, 'newcomers') || (speaks(e, 'en') && hasTag(e, 'meet-people', 'beginner-friendly', 'social')),
@@ -34,9 +34,9 @@ export const COLLECTIONS: Collection[] = [
   {
     id: 'vjen-vete',
     emoji: '🙋',
-    title: { sq: "Vjen vetem? S'ka gje", en: "Coming alone? That's fine" },
+    title: { sq: "Vjen vetëm? S'ka gjë", en: "Coming alone? That's fine" },
     blurb: {
-      sq: 'Grupe te vogla dhe nje host qe te prezanton. Askush s\'rri menjane.',
+      sq: 'Grupe të vogla dhe një mikpritës që të prezanton. Askush nuk rri mënjanë.',
       en: 'Small groups and a host who introduces you. Nobody stands in a corner.',
     },
     match: (e) => e.source === 'platform' || hasTag(e, 'meet-people', 'small-group'),
@@ -44,9 +44,9 @@ export const COLLECTIONS: Collection[] = [
   {
     id: 'jashte',
     emoji: '🌿',
-    title: { sq: 'Jashte, ne ajer te paster', en: 'Out in the fresh air' },
+    title: { sq: 'Jashtë, në ajër të pastër', en: 'Out in the fresh air' },
     blurb: {
-      sq: 'Liqeni, Dajti, rruget e qytetit. Gjera qe behen me kembe.',
+      sq: 'Liqeni, Dajti, rrugët e qytetit. Gjëra që bëhen në këmbë.',
       en: 'The lake, Dajti, the city streets. Things you do on foot.',
     },
     match: (e) => e.category === 'outdoors' || hasTag(e, 'outdoor', 'hiking', 'running', 'walk'),
@@ -56,7 +56,7 @@ export const COLLECTIONS: Collection[] = [
     emoji: '🪙',
     title: { sq: 'Fundjave pa para', en: 'A weekend for free' },
     blurb: {
-      sq: 'Te shtunen dhe te dielen, pa hyrje. Paguan vetem ate qe porosit.',
+      sq: 'Të shtunën dhe të dielën, pa biletë. Paguan vetëm atë që porosit.',
       en: 'Saturday and Sunday, no entry fee. You only pay for what you order.',
     },
     match: (e, now) => e.priceType === 'free' && matchesWhen(e.startsAt, 'weekend', now),
@@ -66,7 +66,7 @@ export const COLLECTIONS: Collection[] = [
     emoji: '🌙',
     title: { sq: 'Nata e gjate', en: 'The long night' },
     blurb: {
-      sq: 'Per kur s\'do te kthehesh heret ne shpi.',
+      sq: 'Për kur s\'do të kthehesh herët në shtëpi.',
       en: "For when you're not going home early.",
     },
     match: (e) => e.category === 'nightlife' || new Date(e.startsAt).getHours() >= 21,

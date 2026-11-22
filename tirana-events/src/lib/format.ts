@@ -39,29 +39,54 @@ export function isThisWeek(iso: string, now = new Date()): boolean {
   return t >= now.getTime() - 60 * 60_000 && t <= now.getTime() + 7 * 24 * 3600_000;
 }
 
-export function formatWhen(iso: string, lang: Lang, todayWord: string, tomorrowWord: string): string {
+/**
+ * Day and month names written out here, not taken from Intl: many browsers and Hermes ship
+ * without Albanian locale data and quietly fall back to "Monday, Nov 23, 10:00 AM".
+ */
+const NAMES: Record<Lang, { day: string[]; dayShort: string[]; month: string[] }> = {
+  sq: {
+    day: ['E diel', 'E hënë', 'E martë', 'E mërkurë', 'E enjte', 'E premte', 'E shtunë'],
+    dayShort: ['Die', 'Hën', 'Mar', 'Mër', 'Enj', 'Pre', 'Sht'],
+    month: ['jan', 'shk', 'mar', 'pri', 'maj', 'qer', 'korr', 'gush', 'sht', 'tet', 'nën', 'dhj'],
+  },
+  en: {
+    day: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+    dayShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  },
+};
+
+/** 24-hour "19:30", as both Tirana and the en-GB copy write it. */
+export const formatTime = (d: Date): string =>
+  `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+
+/** "E shtunë, 21 nën" / "Saturday, 21 Nov"; short: "Sht, 21 nën". */
+export function formatDate(d: Date, lang: Lang, short = false): string {
+  const n = NAMES[lang];
+  return `${(short ? n.dayShort : n.day)[d.getDay()]}, ${d.getDate()} ${n.month[d.getMonth()]}`;
+}
+
+export function formatWhen(iso: string, lang: Lang, todayWord: string, tomorrowWord: string, short = false): string {
   const d = new Date(iso);
   const now = new Date();
-  const locale = lang === 'sq' ? 'sq-AL' : 'en-GB';
-  const time = d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+  const time = formatTime(d);
   const tomorrow = new Date(now);
   tomorrow.setDate(now.getDate() + 1);
   if (sameDay(d, now)) return `${todayWord} ${time}`;
   if (sameDay(d, tomorrow)) return `${tomorrowWord} ${time}`;
-  const day = d.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'short' });
-  return `${day.charAt(0).toUpperCase()}${day.slice(1)}, ${time}`;
+  return `${formatDate(d, lang, short)}, ${time}`;
 }
 
 /** "Today", "Tomorrow" or "Saturday, 21 Nov": the day without the time (for events that keep their time hidden). */
-export function formatDay(iso: string, lang: Lang, todayWord: string, tomorrowWord: string): string {
+export function formatDay(iso: string, lang: Lang, todayWord: string, tomorrowWord: string, short = false): string {
   const d = new Date(iso);
   const now = new Date();
   const tomorrow = new Date(now);
   tomorrow.setDate(now.getDate() + 1);
   if (sameDay(d, now)) return todayWord;
   if (sameDay(d, tomorrow)) return tomorrowWord;
-  const day = d.toLocaleDateString(lang === 'sq' ? 'sq-AL' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
-  return `${day.charAt(0).toUpperCase()}${day.slice(1)}`;
+  // short drops the weekday: the day part follows it on small cards ("24 nën, mëngjes")
+  return short ? `${d.getDate()} ${NAMES[lang].month[d.getMonth()]}` : formatDate(d, lang);
 }
 
 export function initials(name: string): string {

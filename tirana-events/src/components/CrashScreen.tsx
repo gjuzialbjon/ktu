@@ -17,10 +17,10 @@ export function CrashScreen({ error, retry }: ErrorBoundaryProps) {
 
   return (
     <View style={s.wrap}>
-      <Text style={s.title}>Dicka u prish.</Text>
-      <Text style={s.body}>Provo perseri. / Something broke. Try again.</Text>
+      <Text style={s.title}>Diçka u prish.</Text>
+      <Text style={s.body}>Provo përsëri. / Something broke. Try again.</Text>
       <Pressable accessibilityRole="button" onPress={retry} style={({ pressed }) => [s.btn, pressed && { opacity: 0.85 }]}>
-        <Text style={s.btnText}>Provo perseri / Try again</Text>
+        <Text style={s.btnText}>Provo përsëri / Try again</Text>
       </Pressable>
       {__DEV__ && (
         <ScrollView style={s.debug}>

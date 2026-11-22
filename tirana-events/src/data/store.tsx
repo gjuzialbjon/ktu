@@ -4,6 +4,7 @@ import { SEED_COMMENTS, SEED_EVENTS, SEED_PEOPLE } from './seed';
 import { DraftInput, eventsForCity, makeComment, makeDraftEvent, makeRsvp, orderFeedEvents } from './events';
 import { CityId, DEFAULT_CITY, isLiveCity } from './cities';
 import { DEMO_APPROVE_AFTER_MS, hiddenTopicOf, visibleInFeed } from './access';
+import { nextEditions, nextRollAt } from './recurrence';
 import { KEYS, asArray, asRecord, clearStorage, migrateStorage, readJson, writeJson } from './storage';
 import { track } from '@/lib/analytics';
 import { createLogger } from '@/lib/log';
@@ -130,8 +131,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   usePersist(KEYS.saved, saved, hydrated);
   usePersist(KEYS.stamps, stamps, hydrated);
 
-  // events in cities that are not live yet stay in the seed but never reach the UI
-  const allEvents = useMemo(() => [...SEED_EVENTS, ...drafts].filter((e) => isLiveCity(e.city)), [drafts]);
+  // recurring events: the next edition appears the moment the latest one starts. `clock` only
+  // moves at those moments (a timer set for the next one), not every minute.
+  const [clock, setClock] = useState(() => Date.now());
+  const baseEvents = useMemo(() => [...SEED_EVENTS, ...drafts].filter((e) => isLiveCity(e.city)), [drafts]);
+  const allEvents = useMemo(() => [...baseEvents, ...nextEditions(baseEvents, new Date(clock))], [baseEvents, clock]);
+  useEffect(() => {
+    const due = nextRollAt(allEvents, new Date(clock));
+    if (due == null) return;
+    // timers cannot wait longer than ~24 days; check again hourly at most
+    const timer = setTimeout(() => setClock(Date.now()), Math.min(Math.max(due - Date.now(), 0) + 50, 3600_000));
+    return () => clearTimeout(timer);
+  }, [allEvents, clock]);
   const events = useMemo(() => orderFeedEvents(allEvents), [allEvents]);
   const cityEvents = useMemo(
     () => eventsForCity(allEvents, profile.city).filter((e) => visibleInFeed(e, profile, rsvps[e.id])),
@@ -162,7 +173,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const next = { ...prev };
         for (const r of Object.values(prev)) {
           if (r.status !== 'requested' || nowMs - new Date(r.createdAt).getTime() < DEMO_APPROVE_AFTER_MS) continue;
-          const ev = SEED_EVENTS.find((e) => e.id === r.eventId);
+          const ev = allEvents.find((e) => e.id === r.eventId);
           if (!ev) continue;
           next[r.eventId] = makeRsvp(ev, new Date(nowMs).toISOString());
           changed = true;
@@ -172,7 +183,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [pendingIds]);
+  }, [pendingIds, allEvents]);
 
   const comments = useMemo(
     () => [...SEED_COMMENTS, ...userComments].sort((a, b) => a.createdAt.localeCompare(b.createdAt)),

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Rail } from '@/components/Rail';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -129,6 +130,16 @@ function EventPage({ event }: { event: EventItem }) {
             {event.tags.includes('beginner-friendly') && (
               <View style={[s.catPill, { borderColor: theme.c.free, backgroundColor: theme.c.free }]}>
                 <Text style={[s.catPillText, { color: theme.c.onFree }]}>🌱 {t.level_beginner}</Text>
+              </View>
+            )}
+            {/* a series that keeps coming back: say how often, and that this is one of many */}
+            {event.series && (
+              <View
+                style={[s.catPill, { borderColor: theme.c.border }]}
+                accessible
+                accessibilityLabel={t.a11y_series(t.repeat_name[event.series.repeat], event.series.edition)}
+              >
+                <Text style={s.catPillText}>🔁 {t.repeat_name[event.series.repeat]}</Text>
               </View>
             )}
             <View style={{ marginLeft: 'auto' }}>
@@ -262,11 +273,11 @@ function EventPage({ event }: { event: EventItem }) {
               <Display size={20} style={s.section}>
                 {t.similar_title}
               </Display>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.rail}>
+              <Rail style={s.rail}>
                 {similar.map((e) => (
                   <StoryCard key={e.id} event={e} source="similar" size="sm" />
                 ))}
-              </ScrollView>
+              </Rail>
             </>
           )}
 

@@ -1,17 +1,16 @@
 import React from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Link, useRouter } from 'expo-router';
+import { Link } from 'expo-router';
 import { EventItem } from '@/data/types';
 import { CATEGORY_EMOJI, makeStyles, radius, useTheme } from '@/lib/theme';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
-import { firstName, joinNames, lekToEur } from '@/lib/format';
-import { findOffer, findPartner } from '@/data/partners';
-import { foreignLangsOf, spokenLangs } from '@/data/languages';
+import { firstName, joinNames } from '@/lib/format';
+import { LANG_CODE, foreignLangsOf, spokenLangs } from '@/data/languages';
 import { useEventFacts } from '@/features/event/useEventFacts';
 import { LikeSave } from '@/features/event/LikeSave';
-import { AvatarStack, Chip, Display, Emoji, Sticker, TagRow } from '@/components/ui';
+import { AvatarStack, Chip, Display, Emoji, Sticker } from '@/components/ui';
 import { track } from '@/lib/analytics';
 import { useHoverLift } from '@/hooks/useHoverLift';
 import { EventPhoto } from '@/components/EventPhoto';
@@ -23,21 +22,20 @@ const LIKE_SAVE_W = 96;
 const MIN_COUNT_SHOWN = 3;
 
 export function EventCard({ event, popular }: { event: EventItem; popular?: boolean }) {
-  const router = useRouter();
   const theme = useTheme();
   const s = useStyles();
   const hover = useHoverLift();
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const { people, profile, rsvps } = useStore();
 
   const going = people.filter((p) => event.goingUserIds.includes(p.id));
   const friends = going.filter((p) => profile.follows.includes(p.id));
   const joined = !!rsvps[event.id];
   const { when, where, askToJoin, isPrivate } = useEventFacts(event);
-  const offer = findOffer(event.offerId);
-  const partner = offer ? findPartner(offer.partnerId) : undefined;
-  // only worth a line when a visitor could join; Albanian-only is the default
-  const langLine = foreignLangsOf(event).length > 0 ? t.lang_list(spokenLangs(event).map((l) => t.lang_name[l])) : null;
+  // only worth showing when a visitor could join; Albanian-only is the default
+  const foreign = foreignLangsOf(event);
+  const langLine = foreign.length > 0 ? t.lang_list(spokenLangs(event).map((l) => t.lang_name[l])) : null;
+  const langCodes = foreign.length > 0 ? foreign.map((l) => LANG_CODE[l]).join(' ') : null;
 
   return (
     <View style={s.pressable}>
@@ -76,6 +74,7 @@ export function EventCard({ event, popular }: { event: EventItem; popular?: bool
                   </View>
                   {event.isSponsored && <Chip label={t.sponsored} tone="sponsored" />}
                   {popular && <Chip label={t.popular} tone="sponsored" />}
+                  {event.source === 'platform' && <Chip label={`✨ ${t.badge_platform}`} />}
                   {askToJoin && <Sticker tone={1} tilt={-4} size={17}>{isPrivate ? t.badge_private : t.badge_ask}</Sticker>}
                   <View style={{ flex: 1 }} />
                   <Chip
@@ -119,37 +118,14 @@ export function EventCard({ event, popular }: { event: EventItem; popular?: bool
                   <Text style={s.meta} numberOfLines={1}>
                     {where}
                   </Text>
+                  {langCodes && (
+                    <Text style={s.langs} accessibilityLabel={t.a11y_langs(langLine ?? '')}>
+                      {langCodes}
+                    </Text>
+                  )}
                 </View>
-                {langLine && (
-                  <Text style={s.meta} numberOfLines={1} accessibilityLabel={t.a11y_langs(langLine)}>
-                    🗣️ {langLine}
-                  </Text>
-                )}
-                {event.source === 'platform' && (
-                  <Text style={s.meta} numberOfLines={1}>
-                    ✨ {t.badge_platform}
-                  </Text>
-                )}
-                {offer && partner ? (
-                  <Text style={s.offer} numberOfLines={1}>
-                    🎁 {offer.text[lang]} {t.offer_at(partner.name)}
-                  </Text>
-                ) : null}
-                {event.priceType === 'ticketed' && event.ticketPriceLek ? (
-                  <Text style={s.meta}>
-                    {t.price_door(event.ticketPriceLek)}
-                    {lang === 'en' ? `  ${t.eur_hint(lekToEur(event.ticketPriceLek))}` : ''}
-                  </Text>
-                ) : null}
-                {/* footer pinned to the bottom so tags line up across a row of equal-height cards */}
+                {/* footer pinned to the bottom so it lines up across a row of equal-height cards */}
                 <View style={[s.footer, { paddingRight: LIKE_SAVE_W }]}>
-                  <TagRow
-                    tags={event.tags.slice(0, 3)}
-                    onTagPress={(tag) => {
-                      track('tag_filtered', { tag, source: 'card' });
-                      router.push({ pathname: '/', params: { tag } });
-                    }}
-                  />
                   {friends.length === 0 && going.length >= MIN_COUNT_SHOWN && (
                     <View style={s.countRow}>
                       <AvatarStack users={going} follows={profile.follows} size={24} />
@@ -177,7 +153,6 @@ const useStyles = makeStyles((t) =>
     pressable: { marginBottom: 18, flex: 1 },
     link: { flex: 1 },
     likeSave: { position: 'absolute', right: 8, bottom: 4 },
-    offer: { color: t.c.text, fontSize: 13, fontWeight: '600', flexShrink: 1 },
     card: {
       backgroundColor: t.c.surface,
       borderRadius: radius.lg,
@@ -212,12 +187,25 @@ const useStyles = makeStyles((t) =>
     },
     friendsPill: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, flexShrink: 1 },
     friendsText: { fontSize: 13, fontWeight: '700' },
-    body: { flex: 1, padding: 14, gap: 7 },
-    footer: { marginTop: 'auto', paddingTop: 2, gap: 8 },
+    body: { flex: 1, padding: 14, gap: 6 },
+    // fixed height: cards with and without a turnout row stay the same size
+    footer: { marginTop: 'auto', paddingTop: 6, height: 38, justifyContent: 'center' },
     when: { color: t.c.text, fontSize: 14, fontWeight: '700' },
     metaRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
     dot: { width: 8, height: 8, borderRadius: 4 },
     meta: { color: t.c.textDim, fontSize: 14, flexShrink: 1 },
+    langs: {
+      marginLeft: 'auto',
+      color: t.c.textDim,
+      fontSize: 11,
+      fontWeight: '700',
+      letterSpacing: 0.5,
+      borderWidth: 1,
+      borderColor: t.c.border,
+      borderRadius: 6,
+      paddingHorizontal: 5,
+      paddingVertical: 1,
+    },
     countRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     count: { color: t.c.textDim, fontSize: 13 },
   }),

@@ -7,6 +7,7 @@ import { makeStyles } from '@/lib/theme';
 import { CAN_PICK_CITY, CITIES, LIVE_CITIES, CityId, areaName, cityName } from '@/data/cities';
 import { Button, Chip } from '@/components/ui';
 import { ALL_LANGS } from '@/data/languages';
+import { REPEATS } from '@/data/recurrence';
 import { DateTimeField } from '@/components/DateTimeField';
 import { Field, FieldError, FieldLabel } from '@/features/create/Field';
 import { PhotoField } from '@/features/create/PhotoField';
@@ -24,6 +25,7 @@ const EMPTY_FORM: FormState = {
   price: '',
   photo: null,
   langs: ['sq'],
+  repeat: null,
 };
 
 /** Which error a form field clears when the user edits it. */
@@ -152,6 +154,19 @@ export default function CreateEvent() {
               </View>
             );
           })}
+        </View>
+
+        <FieldLabel label={t.ev_repeat} />
+        <Text style={s.fieldHint}>{t.ev_repeat_hint}</Text>
+        <View style={s.hoodRow}>
+          <View style={{ marginBottom: 8 }}>
+            <Chip label={t.repeat_once} active={form.repeat == null} onPress={() => update('repeat', null)} />
+          </View>
+          {REPEATS.map((r) => (
+            <View key={r} style={{ marginBottom: 8 }}>
+              <Chip emoji="🔁" label={t.repeat_name[r]} active={form.repeat === r} onPress={() => update('repeat', r)} />
+            </View>
+          ))}
         </View>
 
         <Field

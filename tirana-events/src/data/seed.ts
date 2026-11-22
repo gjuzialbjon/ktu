@@ -100,7 +100,8 @@ export const SEED_EVENTS: EventItem[] = [
   },
   {
     id: 'e1',
-    title: 'Yoga në Liqen — Sunrise Flow',
+    title: 'Yoga në Liqen — Sunrise Flow #12',
+    series: { id: 'e1', repeat: 'weekly', edition: 12, baseTitle: 'Yoga në Liqen — Sunrise Flow' },
     description:
       'Sesion yoga për të gjitha nivelet pranë Liqenit Artificial. Sillni shtrojën tuaj; disa shtroja rezervë do të ketë. Pas seancës: kafe bashkë te kioska e parkut.',
     category: 'outdoors',
@@ -169,9 +170,9 @@ export const SEED_EVENTS: EventItem[] = [
     tags: ['live-music', 'indie', 'concert', 'nightlife'],
     program: [
       { min: 0, text: 'Hapen dyert' },
-      { min: 45, text: 'Grupi i pare' },
+      { min: 45, text: 'Grupi i parë' },
       { min: 105, text: 'Grupi kryesor' },
-      { min: 180, text: 'DJ deri vone' },
+      { min: 180, text: 'DJ deri vonë' },
     ],
     faq: [
       { q: 'Kush i bie i pari?', a: 'Rendi: The Lanterns (21:00), Gjumë e Keqe (22:00), Velvet Dado (23:00).' },
@@ -202,7 +203,8 @@ export const SEED_EVENTS: EventItem[] = [
   },
   {
     id: 'e4',
-    title: 'Klubi i Leximit: "Kronikë në gur"',
+    title: 'Klubi i Leximit: "Kronikë në gur" #5',
+    series: { id: 'e4', repeat: 'monthly', edition: 5, baseTitle: 'Klubi i Leximit: "Kronikë në gur"' },
     description:
       'Diskutojmë romanin e Kadaresë mbi Gjirokastrën. Nuk ka rëndësi nëse e keni mbaruar — ejani me mendimet tuaja. Në shqip, mysafirët e huaj të mirëpritur.',
     category: 'culture',
@@ -243,8 +245,8 @@ export const SEED_EVENTS: EventItem[] = [
     tags: ['hiking', 'outdoor', 'nature', 'group-trip'],
     program: [
       { min: 0, text: 'Nisja nga stacioni i teleferikut, Surrel' },
-      { min: 90, text: 'Pushim te burimi, mbush ujin' },
-      { min: 180, text: 'Maja, dreka me sanduic' },
+      { min: 90, text: 'Pushim te burimi, mbushim ujë' },
+      { min: 180, text: 'Maja, drekë me sanduiç' },
       { min: 300, text: 'Zbritja dhe kthimi' },
     ],
     faq: [
@@ -335,16 +337,17 @@ export const SEED_EVENTS: EventItem[] = [
   {
     id: 'e8',
     title: 'Darkë me të Panjohur #7',
+    series: { id: 'e8', repeat: 'biweekly', edition: 7, baseTitle: 'Darkë me të Panjohur' },
     description:
       'Gjashtë vende, një tavolinë, zero telefona. Njihu me njerëz të rinj përreth një darke të thjeshtë. Pagesa individuale e menysë në restorant; rezervimi këtu është falas.',
     category: 'food',
     languages: ['sq', 'en'],
     tags: ['dinner', 'meet-people', 'social', 'small-group'],
     program: [
-      { min: 0, text: 'Takohemi te dera, pa vonese' },
-      { min: 15, text: 'Uleni ku ju bie shorti, aperitiv' },
-      { min: 45, text: 'Darka, 3 pjata ne tavoline te perbashket' },
-      { min: 120, text: 'Embelsira dhe kush do vazhdon me nje pije' },
+      { min: 0, text: 'Takohemi te dera, pa vonesë' },
+      { min: 15, text: 'Uleni sipas shortit, aperitiv' },
+      { min: 45, text: 'Darka, 3 pjata në tavolinë të përbashkët' },
+      { min: 120, text: 'Ëmbëlsira, pastaj kush do, vazhdon me një pije' },
     ],
     faq: [
       { q: 'Si funksionon saktësisht?', a: '6 të panjohur, një tavolinë e rezervuar, dy pyetje thyese akulli nga ne — pjesa tjetër vjen vetë.' },
@@ -700,7 +703,8 @@ export const SEED_EVENTS: EventItem[] = [
   // --- Tirana, more of the day and more kinds of things ---
   {
     id: 'e25',
-    title: 'Klubi i vrapit: Liqeni në muzg',
+    title: 'Klubi i vrapit: Liqeni në muzg #23',
+    series: { id: 'e25', repeat: 'weekly', edition: 23, baseTitle: 'Klubi i vrapit: Liqeni në muzg' },
     description:
       'Një xhiro e qetë 6 km rreth Liqenit Artificial, me ritëm bisede. Askush nuk mbetet pas: mikpritësi vrapon i fundit. Pas vrapit, shtrirje dhe një kafe bashkë.',
     category: 'sports',
@@ -708,9 +712,9 @@ export const SEED_EVENTS: EventItem[] = [
     tags: ['running', 'outdoor', 'beginner-friendly', 'meet-people'],
     program: [
       { min: 0, text: 'Takohemi te Diga, ngrohje 10 min' },
-      { min: 10, text: '5 km rreth liqenit, ritem bisede' },
+      { min: 10, text: '5 km rreth liqenit, me ritëm bisede' },
       { min: 45, text: 'Shtrirje te Diga' },
-      { min: 60, text: 'Kafe opsionale bashke' },
+      { min: 60, text: 'Kafe bashkë, kush do' },
     ],
     goodToKnow: ['Ritëm 6:30–7:00 min/km', 'Çantat mund t’i lini te mikpritësi'],
     venueName: 'Hyrja e Liqenit, te Diga',
@@ -734,7 +738,8 @@ export const SEED_EVENTS: EventItem[] = [
   },
   {
     id: 'e26',
-    title: 'Lojëra tavoline & çaj',
+    title: 'Lojëra tavoline & çaj #8',
+    series: { id: 'e26', repeat: 'weekly', edition: 8, baseTitle: 'Lojëra tavoline & çaj' },
     description:
       'Catan, Dixit, Codenames dhe shumë të tjera. Vjen vetëm? Të gjejmë tavolinë. Shpjegojmë rregullat, s’ka nevojë të dish asgjë.',
     category: 'community',
@@ -786,10 +791,10 @@ export const SEED_EVENTS: EventItem[] = [
     languages: ['sq', 'en', 'it'],
     tags: ['photography', 'walk', 'night', 'beginner-friendly'],
     program: [
-      { min: 0, text: 'Takohemi te Ora e Tiranes' },
-      { min: 15, text: 'Sheshi Skenderbej: dritat e mbremjes' },
-      { min: 50, text: 'Pazari i Ri: rruge e ngushta' },
-      { min: 90, text: 'Shohim fotot bashke me nje caj' },
+      { min: 0, text: 'Takohemi te Kulla e Sahatit' },
+      { min: 15, text: 'Sheshi Skënderbej: dritat e mbrëmjes' },
+      { min: 50, text: 'Pazari i Ri: rrugica të ngushta' },
+      { min: 90, text: 'Shohim fotot bashkë me një çaj' },
     ],
     venueName: 'Sheshi Skënderbej, te Ora',
     address: 'Sheshi Skënderbej',
@@ -816,9 +821,9 @@ export const SEED_EVENTS: EventItem[] = [
     tags: ['dinner', 'meet-people', 'small-group', 'newcomers'],
     program: [
       { min: 0, text: 'Takohemi para restorantit' },
-      { min: 20, text: 'Prezantim i shkurter, pa presion' },
-      { min: 40, text: 'Darka bashke, 6 veta' },
-      { min: 130, text: 'Mbyllja: kush do shkon per nje pije' },
+      { min: 20, text: 'Prezantim i shkurtër, pa presion' },
+      { min: 40, text: 'Darka bashkë, 6 veta' },
+      { min: 130, text: 'Mbyllja: kush do, vazhdon me një pije' },
     ],
     goodToKnow: ['Secili paguan darkën e vet', 'Opsione vegjetariane gjithmonë'],
     venueName: 'Te Sofra e Madhe',
@@ -868,17 +873,18 @@ export const SEED_EVENTS: EventItem[] = [
   },
   {
     id: 'e31',
-    title: 'Sapo erdhe në Tiranë? Kafe njohjeje',
+    title: 'Sapo erdhe në Tiranë? Kafe njohjeje #4',
+    series: { id: 'e31', repeat: 'biweekly', edition: 4, baseTitle: 'Sapo erdhe në Tiranë? Kafe njohjeje' },
     description:
       'Për ata që sapo janë transferuar, studiojnë këtu për pak kohë ose thjesht duan njerëz të rinj. Bisedë në shqip dhe anglisht, pa presion.',
     category: 'community',
     languages: ['sq', 'en', 'it', 'es'],
     tags: ['newcomers', 'meet-people', 'coffee'],
     program: [
-      { min: 0, text: 'Takohemi, kafeja e pare e paguar nga ne' },
-      { min: 20, text: "Lojë e shkurter per t'u njohur" },
-      { min: 50, text: 'Keshilla per Tiranen nga te vjetrit' },
-      { min: 90, text: 'Kush do, shetitje ne Pazar' },
+      { min: 0, text: 'Takohemi, kafen e parë e paguajmë ne' },
+      { min: 20, text: "Lojë e shkurtër për t'u njohur" },
+      { min: 50, text: 'Këshilla për Tiranën nga ata që jetojnë prej kohësh' },
+      { min: 90, text: 'Kush do, shëtitje në Pazar' },
     ],
     venueName: 'Kafja e Mëngjesit',
     address: 'Rruga e Kavajës',

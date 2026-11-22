@@ -8,6 +8,8 @@ import { formatDay, formatWhen } from '@/lib/format';
 export interface EventFacts {
   /** exact time, or "Saturday, evening" while hidden */
   when: string;
+  /** the same with a short weekday ("Mër, 25 nën, 20:00") for small cards */
+  whenShort: string;
   /** "Venue, Area", or "Somewhere in Area" while hidden */
   where: string;
   area: string;
@@ -29,10 +31,13 @@ export function useEventFacts(event: EventItem): EventFacts {
   const hidden = !canSeeDetails(event, rsvps[event.id]);
   const area = areaName(event.city, event.neighborhood, lang);
   const part = dayPartOf(event.startsAt);
+  const whenOf = (short: boolean) =>
+    hidden
+      ? `${formatDay(event.startsAt, lang, t.today, t.tomorrow, short)}, ${short ? t.part_short[part] : t[`part_${part}` as const]}`
+      : formatWhen(event.startsAt, lang, t.today, t.tomorrow, short);
   return {
-    when: hidden
-      ? `${formatDay(event.startsAt, lang, t.today, t.tomorrow)}, ${t[`part_${part}` as const]}`
-      : formatWhen(event.startsAt, lang, t.today, t.tomorrow),
+    when: whenOf(false),
+    whenShort: whenOf(true),
     where: hidden ? t.hidden_where(area) : `${event.venueName}, ${area}`,
     area,
     areaWithCity: `${area}, ${cityName(event.city, lang)}`,

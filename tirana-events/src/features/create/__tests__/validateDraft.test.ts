@@ -12,6 +12,7 @@ const valid: DraftForm = {
   price: '',
   photo: null,
   langs: ['sq'],
+  repeat: null,
 };
 
 describe('validateDraft', () => {
