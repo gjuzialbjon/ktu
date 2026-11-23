@@ -1,7 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import type { EventItem } from '@/data/types';
-import { LANG_CODE, spokenLangs } from '@/data/languages';
+import { type EventItem, LANG_CODE, spokenLangs } from '@ktu/shared';
 import { useI18n } from '@/lib/i18n';
 import { makeStyles, radius, space } from '@/lib/theme';
 import { Emoji } from '@/components/ui';

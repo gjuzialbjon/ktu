@@ -1,4 +1,4 @@
-import type { EventItem } from '@/data/types';
+import type { EventItem } from '@ktu/shared';
 import type { HourForecast, Weather } from '@/features/weather/weather';
 
 /**

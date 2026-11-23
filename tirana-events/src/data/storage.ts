@@ -22,6 +22,8 @@ export const KEYS = {
   saved: 'saved',
   /** partner id → ISO time of the first check-in */
   stamps: 'stamps',
+  /** event id → your rating of it */
+  ratings: 'ratings',
 } as const;
 export type StorageKey = (typeof KEYS)[keyof typeof KEYS];
 

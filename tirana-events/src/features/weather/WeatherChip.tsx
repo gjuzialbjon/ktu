@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { CityId, cityName } from '@/data/cities';
+import { CityId, cityName } from '@ktu/shared';
 import { useI18n } from '@/lib/i18n';
 import { makeStyles, radius, space, useTheme } from '@/lib/theme';
 import { Display, Emoji } from '@/components/ui';

@@ -1,5 +1,5 @@
 import { pickToday, todayScore } from '../todayTop';
-import type { EventItem } from '@/data/types';
+import type { EventItem } from '@ktu/shared';
 
 const ev = (id: string, hour: number, likeCount = 0, edition?: number): EventItem =>
   ({

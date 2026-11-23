@@ -1,15 +1,19 @@
-import { Comment, EventItem, PublicUser } from '@/data/types';
+import { Comment, EventItem, PublicUser, type Rsvp } from '@ktu/shared';
 
-// Demo people used for "who's going" social proof until real users exist.
+/**
+ * Demo people used for "who's going" social proof until real users exist. Each carries their own
+ * choice of who sees where they go (missing = nobody, the default): Sara never chose, and Rea
+ * shares only with the people Rea follows, which does not include you.
+ */
 export const SEED_PEOPLE: PublicUser[] = [
-  { id: 'u1', name: 'Arber K.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u1', interests: ['football', 'tech'] },
-  { id: 'u2', name: 'Elisa M.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u2', interests: ['books', 'meet-people'], facilitator: true },
-  { id: 'u3', name: 'Gent B.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u3', interests: ['running', 'outdoor'], facilitator: true },
+  { id: 'u1', name: 'Arber K.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u1', interests: ['football', 'tech'], showGoing: 'everyone' },
+  { id: 'u2', name: 'Elisa M.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u2', interests: ['books', 'meet-people'], facilitator: true, showGoing: 'following', followsYou: true },
+  { id: 'u3', name: 'Gent B.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u3', interests: ['running', 'outdoor'], facilitator: true, showGoing: 'everyone' },
   { id: 'u4', name: 'Sara H.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u4', interests: ['yoga', 'books'] },
-  { id: 'u5', name: 'Klajdi T.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u5', interests: ['live-music', 'dj'] },
-  { id: 'u6', name: 'Rea P.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u6', interests: ['crafts', 'market'] },
-  { id: 'u7', name: 'Drini L.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u7', interests: ['hiking', 'running'] },
-  { id: 'u8', name: 'Megi S.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u8', interests: ['food', 'meet-people'], facilitator: true },
+  { id: 'u5', name: 'Klajdi T.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u5', interests: ['live-music', 'dj'], showGoing: 'everyone' },
+  { id: 'u6', name: 'Rea P.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u6', interests: ['crafts', 'market'], showGoing: 'following' },
+  { id: 'u7', name: 'Drini L.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u7', interests: ['hiking', 'running'], showGoing: 'following', followsYou: true },
+  { id: 'u8', name: 'Megi S.', avatarUrl: 'https://i.pravatar.cc/120?u=tirana-u8', interests: ['food', 'meet-people'], facilitator: true, showGoing: 'everyone' },
 ];
 
 /** Day offsets keep the seed feed always "this week", whenever the demo runs. */
@@ -231,6 +235,8 @@ export const SEED_EVENTS: EventItem[] = [
     organizer: { id: 'o4', name: 'Lexojmë Bashkë', verified: false },
     visibility: 'private',
     joinMode: 'ask',
+    // the host lets readers with a shared interest straight in; anyone else asks
+    acceptMode: 'interests',
     offerId: 'p1-o1',
     likeCount: 23,
     goingUserIds: ['u4', 'u8'],
@@ -979,7 +985,38 @@ export const SEED_EVENTS: EventItem[] = [
     organizer: { id: 'te', name: 'Tirana Events', verified: true },
     goingUserIds: ['u2', 'u4'],
   },
+  // demo: last night's chess evening, which a first-run user "went to", so rating can be tried
+  {
+    id: 'e35',
+    title: 'Mbrëmje Shahu në Bibliotekë',
+    description:
+      'Lojëra të lira shahu, pa orë dhe pa turne. Tabela për të gjithë; kush do mësim, një nga klubi shpjegon hapjet bazë.',
+    category: 'community',
+    languages: ['sq', 'en'],
+    tags: ['chess', 'games', 'indoor', 'meet-people'],
+    venueName: 'Klubi i Shahut Tirana',
+    address: 'Rruga e Bogdanëve',
+    city: 'tirana',
+    neighborhood: 'qendra',
+    lat: 41.3322,
+    lng: 19.8135,
+    startsAt: at(-1, 18, 0),
+    endsAt: at(-1, 20, 30),
+    coverImage: require('../../assets/events/e2.jpg'),
+    photoCredit: "Foto: Jorge Royan, CC BY-SA 3.0, Wikimedia Commons",
+    priceType: 'free',
+    source: 'organizer',
+    status: 'published',
+    isSponsored: false,
+    organizer: { id: 'o2', name: 'Klubi i Shahut Tirana', verified: false },
+    goingUserIds: ['u1', 'u3', 'u5'],
+  },
 ];
+
+/** Demo only: a first run starts as if you went to last night's chess evening (e35), so there is something to rate. */
+export const DEMO_RSVPS: Record<string, Rsvp> = {
+  e35: { eventId: 'e35', status: 'going', createdAt: at(-2, 12) },
+};
 
 export const SEED_COMMENTS: Comment[] = [
   { id: 'c1', eventId: 'e1', author: 'Elisa M.', text: 'A fillon pikërisht në 7:30? Vij direkt nga puna e natës 😅', isOrganizer: false, createdAt: ago(26) },

@@ -4,6 +4,8 @@
     "strict": true,
     // TypeScript 6 no longer loads every @types package by default
     "types": ["jest"],
+    // @ktu/shared (../shared) imports its own files by their .ts names, so the server can run them as-is
+    "allowImportingTsExtensions": true,
     "paths": {
       "@/*": ["./src/*"]
     }

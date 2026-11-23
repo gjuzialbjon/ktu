@@ -1,6 +1,6 @@
 import { FeedRanking, NO_FILTERS, buildFeed, extraFilterCount, isFiltering, pickHighlights } from '@/features/feed/buildFeed';
-import type { HostTier } from '@/data/hostStanding';
-import { NOW, at, makeEvent } from '@/test-utils/fixtures';
+import type { HostTier } from '@ktu/shared';
+import { NOW, at, makeEvent } from '@ktu/shared/testing';
 
 const tonight = makeEvent({ startsAt: at(0, 20), tags: ['jazz'] });
 const tomorrow = makeEvent({ startsAt: at(1, 19), neighborhood: 'blloku', tags: ['jazz'] });

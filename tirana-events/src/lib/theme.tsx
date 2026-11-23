@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import type { Category } from '@/data/types';
+import type { Category } from '@ktu/shared';
 import { KEYS, migrateStorage, readString, writeString } from '@/data/storage';
 
 export type ThemeId = 'agimi' | 'muzgu' | 'liqeni';

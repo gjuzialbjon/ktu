@@ -1,4 +1,4 @@
-import type { MapBounds } from '@/data/cities';
+import type { MapBounds } from '@ktu/shared';
 
 /**
  * Stylized city maps (not to scale). Real lat/lng are projected onto a fixed

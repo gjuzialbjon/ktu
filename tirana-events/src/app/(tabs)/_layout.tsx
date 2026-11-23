@@ -11,7 +11,7 @@ import Gift from 'lucide-react-native/icons/gift';
 import Ticket from 'lucide-react-native/icons/ticket';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
-import { cityName } from '@/data/cities';
+import { cityName } from '@ktu/shared';
 import { useTheme } from '@/lib/theme';
 import { track } from '@/lib/analytics';
 

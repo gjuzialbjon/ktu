@@ -8,7 +8,7 @@ import { firstName } from '@/lib/format';
 import { useEventFacts } from '@/features/event/useEventFacts';
 import { Avatar, Display } from '@/components/ui';
 import { track } from '@/lib/analytics';
-import { EventItem, PublicUser } from '@/data/types';
+import { EventItem, PublicUser } from '@ktu/shared';
 import { useNow } from '@/hooks/useNow';
 
 /**
@@ -20,7 +20,7 @@ export function FriendsStrip() {
   const s = useStyles();
   const router = useRouter();
   // your city only: a friend's plan in another city is not something to join tonight
-  const { cityEvents: events, people, profile } = useStore();
+  const { cityEvents: events, people, friendsShown } = useStore();
   const now = useNow();
 
   const items = useMemo(() => {
@@ -28,13 +28,14 @@ export function FriendsStrip() {
       .filter((e) => new Date(e.startsAt).getTime() > now - 3600_000)
       .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
     const out: { person: PublicUser; event: EventItem }[] = [];
-    for (const id of profile.follows) {
+    // only friends who share their plans with you
+    for (const id of friendsShown) {
       const person = people.find((p) => p.id === id);
       const next = upcoming.find((e) => e.goingUserIds.includes(id));
       if (person && next) out.push({ person, event: next });
     }
     return out.sort((a, b) => a.event.startsAt.localeCompare(b.event.startsAt));
-  }, [events, people, profile.follows, now]);
+  }, [events, people, friendsShown, now]);
 
   return (
     <View style={s.wrap}>

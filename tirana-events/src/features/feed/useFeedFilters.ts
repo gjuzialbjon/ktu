@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import type { Category, SpokenLang } from '@/data/types';
-import type { AreaId, CityId } from '@/data/cities';
+import type { Category, SpokenLang, AreaId, CityId } from '@ktu/shared';
 import type { WhenFilter } from '@/lib/format';
 import { FeedFilters } from './buildFeed';
 

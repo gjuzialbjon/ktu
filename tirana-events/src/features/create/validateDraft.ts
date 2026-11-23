@@ -1,7 +1,4 @@
-import { AreaId, CITIES, CityId } from '@/data/cities';
-import type { DraftInput } from '@/data/events';
-import type { Repeat, SpokenLang } from '@/data/types';
-import { normalizeLangs } from '@/data/languages';
+import { AreaId, CITIES, CityId, type DraftInput, type EntryChoice, type Repeat, type SpokenLang, normalizeLangs } from '@ktu/shared';
 
 /**
  * Rules for the "make an event" form. Pure: returns i18n keys, not sentences,
@@ -26,6 +23,8 @@ export interface DraftForm {
   langs: SpokenLang[];
   /** null = it happens once */
   repeat: Repeat | null;
+  /** how people get in: anyone / ask the host / ask, and a shared interest lets them in */
+  entry: EntryChoice;
 }
 
 export const TITLE_MIN = 5;
@@ -82,6 +81,7 @@ export function validateDraft(form: DraftForm, now: Date): ValidationResult {
       ticketPriceLek,
       coverImage: form.photo ?? undefined,
       repeat: form.repeat ?? undefined,
+      entry: form.entry,
     },
   };
 }

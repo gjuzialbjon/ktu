@@ -6,14 +6,12 @@ import Svg, { Circle, G, Text as SvgText } from 'react-native-svg';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
 import { CATEGORY_EMOJI, makeStyles, radius, useTheme } from '@/lib/theme';
-import { Category, EventItem } from '@/data/types';
+import { Category, EventItem, CITIES, cityName, canSeeDetails } from '@ktu/shared';
 import { track } from '@/lib/analytics';
 import { Display, Emoji } from '@/components/ui';
 import { useNow } from '@/hooks/useNow';
 import { MAP_H, MAP_W, project } from '@/features/map/project';
 import { MapBackdrop } from '@/features/map/MapBackdrop';
-import { CITIES, cityName } from '@/data/cities';
-import { canSeeDetails } from '@/data/access';
 import { useEventFacts } from '@/features/event/useEventFacts';
 import { TopBar } from '@/components/TopBar';
 

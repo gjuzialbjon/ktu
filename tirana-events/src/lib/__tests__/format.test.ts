@@ -1,5 +1,5 @@
 import { bucketOf, initials, isThisWeek, joinNames, lekToEur, matchesWhen } from '@/lib/format';
-import { NOW, at } from '@/test-utils/fixtures';
+import { NOW, at } from '@ktu/shared/testing';
 
 describe('bucketOf', () => {
   it('puts each moment in exactly one section', () => {

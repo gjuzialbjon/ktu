@@ -1,8 +1,5 @@
-import type { Category, EventItem, SpokenLang } from '@/data/types';
-import { speaks } from '@/data/languages';
-import type { AreaId } from '@/data/cities';
+import { type Category, type EventItem, type SpokenLang, speaks, type AreaId, Folded, HostTier, TIER_WEIGHT, arrangeSection, inCurated, inRails } from '@ktu/shared';
 import { TimeBucket, WhenFilter, bucketOf, isThisWeek, matchesWhen } from '@/lib/format';
-import { Folded, HostTier, TIER_WEIGHT, arrangeSection, inCurated, inRails } from '@/data/hostStanding';
 
 /**
  * Everything the home feed shows, derived from one city's events + filters + the clock.

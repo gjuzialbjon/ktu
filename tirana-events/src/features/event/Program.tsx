@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import type { EventItem } from '@/data/types';
+import type { EventItem } from '@ktu/shared';
 import { useI18n } from '@/lib/i18n';
 import { makeStyles, space, useTheme } from '@/lib/theme';
 import { Display } from '@/components/ui';

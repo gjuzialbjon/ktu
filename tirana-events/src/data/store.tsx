@@ -1,20 +1,16 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import type { Comment, EventItem, Profile, PublicUser, Rsvp } from './types';
-import { SEED_COMMENTS, SEED_EVENTS, SEED_PEOPLE } from './seed';
-import { DraftInput, eventsForCity, makeComment, makeDraftEvent, makeRsvp, orderFeedEvents } from './events';
-import { CityId, DEFAULT_CITY, isLiveCity } from './cities';
-import { DEMO_APPROVE_AFTER_MS, hiddenTopicOf, visibleInFeed } from './access';
-import { nextEditions, nextRollAt } from './recurrence';
-import { HostStanding, HostTier, eventTier, outcomeOf, standingsFor } from './hostStanding';
+import { type Comment, type EventItem, type GoingVisibility, type Profile, type PublicUser, type Rsvp, DraftInput, eventsForCity, makeComment, makeDraftEvent, makeRsvp, orderFeedEvents, CityId, DEFAULT_CITY, isLiveCity, DEMO_APPROVE_AFTER_MS, hiddenTopicOf, visibleInFeed, nextEditions, nextRollAt, HostStanding, HostTier, eventTier, outcomeOf, standingsFor, canSeeGoing, DEFAULT_SHOW_GOING, GOING_VISIBILITIES, autoAccepts, makeRating, type Rating, type RatingIssue } from '@ktu/shared';
+import { DEMO_RSVPS, SEED_COMMENTS, SEED_EVENTS, SEED_PEOPLE } from './seed';
 import { hostHistory } from './hostHistory';
 import { KEYS, asArray, asRecord, clearStorage, migrateStorage, readJson, writeJson } from './storage';
 import { track } from '@/lib/analytics';
 import { createLogger } from '@/lib/log';
 
 /**
- * Local-first store. This is the single boundary to swap for Supabase later:
- * keep the method names, replace storage reads/writes with API calls.
- * Business rules live in ./events (pure); this file only holds state and persistence.
+ * Local-first store: every user action in the app is a method here. It is the single boundary
+ * the backend (../backend) replaces: keep the method names, swap storage reads/writes for API
+ * calls (order in docs/FEATURES.md, section 10). Business rules live in @ktu/shared (pure);
+ * this file only holds state and persistence.
  */
 const log = createLogger('store');
 
@@ -24,6 +20,10 @@ interface StoreCtx {
   /** published events in the profile's city that this person may see in a feed, sponsored pinned (feed, map, dice) */
   cityEvents: EventItem[];
   people: PublicUser[];
+  /** the people going to an event whose going you may see (their own choice); counts use goingUserIds */
+  goersOf: (e: EventItem) => PublicUser[];
+  /** people you follow whose going you may see: the only friends that may shape the feed */
+  friendsShown: string[];
   rsvps: Record<string, Rsvp>;
   profile: Profile;
   comments: Comment[];
@@ -32,13 +32,15 @@ interface StoreCtx {
   cancel: (eventId: string) => void;
   toggleFollow: (userId: string) => void;
   setName: (name: string) => void;
+  /** who may see the events you are going to */
+  setShowGoing: (v: GoingVisibility) => void;
   setCity: (city: CityId, source: 'home' | 'profile') => void;
   toggleInterest: (tag: string) => void;
   /** "never show me this topic"; removes it from interests */
   toggleHidden: (tag: string) => void;
   /** events in the city the feed leaves out because of a hidden topic (for "N hidden, change") */
   hiddenEvents: EventItem[];
-  /** ask the host; approved after a short delay in the demo */
+  /** ask the host (approved after a short delay in the demo); in at once if the host lets a shared interest in */
   requestJoin: (eventId: string) => void;
   likes: Record<string, true>;
   saved: Record<string, true>;
@@ -48,6 +50,10 @@ interface StoreCtx {
   stamps: Record<string, string>;
   collectStamp: (partnerId: string) => void;
   submitDraft: (input: DraftInput) => void;
+  /** event id → your rating of it (see ratings.ts) */
+  ratings: Record<string, Rating>;
+  /** rate an event you went to; replaces your earlier rating of it */
+  rate: (eventId: string, stars: number, issues: RatingIssue[], note: string) => void;
   /** host id → standing, from past outcomes (see hostStanding) */
   standings: Record<string, HostStanding>;
   /** the feed tier of an event's host */
@@ -62,7 +68,14 @@ const Ctx = createContext<StoreCtx | null>(null);
 
 /** A few starter interests so private events have something to match before the user picks their own. */
 export const DEFAULT_INTERESTS = ['meet-people', 'outdoor', 'books'];
-const DEFAULT_PROFILE: Profile = { name: '', follows: ['u2', 'u3'], city: DEFAULT_CITY, interests: DEFAULT_INTERESTS, hidden: [] };
+const DEFAULT_PROFILE: Profile = {
+  name: '',
+  follows: ['u2', 'u3'],
+  city: DEFAULT_CITY,
+  interests: DEFAULT_INTERESTS,
+  hidden: [],
+  showGoing: DEFAULT_SHOW_GOING,
+};
 
 /** Accepts older or partly broken profiles: keeps what is valid, defaults the rest. */
 const asProfile = (x: unknown): Profile | null => {
@@ -75,6 +88,8 @@ const asProfile = (x: unknown): Profile | null => {
     city: isLiveCity(p.city) ? p.city : DEFAULT_CITY,
     interests: Array.isArray(p.interests) ? p.interests.filter((x) => typeof x === 'string') : DEFAULT_INTERESTS,
     hidden: Array.isArray(p.hidden) ? p.hidden.filter((x) => typeof x === 'string') : [],
+    // profiles saved before the setting existed start at "nobody", like everyone else
+    showGoing: GOING_VISIBILITIES.includes(p.showGoing as GoingVisibility) ? (p.showGoing as GoingVisibility) : DEFAULT_SHOW_GOING,
   };
 };
 
@@ -99,6 +114,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [likes, setLikes] = useState<Record<string, true>>({});
   const [saved, setSaved] = useState<Record<string, true>>({});
   const [stamps, setStamps] = useState<Record<string, string>>({});
+  const [ratings, setRatings] = useState<Record<string, Rating>>({});
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -106,19 +122,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       await migrateStorage();
       // each key loads on its own: one corrupt value cannot wipe the others
-      const [r, p, d, c, l, sv, st] = await Promise.all([
-        readJson(KEYS.rsvps, {}, asRecord<Record<string, Rsvp>>),
+      const [r, p, d, c, l, sv, st, rt] = await Promise.all([
+        // a first run starts with the demo's past event, so there is something to rate
+        readJson(KEYS.rsvps, DEMO_RSVPS, asRecord<Record<string, Rsvp>>),
         readJson(KEYS.profile, DEFAULT_PROFILE, asProfile),
         readJson(KEYS.drafts, [], asArray<EventItem>),
         readJson(KEYS.comments, [], asArray<Comment>),
         readJson(KEYS.likes, {}, asRecord<Record<string, true>>),
         readJson(KEYS.saved, {}, asRecord<Record<string, true>>),
         readJson(KEYS.stamps, {}, asRecord<Record<string, string>>),
+        readJson(KEYS.ratings, {}, asRecord<Record<string, Rating>>),
       ]);
       if (!alive) return;
       setLikes(l);
       setSaved(sv);
       setStamps(st);
+      setRatings(rt);
       setRsvps(r);
       setProfile(p);
       setDrafts(d);
@@ -138,6 +157,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   usePersist(KEYS.likes, likes, hydrated);
   usePersist(KEYS.saved, saved, hydrated);
   usePersist(KEYS.stamps, stamps, hydrated);
+  usePersist(KEYS.ratings, ratings, hydrated);
 
   // recurring events: the next edition appears the moment the latest one starts. `clock` only
   // moves at those moments (a timer set for the next one), not every minute.
@@ -156,23 +176,39 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   // Recomputed when `clock` moves (an edition starting), which is often enough for a ranking.
   const standings = useMemo(() => {
     const now = new Date(clock);
-    const ended = allEvents.map((e) => outcomeOf(e, now)).filter((o) => o != null);
+    const ended = allEvents
+      .map((e) => outcomeOf(e, now, ratings[e.id] ? [ratings[e.id]] : []))
+      .filter((o) => o != null);
     return standingsFor([...hostHistory(now), ...ended], now);
-  }, [allEvents, clock]);
+  }, [allEvents, clock, ratings]);
   const tierOf = useCallback((e: EventItem) => eventTier(e, standings), [standings]);
   const myDrafts = useMemo(() => drafts.filter((d) => d.status === 'draft' && isLiveCity(d.city)), [drafts]);
+  // whose plans you may see: each person's own choice (canSeeGoing). In the demo the seed people
+  // carry their choice and whether they follow you; the server decides this per viewer.
+  const shownIds = useMemo(
+    () => new Set(SEED_PEOPLE.filter((p) => canSeeGoing(p.showGoing, { followedByGoer: !!p.followsYou })).map((p) => p.id)),
+    [],
+  );
+  const goersOf = useCallback(
+    (e: EventItem) => SEED_PEOPLE.filter((p) => shownIds.has(p.id) && e.goingUserIds.includes(p.id)),
+    [shownIds],
+  );
+  const friendsShown = useMemo(() => profile.follows.filter((id) => shownIds.has(id)), [profile.follows, shownIds]);
+  // a private event reaching you because a friend is going would give their plan away, so only
+  // friends who share their plans count
+  const feedProfile = useMemo(() => ({ ...profile, follows: friendsShown }), [profile, friendsShown]);
   const cityEvents = useMemo(
-    () => eventsForCity(allEvents, profile.city).filter((e) => visibleInFeed(e, profile, rsvps[e.id])),
-    [allEvents, profile, rsvps],
+    () => eventsForCity(allEvents, profile.city).filter((e) => visibleInFeed(e, feedProfile, rsvps[e.id])),
+    [allEvents, profile.city, feedProfile, rsvps],
   );
   const hiddenEvents = useMemo(
     () =>
       profile.hidden.length === 0
         ? []
         : eventsForCity(allEvents, profile.city).filter(
-            (e) => !rsvps[e.id] && hiddenTopicOf(e, profile.hidden) && visibleInFeed(e, { ...profile, hidden: [] }, undefined),
+            (e) => !rsvps[e.id] && hiddenTopicOf(e, profile.hidden) && visibleInFeed(e, { ...feedProfile, hidden: [] }, undefined),
           ),
-    [allEvents, profile, rsvps],
+    [allEvents, profile, feedProfile, rsvps],
   );
 
   // Demo host: a pending request is accepted a few seconds after it was sent (also on the
@@ -236,6 +272,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const setName = useCallback((name: string) => setProfile((p) => ({ ...p, name })), []);
+  const setShowGoing = useCallback((v: GoingVisibility) => {
+    setProfile((p) => {
+      if (p.showGoing !== v) track('going_visibility_changed', { from: p.showGoing, to: v });
+      return { ...p, showGoing: v };
+    });
+  }, []);
 
   const setCity = useCallback((city: CityId, source: 'home' | 'profile') => {
     if (!isLiveCity(city)) return;
@@ -266,10 +308,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const requestJoin = useCallback((eventId: string) => {
-    setRsvps((prev) => ({ ...prev, [eventId]: { eventId, status: 'requested', createdAt: new Date().toISOString() } }));
-    track('join_requested', { eventId });
-  }, []);
+  const requestJoin = useCallback(
+    (eventId: string) => {
+      const ev = events.find((e) => e.id === eventId);
+      const nowIso = new Date().toISOString();
+      track('join_requested', { eventId });
+      // the host chose to let people with a shared interest straight in
+      if (ev && autoAccepts(ev, profile.interests)) {
+        setRsvps((prev) => ({ ...prev, [eventId]: makeRsvp(ev, nowIso) }));
+        track('join_request_auto_accepted', { eventId });
+        return;
+      }
+      setRsvps((prev) => ({ ...prev, [eventId]: { eventId, status: 'requested', createdAt: nowIso } }));
+    },
+    [events, profile.interests],
+  );
 
   const toggleLike = useCallback((id: string) => {
     track('event_liked', { eventId: id });
@@ -288,6 +341,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const rate = useCallback((eventId: string, stars: number, issues: RatingIssue[], note: string) => {
+    const r = makeRating(eventId, stars, issues, note, new Date().toISOString());
+    if (!r) return;
+    setRatings((prev) => ({ ...prev, [eventId]: r }));
+    // the note stays out of analytics: it is for the team and the host only
+    track('event_rated', { eventId, stars: r.stars, issues: r.issues, changed: !!ratings[eventId] });
+  }, [ratings]);
+
   const addComment = useCallback(
     (eventId: string, text: string) => {
       const c = makeComment(eventId, text, profile.name.trim() || 'Ti', 'uc' + Date.now(), new Date().toISOString());
@@ -305,7 +366,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const resetLocalData = useCallback(async () => {
     await clearStorage();
-    setRsvps({});
+    setRsvps(DEMO_RSVPS);
+    setRatings({});
     setDrafts([]);
     setProfile(DEFAULT_PROFILE);
     setUserComments([]);
@@ -321,6 +383,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       cityEvents,
       hiddenEvents,
       people: SEED_PEOPLE,
+      goersOf,
+      friendsShown,
       rsvps,
       profile,
       comments,
@@ -329,6 +393,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       cancel,
       toggleFollow,
       setName,
+      setShowGoing,
       setCity,
       toggleInterest,
       toggleHidden,
@@ -343,9 +408,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       standings,
       tierOf,
       myDrafts,
+      ratings,
+      rate,
       resetLocalData,
     }),
     [
+      ratings,
+      rate,
+      goersOf,
+      friendsShown,
+      setShowGoing,
       standings,
       tierOf,
       myDrafts,

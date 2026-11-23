@@ -1,4 +1,4 @@
-import type { EventItem } from '@/data/types';
+import type { EventItem } from '@ktu/shared';
 
 /**
  * Which of today's events the home timeline shows when there are more than fit.

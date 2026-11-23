@@ -1,5 +1,5 @@
 import type { Lang } from '@/lib/i18n';
-import type { CityId } from './cities';
+import type { CityId } from '@ktu/shared';
 
 /**
  * Partners are places (bookshops, restaurants, cafés, shops) that give something to

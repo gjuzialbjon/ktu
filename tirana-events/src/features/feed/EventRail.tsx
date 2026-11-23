@@ -1,7 +1,7 @@
 import React from 'react';
 import { Rail } from '@/components/Rail';
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import type { EventItem } from '@/data/types';
+import type { EventItem } from '@ktu/shared';
 import { makeStyles, space } from '@/lib/theme';
 import { useI18n } from '@/lib/i18n';
 import { Display, Emoji } from '@/components/ui';

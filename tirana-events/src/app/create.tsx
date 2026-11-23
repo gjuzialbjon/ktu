@@ -4,10 +4,8 @@ import { Stack, useRouter } from 'expo-router';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
 import { makeStyles } from '@/lib/theme';
-import { CAN_PICK_CITY, CITIES, LIVE_CITIES, CityId, areaName, cityName } from '@/data/cities';
+import { CAN_PICK_CITY, CITIES, LIVE_CITIES, CityId, areaName, cityName, ALL_LANGS, ENTRY_CHOICES, REPEATS } from '@ktu/shared';
 import { Button, Chip } from '@/components/ui';
-import { ALL_LANGS } from '@/data/languages';
-import { REPEATS } from '@/data/recurrence';
 import { DateTimeField } from '@/components/DateTimeField';
 import { Field, FieldError, FieldLabel } from '@/features/create/Field';
 import { PhotoField } from '@/features/create/PhotoField';
@@ -26,6 +24,7 @@ const EMPTY_FORM: FormState = {
   photo: null,
   langs: ['sq'],
   repeat: null,
+  entry: 'open',
 };
 
 /** Which error a form field clears when the user edits it. */
@@ -165,6 +164,17 @@ export default function CreateEvent() {
           {REPEATS.map((r) => (
             <View key={r} style={{ marginBottom: 8 }}>
               <Chip emoji="🔁" label={t.repeat_name[r]} active={form.repeat === r} onPress={() => update('repeat', r)} />
+            </View>
+          ))}
+        </View>
+
+        <FieldLabel label={t.ev_entry} />
+        {/* the hint names what the current choice does, so the host knows before publishing */}
+        <Text style={s.fieldHint}>{t.ev_entry_hint[form.entry]}</Text>
+        <View style={s.hoodRow} accessibilityRole="radiogroup">
+          {ENTRY_CHOICES.map((c) => (
+            <View key={c} style={{ marginBottom: 8 }}>
+              <Chip label={t.ev_entry_name[c]} active={form.entry === c} onPress={() => update('entry', c)} />
             </View>
           ))}
         </View>

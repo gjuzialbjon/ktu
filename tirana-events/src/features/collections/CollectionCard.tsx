@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import type { EventItem } from '@/data/types';
+import type { EventItem } from '@ktu/shared';
 import type { Collection } from '@/data/collections';
 import { useI18n } from '@/lib/i18n';
 import { makeStyles, radius, useTheme } from '@/lib/theme';

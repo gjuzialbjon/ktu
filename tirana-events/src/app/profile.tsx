@@ -6,14 +6,14 @@ import { useStore } from '@/data/store';
 import { THEMES, THEME_ORDER, ThemeId, makeStyles, radius, useTheme } from '@/lib/theme';
 import { Avatar, Chip, Display } from '@/components/ui';
 import { DevTools } from '@/features/dev/DevTools';
-import { CAN_PICK_CITY, LIVE_CITIES, cityName } from '@/data/cities';
+import { CAN_PICK_CITY, GOING_VISIBILITIES, LIVE_CITIES, cityName } from '@ktu/shared';
 import { HideTopicsSheet } from '@/features/profile/HideTopicsSheet';
 
 export default function Profile() {
   const { t, lang, setLang } = useI18n();
   const theme = useTheme();
   const s = useStyles();
-  const { events, people, profile, toggleFollow, setName, setCity, toggleInterest, toggleHidden } = useStore();
+  const { events, people, profile, toggleFollow, setName, setShowGoing, setCity, toggleInterest, toggleHidden } = useStore();
   const [hideOpen, setHideOpen] = useState(false);
   // every tag in use, most common first, plus anything the user picked that is no longer in use
   const tagChoices = useMemo(() => {
@@ -95,6 +95,17 @@ export default function Profile() {
           </View>
         </View>
         <HideTopicsSheet visible={hideOpen} onClose={() => setHideOpen(false)} tags={hideChoices} />
+
+        {/* everyone starts at "nobody"; counts are always shown, names and faces only by choice */}
+        <Text style={s.label}>{t.going_vis_title}</Text>
+        <Text style={s.hint}>{t.going_vis_hint}</Text>
+        <View style={s.wrapRow} accessibilityRole="radiogroup">
+          {GOING_VISIBILITIES.map((v) => (
+            <View key={v} style={{ marginBottom: 8 }}>
+              <Chip label={t.going_vis[v]} active={profile.showGoing === v} onPress={() => setShowGoing(v)} />
+            </View>
+          ))}
+        </View>
 
         <Text style={s.label}>{t.theme}</Text>
         <View style={s.themes} accessibilityRole="radiogroup">

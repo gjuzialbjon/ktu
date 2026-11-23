@@ -1,5 +1,5 @@
 import { DraftForm, parseTags, validateDraft } from '@/features/create/validateDraft';
-import { NOW } from '@/test-utils/fixtures';
+import { NOW } from '@ktu/shared/testing';
 
 const valid: DraftForm = {
   title: 'Chess at the lake',
@@ -13,6 +13,7 @@ const valid: DraftForm = {
   photo: null,
   langs: ['sq'],
   repeat: null,
+  entry: 'open',
 };
 
 describe('validateDraft', () => {

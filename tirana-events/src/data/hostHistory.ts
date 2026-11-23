@@ -1,4 +1,4 @@
-import type { EventOutcome } from './hostStanding';
+import type { EventOutcome } from '@ktu/shared';
 
 /**
  * Demo only: what happened at the seed hosts' past events, so every host tier shows in the
@@ -9,6 +9,8 @@ import type { EventOutcome } from './hostStanding';
  * - Limited: the photo walks (o28) keep ending empty.
  * - Low: the terrace DJ nights (o7) were cancelled at the last minute three times with people going.
  * - New: the stand-up night (o33) has no history yet.
+ * Ratings: the trusted hosts' events are rated 4.7–4.8 (their average shows on the event page);
+ * the chess club's 4.2 from 9 ratings shows too; the weak hosts have a few low ratings.
  * Venues the team imported (source 'curated') with no history count as Normal.
  */
 const H = 3600_000;
@@ -35,22 +37,22 @@ export function hostHistory(now: Date): EventOutcome[] {
 
   return [
     // trusted: weekly lake yoga, regulars come back
-    ...[7, 14, 21, 28, 35, 42, 49, 56].map((d, i) => ran('o1', d, 8 + (i % 4), { returning: 4 })),
+    ...[7, 14, 21, 28, 35, 42, 49, 56].map((d, i) => ran('o1', d, 8 + (i % 4), { returning: 4, ratings: 5, ratingAvg: 4.7 })),
     // trusted: monthly book club, 15 seats, nearly full
-    ...[30, 60, 90, 120, 150].map((d, i) => ran('o4', d, 11 + (i % 3), { capacity: 15, returning: 5 })),
+    ...[30, 60, 90, 120, 150].map((d, i) => ran('o4', d, 11 + (i % 3), { capacity: 15, returning: 5, ratings: 6, ratingAvg: 4.8 })),
     // normal
-    ...[10, 24, 38].map((d) => ran('o2', d, 5)),
+    ...[10, 24, 38].map((d) => ran('o2', d, 5, { ratings: 3, ratingAvg: 4.2 })),
     ...[12, 40, 75].map((d) => ran('o5', d, 9, { capacity: 25 })),
     ...[6, 13, 20, 27].map((d) => ran('o9', d, 10, { capacity: 20 })),
     ...[7, 14, 21].map((d) => ran('o26', d, 4)),
     ...[15, 45, 80].map((d) => ran('o30', d, 5, { capacity: 10 })),
     ...[9, 30, 51].map((d) => ran('o32', d, 6, { capacity: 16 })),
     // limited: six photo walks, four with nobody, two with one person
-    ...[5, 12, 19, 26, 33, 40].map((d, i) => ran('o28', d, i % 3 === 1 ? 1 : 0, { views: 600 })),
+    ...[5, 12, 19, 26, 33, 40].map((d, i) => ran('o28', d, i % 3 === 1 ? 1 : 0, { views: 600, ...(i % 3 === 1 ? { ratings: 1, ratingAvg: 2 } : {}) })),
     // low: three last-minute cancels with people going, one thin night
     cancelled('o7', 8, 3, 14),
     cancelled('o7', 22, 1, 20),
-    ran('o7', 29, 2, { capacity: 120 }),
+    ran('o7', 29, 2, { capacity: 120, ratings: 2, ratingAvg: 2 }),
     cancelled('o7', 36, 6, 9),
   ];
 }

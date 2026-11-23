@@ -2,8 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Share2 from 'lucide-react-native/icons/share-2';
-import type { EventItem, Rsvp } from '@/data/types';
-import { isIn, joinModeOf } from '@/data/access';
+import { type EventItem, type Rsvp, isIn, joinModeOf } from '@ktu/shared';
 import { useI18n } from '@/lib/i18n';
 import { lekToEur } from '@/lib/format';
 import { makeStyles, useTheme } from '@/lib/theme';
@@ -23,8 +22,11 @@ export function ActionBar({
   onJoin,
   onAsk,
   onCancel,
+  ended = false,
 }: {
   event: EventItem;
+  /** it has ended: only say so (and whether you were there), nothing left to join or cancel */
+  ended?: boolean;
   rsvp: Rsvp | undefined;
   onShare: () => void;
   onJoin: () => void;
@@ -52,7 +54,11 @@ export function ActionBar({
         >
           <Share2 color={theme.c.text} size={22} strokeWidth={2} />
         </Pressable>
-        {rsvp ? (
+        {ended ? (
+          <Text style={s.status} numberOfLines={2}>
+            {isIn(rsvp) ? t.you_were_there : t.event_ended}
+          </Text>
+        ) : rsvp ? (
           <>
             <Text style={s.status} numberOfLines={2}>
               {isIn(rsvp) ? t.youre_going : `${t.requested} ⏳`}

@@ -11,7 +11,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import type { EventItem } from '@/data/types';
+import type { EventItem } from '@ktu/shared';
 import { useI18n } from '@/lib/i18n';
 import { useEventFacts } from '@/features/event/useEventFacts';
 import { hapticTap } from '@/lib/haptics';

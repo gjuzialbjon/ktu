@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Heart from 'lucide-react-native/icons/heart';
 import Bookmark from 'lucide-react-native/icons/bookmark';
-import type { EventItem } from '@/data/types';
+import type { EventItem } from '@ktu/shared';
 import { useStore } from '@/data/store';
 import { useI18n } from '@/lib/i18n';
 import { makeStyles, useTheme } from '@/lib/theme';

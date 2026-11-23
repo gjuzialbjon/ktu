@@ -3,7 +3,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { makeStyles, radius, useTheme } from '@/lib/theme';
 import { initials } from '@/lib/format';
-import { PublicUser } from '@/data/types';
+import { PublicUser } from '@ktu/shared';
 import { useI18n } from '@/lib/i18n';
 
 /** Decorative emoji: hidden from screen readers so labels read cleanly. */

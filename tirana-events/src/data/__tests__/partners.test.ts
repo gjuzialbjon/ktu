@@ -1,5 +1,5 @@
 import { PARTNERS, STAMP_GOAL, findOffer, findPartner, stampProgress } from '../partners';
-import { CITIES } from '../cities';
+import { CITIES } from '@ktu/shared';
 import { SEED_EVENTS } from '../seed';
 
 describe('partners', () => {

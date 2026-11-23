@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, G, Text as SvgText } from 'react-native-svg';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
-import { CITIES, cityName } from '@/data/cities';
+import { CITIES, cityName } from '@ktu/shared';
 import {
   PARTNER_EMOJI,
   Partner,

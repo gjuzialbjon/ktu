@@ -1,7 +1,7 @@
 import React from 'react';
 import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import type { EventItem } from '@/data/types';
+import type { EventItem } from '@ktu/shared';
 import { useStore } from '@/data/store';
 import { useI18n } from '@/lib/i18n';
 import { CATEGORY_EMOJI, makeStyles, radius, space, useTheme } from '@/lib/theme';
@@ -49,9 +49,9 @@ function TimelineRow({ event, onLayout }: { event: EventItem; onLayout: (e: Layo
   const s = useStyles();
   const router = useRouter();
   const { t } = useI18n();
-  const { people, profile } = useStore();
+  const { goersOf, profile } = useStore();
   const facts = useEventFacts(event);
-  const friends = people.filter((p) => event.goingUserIds.includes(p.id) && profile.follows.includes(p.id));
+  const friends = goersOf(event).filter((p) => profile.follows.includes(p.id));
 
   return (
     <View style={s.row} onLayout={onLayout}>

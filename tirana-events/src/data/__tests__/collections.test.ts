@@ -1,6 +1,6 @@
 import { COLLECTIONS, collectionEvents, findCollection, liveCollections } from '@/data/collections';
 import { SEED_EVENTS } from '@/data/seed';
-import { NOW, at, makeEvent } from '@/test-utils/fixtures';
+import { NOW, at, makeEvent } from '@ktu/shared/testing';
 
 describe('collections', () => {
   it('has unique ids and both languages for every title and blurb', () => {

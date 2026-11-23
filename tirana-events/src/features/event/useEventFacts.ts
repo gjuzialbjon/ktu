@@ -1,6 +1,4 @@
-import type { EventItem } from '@/data/types';
-import { areaName, cityName } from '@/data/cities';
-import { canSeeDetails, dayPartOf, joinModeOf, visibilityOf } from '@/data/access';
+import { type EventItem, areaName, cityName, canSeeDetails, dayPartOf, joinModeOf, visibilityOf } from '@ktu/shared';
 import { useStore } from '@/data/store';
 import { useI18n } from '@/lib/i18n';
 import { formatDay, formatWhen } from '@/lib/format';

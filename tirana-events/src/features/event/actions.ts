@@ -1,6 +1,5 @@
 import { Linking, Platform, Share } from 'react-native';
-import type { EventItem } from '@/data/types';
-import { cityName } from '@/data/cities';
+import { type EventItem, cityName } from '@ktu/shared';
 import { track } from '@/lib/analytics';
 import { createLogger } from '@/lib/log';
 

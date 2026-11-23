@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Image, ImageSourcePropType, ImageStyle, StyleProp, View, ViewStyle } from 'react-native';
-import { EventItem } from '@/data/types';
+import { EventItem } from '@ktu/shared';
 import { CATEGORY_EMOJI, useTheme } from '@/lib/theme';
 import { Emoji } from '@/components/ui';
 

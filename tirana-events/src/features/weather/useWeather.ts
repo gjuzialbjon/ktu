@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CITIES, CityId } from '@/data/cities';
+import { CITIES, CityId } from '@ktu/shared';
 import { createLogger } from '@/lib/log';
 import { Weather, forecastUrl, parseForecast } from './weather';
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import type { Comment } from '@/data/types';
+import type { Comment } from '@ktu/shared';
 import { useI18n } from '@/lib/i18n';
 import { initials } from '@/lib/format';
 import { makeStyles, radius, useTheme } from '@/lib/theme';

@@ -1,10 +1,9 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { KEYS, migrateStorage, readString, writeString } from '@/data/storage';
-import type { Repeat } from '@/data/types';
-import type { HostTier } from '@/data/hostStanding';
+import { type EntryChoice, type GoingVisibility, type HostTier, type Lang, LANGS, type RatingIssue, type Repeat } from '@ktu/shared';
 
-export type Lang = 'sq' | 'en';
-export const LANGS: readonly Lang[] = ['sq', 'en'];
+// the language list lives in @ktu/shared so the server names cities the same way
+export { LANGS, type Lang } from '@ktu/shared';
 
 const sq = {
   feed_subtitle: (n: number) => `${n} evente këtë javë. Mos rri në shtëpi.`,
@@ -19,7 +18,7 @@ const sq = {
   youre_going: 'Je brenda ✓',
   reserved_code: 'Kodi yt',
   pay_at_door: (p: number) => `${p} lekë cash te dera. Tregoja këtë kod.`,
-  share: 'Çoja tajfës',
+  share: 'Çoja miqve',
   share_msg: (title: string, when: string, venue: string) =>
     `${title}\n${when}, ${venue}\nVij unë, hajde edhe ti!`,
   my_events: 'Planet e mia',
@@ -31,7 +30,7 @@ const sq = {
   profile: 'Profili',
   language: 'Gjuha',
   your_name: 'Si të thërrasin?',
-  people_you_know: 'Tajfa jote',
+  people_you_know: 'Miqtë e tu',
   following: 'E ndjek',
   follow: 'Ndiqe',
   create_event: 'Bëj një event',
@@ -62,7 +61,7 @@ const sq = {
   where: 'Ku',
   organizer: 'Kush e organizon',
   about: 'Për çfarë bëhet fjalë',
-  friends_going: 'Nga tajfa jote',
+  friends_going: 'Nga miqtë e tu',
   open_map: 'Hape në hartë',
   today: 'Sot',
   tomorrow: 'Nesër',
@@ -109,9 +108,9 @@ const sq = {
   reset_filters: 'Hiqi filtrat',
   and_word: 'dhe',
   friends_going_short: (names: string, n: number) => (n === 1 ? `${names} vjen` : `${names} vijnë`),
-  friends_strip_title: 'Ku po shkon tajfa',
+  friends_strip_title: 'Ku po shkojnë miqtë',
   friends_strip_empty: 'Ndiq njerëzit që njeh dhe shiko ku po dalin.',
-  find_friends: 'Gjej tajfën',
+  find_friends: 'Gjej miqtë',
   when_all: 'Të gjitha',
   when_today: 'Sot',
   when_tomorrow: 'Nesër',
@@ -204,7 +203,7 @@ const sq = {
   for_you_hint: 'Sipas interesave që ke zgjedhur në profil.',
   by_vibe: 'Sipas qejfit',
   vibe_note: 'rrëshqit anash',
-  crew_note: 'tajfa',
+  crew_note: 'miqtë',
   // access: public / ask / private
   badge_ask: 'Me kërkesë',
   badge_private: 'Privat',
@@ -221,6 +220,7 @@ const sq = {
   /** the same, shorter, for small cards */
   part_short: { morning: 'mëngjes', afternoon: 'pasdite', evening: 'mbrëmje', night: 'natë vonë' },
   shared_interests: (tags: string) => `Keni të përbashkët: ${tags}`,
+  shared_interests_auto: (tags: string) => `Keni të përbashkët ${tags}: hyn menjëherë.`,
   // like / save
   like: 'Më pëlqen',
   unlike: 'Hiqe pëlqimin',
@@ -271,6 +271,42 @@ const sq = {
   hidden_done: 'Gati',
   hidden_count: (n: number) => (n === 1 ? '1 event i fshehur sipas profilit tënd.' : `${n} evente të fshehura sipas profilit tënd.`),
   hidden_edit: 'Ndrysho',
+  going_vis_title: 'Kush i sheh eventet ku shkon',
+  going_vis_hint: 'Sa veta vijnë shihet gjithmonë. Emri dhe fotoja jote, vetëm nga kush zgjedh ti.',
+  going_vis: { nobody: 'Askush', following: 'Ata që ndjek', everyone: 'Të gjithë' } as Record<GoingVisibility, string>,
+  going_seen_by: {
+    nobody: "Askush s'e sheh që vjen.",
+    following: 'E shohin ata që ndjek.',
+    everyone: 'E shohin të gjithë.',
+  } as Record<GoingVisibility, string>,
+  going_seen_change: 'Ndrysho',
+  rate_title: 'Si ishte?',
+  you_were_there: 'Ishe aty ✓',
+  event_ended: 'Ka mbaruar',
+  rate_section: (n: number): string => (n === 1 ? 'Si ishte?' : 'Si ishin?'),
+  rate_hint: 'Vlerësimi yt e ndihmon ekipin të mbajë larg eventet e dobëta.',
+  a11y_stars: (n: number) => (n === 1 ? '1 yll' : `${n} yje`),
+  rate_issues_label: 'Diçka nuk shkoi?',
+  rate_issue: {
+    didnt_happen: 'Nuk u bë',
+    not_as_described: 'Ndryshe nga përshkrimi',
+    host_absent: 'Organizatori nuk erdhi',
+    felt_unsafe: 'Nuk më dukej e sigurt',
+  } as Record<RatingIssue, string>,
+  rate_note_ph: 'Diçka për ekipin? E sheh vetëm ekipi dhe organizatori.',
+  rate_send: 'Dërgo vlerësimin',
+  rate_thanks: 'Faleminderit! Kjo na ndihmon të zgjedhim eventet më të mira.',
+  rate_change: 'Ndrysho',
+  host_rating: (avg: string, n: number) => `★ ${avg} · ${n} vlerësime`,
+  a11y_host_rating: (avg: string, n: number) => `Organizatori ka ${avg} nga 5 yje, nga ${n} vlerësime`,
+  ev_entry: 'Si hyjnë njerëzit?',
+  ev_entry_name: { open: 'Hyn kushdo', ask: 'Pranoj unë', auto: 'Me interesa të njëjta hyn vetë' } as Record<EntryChoice, string>,
+  ev_entry_hint: {
+    open: 'Kushdo bashkohet me një prekje.',
+    ask: 'Njerëzit të kërkojnë të vijnë dhe ti përgjigjesh. Vendi dhe ora e saktë shfaqen vetëm pasi i pranon.',
+    auto: 'Kush ka një interes të përbashkët me eventin hyn menjëherë; të tjerët presin përgjigjen tënde.',
+  } as Record<EntryChoice, string>,
+  a11y_going_unnamed: (n: number) => (n === 1 ? 'Edhe 1 person tjetër' : `Edhe ${n} të tjerë`),
   hide_like_this: 'Mos më trego evente si ky',
   a11y_unhide: (tag: string) => `Shfaq përsëri ${tag}`,
   // weather
@@ -509,6 +545,7 @@ const en: Dict = {
   part_night: 'late night',
   part_short: { morning: 'morning', afternoon: 'afternoon', evening: 'evening', night: 'late night' },
   shared_interests: (tags: string) => `You both like: ${tags}`,
+  shared_interests_auto: (tags: string) => `You both like ${tags}: you get in right away.`,
   like: 'Like',
   unlike: 'Unlike',
   save: 'Save',
@@ -554,6 +591,42 @@ const en: Dict = {
   hidden_done: 'Done',
   hidden_count: (n: number) => (n === 1 ? '1 event hidden by your profile.' : `${n} events hidden by your profile.`),
   hidden_edit: 'Change',
+  going_vis_title: 'Who sees the events you go to',
+  going_vis_hint: 'How many people are going is always shown. Your name and photo only to who you choose.',
+  going_vis: { nobody: 'No one', following: 'People I follow', everyone: 'Everyone' },
+  going_seen_by: {
+    nobody: 'No one can see you\'re going.',
+    following: 'People you follow can see you\'re going.',
+    everyone: 'Everyone can see you\'re going.',
+  },
+  going_seen_change: 'Change',
+  rate_title: 'How was it?',
+  you_were_there: 'You were there ✓',
+  event_ended: 'This has ended',
+  rate_section: (n: number) => (n === 1 ? 'How was it?' : 'How were they?'),
+  rate_hint: 'Your rating helps the team keep weak events out.',
+  a11y_stars: (n: number) => (n === 1 ? '1 star' : `${n} stars`),
+  rate_issues_label: 'Did something go wrong?',
+  rate_issue: {
+    didnt_happen: 'It didn\'t happen',
+    not_as_described: 'Not as described',
+    host_absent: 'The host didn\'t show',
+    felt_unsafe: 'It didn\'t feel safe',
+  },
+  rate_note_ph: 'Anything for the team? Only the team and the host see it.',
+  rate_send: 'Send rating',
+  rate_thanks: 'Thanks! This helps us pick the best events.',
+  rate_change: 'Change',
+  host_rating: (avg: string, n: number) => `★ ${avg} · ${n} ratings`,
+  a11y_host_rating: (avg: string, n: number) => `The host has ${avg} out of 5 stars, from ${n} ratings`,
+  ev_entry: 'How do people get in?',
+  ev_entry_name: { open: 'Anyone joins', ask: 'I accept each', auto: 'Shared interests get in' },
+  ev_entry_hint: {
+    open: 'Anyone can join with one tap.',
+    ask: 'People ask to join and you answer. The exact place and time show only once you accept them.',
+    auto: 'People who share an interest with the event get in at once; the others wait for your answer.',
+  },
+  a11y_going_unnamed: (n: number) => (n === 1 ? '1 more person' : `${n} more people`),
   hide_like_this: "Don't show me events like this",
   a11y_unhide: (tag: string) => `Show ${tag} again`,
   a11y_weather: (temp: string, desc: string) => `Weather: ${temp}, ${desc}. See more`,

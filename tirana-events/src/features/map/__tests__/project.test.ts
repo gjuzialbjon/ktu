@@ -1,4 +1,4 @@
-import { CITIES } from '@/data/cities';
+import { CITIES } from '@ktu/shared';
 import { MAP_EDGE, MAP_H, MAP_W, project } from '@/features/map/project';
 
 const tirana = CITIES.tirana.bounds;

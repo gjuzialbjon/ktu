@@ -1,0 +1,5 @@
+# pnpm settings for this project only (not a monorepo: no `packages` list).
+# Install scripts are blocked unless listed here.
+allowBuilds:
+  # prebuilt binary ships as @parcel/watcher-<platform>; its script only builds from source as a fallback
+  '@parcel/watcher': false

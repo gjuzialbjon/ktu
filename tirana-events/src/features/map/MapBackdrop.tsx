@@ -1,6 +1,6 @@
 import React from 'react';
 import { Circle, Path, Rect, Text as SvgText } from 'react-native-svg';
-import type { City } from '@/data/cities';
+import type { City } from '@ktu/shared';
 import type { Theme } from '@/lib/theme';
 import { MAP_H as H, MAP_W as W } from './project';
 

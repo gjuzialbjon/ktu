@@ -1,4 +1,4 @@
-import type { MapBounds } from '@/data/cities';
+import type { MapBounds } from '@ktu/shared';
 
 /**
  * Today's weather for the city, from Open-Meteo (free, no key, no personal data:

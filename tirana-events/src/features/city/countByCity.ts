@@ -1,4 +1,4 @@
-import { CITY_ORDER, CityId } from '@/data/cities';
+import { CITY_ORDER, CityId } from '@ktu/shared';
 import { isThisWeek } from '@/lib/format';
 
 /** Events this week per city, so the picker shows where things are happening. Every city gets a key. */

@@ -15,24 +15,20 @@ import { TopBar } from '@/components/TopBar';
 import { track } from '@/lib/analytics';
 import { useNow } from '@/hooks/useNow';
 import { FeedRanking, FeedSection, HIGHLIGHTS_MAX, NO_FILTERS, buildFeed, isFiltering, pickHighlights, railsByCategory } from '@/features/feed/buildFeed';
-import { TIER_WEIGHT, arrangeRail } from '@/data/hostStanding';
+import { TIER_WEIGHT, arrangeRail, forYou, isIn, CAN_PICK_CITY, cityName, type Category, type EventItem, type SpokenLang, LANG_ROW_TITLE, langsAvailable, railsByLanguage } from '@ktu/shared';
 import { TodayTimeline } from '@/features/feed/TodayTimeline';
 import { pickToday } from '@/features/feed/todayTop';
 import { CountPill, EventRail } from '@/features/feed/EventRail';
 import { HighlightsCarousel } from '@/features/feed/HighlightsCarousel';
 import { SkyBackdrop } from '@/features/feed/SkyBackdrop';
 import { latenessOf, skyStops } from '@/features/feed/sky';
-import { forYou, isIn } from '@/data/access';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedFilters } from '@/features/feed/useFeedFilters';
 import { FilterBar } from '@/features/feed/FilterBar';
 import { CityPicker } from '@/features/city/CityPicker';
-import { CAN_PICK_CITY, cityName } from '@/data/cities';
 import MapPin from 'lucide-react-native/icons/map-pin';
 import ArrowUp from 'lucide-react-native/icons/arrow-up';
 import { DiceOrigin, DiceRoll } from '@/features/feed/DiceRoll';
-import type { Category, EventItem, SpokenLang } from '@/data/types';
-import { LANG_ROW_TITLE, langsAvailable, railsByLanguage } from '@/data/languages';
 import { liveCollections } from '@/data/collections';
 import { CollectionCard } from '@/features/collections/CollectionCard';
 
@@ -61,7 +57,7 @@ export default function Home() {
   const { t, lang } = useI18n();
   const theme = useTheme();
   const s = useStyles();
-  const { cityEvents: events, profile, rsvps, events: allEvents, hiddenEvents, likes, tierOf } = useStore();
+  const { cityEvents: events, profile, rsvps, events: allEvents, hiddenEvents, likes, tierOf, friendsShown } = useStore();
   const { height: viewportH, width: viewportW } = useWindowDimensions();
   const [cityOpen, setCityOpen] = useState(false);
   const router = useRouter();
@@ -86,9 +82,9 @@ export default function Home() {
   const ranking = useMemo<FeedRanking>(
     () => ({
       tier: tierOf,
-      vouched: (e) => e.organizer.id === 'me' || !!rsvps[e.id] || e.goingUserIds.some((id) => profile.follows.includes(id)),
+      vouched: (e) => e.organizer.id === 'me' || !!rsvps[e.id] || e.goingUserIds.some((id) => friendsShown.includes(id)),
     }),
-    [tierOf, rsvps, profile.follows],
+    [tierOf, rsvps, friendsShown],
   );
   const feed = useMemo(() => buildFeed(events, filters, now, ranking), [events, filters, now, ranking]);
   const [unfolded, setUnfolded] = useState<ReadonlySet<string>>(() => new Set());
@@ -121,8 +117,8 @@ export default function Home() {
     [feed.today, rsvps, likes, ranking],
   );
   const highlights = useMemo(
-    () => pickHighlights(feed.curatedPool, profile.follows, now, HIGHLIGHTS_MAX, ranking),
-    [feed.curatedPool, profile.follows, now, ranking],
+    () => pickHighlights(feed.curatedPool, friendsShown, now, HIGHLIGHTS_MAX, ranking),
+    [feed.curatedPool, friendsShown, now, ranking],
   );
   const rails = useMemo(() => {
     const todayIds = new Set(feed.today.map((e) => e.id));

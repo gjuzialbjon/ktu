@@ -2,12 +2,11 @@ import React from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
-import { EventItem } from '@/data/types';
+import { EventItem, LANG_CODE, foreignLangsOf, spokenLangs } from '@ktu/shared';
 import { CATEGORY_EMOJI, makeStyles, radius, useTheme } from '@/lib/theme';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
 import { firstName, joinNames } from '@/lib/format';
-import { LANG_CODE, foreignLangsOf, spokenLangs } from '@/data/languages';
 import { useEventFacts } from '@/features/event/useEventFacts';
 import { LikeSave } from '@/features/event/LikeSave';
 import { AvatarStack, Chip, Display, Emoji, Sticker } from '@/components/ui';
@@ -26,9 +25,11 @@ export function EventCard({ event, popular }: { event: EventItem; popular?: bool
   const s = useStyles();
   const hover = useHoverLift();
   const { t } = useI18n();
-  const { people, profile, rsvps } = useStore();
+  const { goersOf, profile, rsvps } = useStore();
 
-  const going = people.filter((p) => event.goingUserIds.includes(p.id));
+  // faces only of people who share their plans with you; the count is everyone
+  const going = goersOf(event);
+  const total = event.goingUserIds.length;
   const friends = going.filter((p) => profile.follows.includes(p.id));
   const joined = !!rsvps[event.id];
   const { when, where, askToJoin, isPrivate } = useEventFacts(event);
@@ -126,10 +127,10 @@ export function EventCard({ event, popular }: { event: EventItem; popular?: bool
                 </View>
                 {/* footer pinned to the bottom so it lines up across a row of equal-height cards */}
                 <View style={[s.footer, { paddingRight: LIKE_SAVE_W }]}>
-                  {friends.length === 0 && going.length >= MIN_COUNT_SHOWN && (
+                  {friends.length === 0 && total >= MIN_COUNT_SHOWN && (
                     <View style={s.countRow}>
                       <AvatarStack users={going} follows={profile.follows} size={24} />
-                      <Text style={s.count}>{t.going_count(going.length)}</Text>
+                      <Text style={s.count}>{t.going_count(total)}</Text>
                     </View>
                   )}
                 </View>

@@ -1,6 +1,5 @@
-import type { EventItem } from './types';
+import { type EventItem, speaks } from '@ktu/shared';
 import type { Lang } from '@/lib/i18n';
-import { speaks } from './languages';
 import { bucketOf, matchesWhen } from '@/lib/format';
 
 /**

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import type { FaqItem } from '@/data/types';
+import type { FaqItem } from '@ktu/shared';
 import { makeStyles, radius } from '@/lib/theme';
 
 /** Organizer FAQ: each question expands in place. */

@@ -1,6 +1,6 @@
 import { durationMin, formatDuration, programStops, weatherAt } from '@/features/event/stats';
 import type { Weather } from '@/features/weather/weather';
-import { NOW, at, makeEvent } from '@/test-utils/fixtures';
+import { NOW, at, makeEvent } from '@ktu/shared/testing';
 
 describe('event stats', () => {
   it('takes the duration from the end time, else from the last program stop', () => {

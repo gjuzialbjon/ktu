@@ -7,10 +7,9 @@ import QRCode from 'react-native-qrcode-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
-import { spotsLeft } from '@/data/events';
+import { MIN_RATINGS_SHOWN, autoAccepts, canRate, eventEndMs, spotsLeft, hiddenTopicOf, isIn, sharedInterests, similarEvents, type EventItem } from '@ktu/shared';
 import { CATEGORY_EMOJI, makeStyles, radius, space, useTheme } from '@/lib/theme';
 import { firstName, joinNames } from '@/lib/format';
-import { hiddenTopicOf, isIn, sharedInterests, similarEvents } from '@/data/access';
 import { HideTopicsSheet } from '@/features/profile/HideTopicsSheet';
 import { EventStats } from '@/features/event/EventStats';
 import { Program } from '@/features/event/Program';
@@ -19,7 +18,6 @@ import { useEventFacts } from '@/features/event/useEventFacts';
 import { LikeSave } from '@/features/event/LikeSave';
 import { StoryCard } from '@/components/StoryCard';
 import { useNow } from '@/hooks/useNow';
-import type { EventItem } from '@/data/types';
 import { Avatar, Button, Chip, Display, Emoji, Hand, Sticker, TagRow } from '@/components/ui';
 import { EventPhoto } from '@/components/EventPhoto';
 import { track } from '@/lib/analytics';
@@ -27,6 +25,7 @@ import { hapticSuccess } from '@/lib/haptics';
 import { useKeyboardVisible } from '@/hooks/useKeyboardVisible';
 import { ACTION_BAR_SPACE, ActionBar } from '@/features/event/ActionBar';
 import { Comments } from '@/features/event/Comments';
+import { RateEvent } from '@/features/rating/RateEvent';
 import { FaqList } from '@/features/event/FaqList';
 import { openInMaps, shareEvent } from '@/features/event/actions';
 
@@ -59,21 +58,33 @@ function EventPage({ event }: { event: EventItem }) {
   const theme = useTheme();
   const s = useStyles();
   const { t, lang } = useI18n();
-  const { events, people, profile, rsvps, join, requestJoin, cancel, comments, addComment, standings } = useStore();
+  const { events, people, goersOf, profile, rsvps, join, requestJoin, cancel, comments, addComment, standings } = useStore();
   const insets = useSafeAreaInsets();
   const keyboardOpen = useKeyboardVisible();
   const nowMs = useNow();
   const facts = useEventFacts(event);
 
   const rsvp = rsvps[event.id];
-  const going = people.filter((p) => event.goingUserIds.includes(p.id));
+  // faces only of people who share their plans with you (their own choice); the count is everyone
+  const going = goersOf(event);
   const friendsGoing = going.filter((p) => profile.follows.includes(p.id));
   const youreIn = isIn(rsvp);
+  // after it ends, the "you're in" box becomes "how was it?" for a week
+  const rateNow = canRate(event, rsvp, new Date(nowMs));
+  // a host's average, once enough people rated, and only when it is good: like the trusted
+  // badge, a weak record sinks the host in the feed rather than being shown on the page
+  const hostStanding = event.source !== 'platform' ? standings[event.organizer.id] : undefined;
+  const hostRating =
+    hostStanding && hostStanding.ratings >= MIN_RATINGS_SHOWN && hostStanding.ratingAvg >= 4
+      ? { avg: hostStanding.ratingAvg.toFixed(1).replace('.', lang === 'sq' ? ',' : '.'), n: hostStanding.ratings }
+      : null;
   const { when, hidden } = facts;
   // name the city too: plans and shared links can point at events outside your city
   const where = hidden ? t.hidden_where(facts.areaWithCity) : `${event.venueName}, ${facts.areaWithCity}`;
   const eventComments = comments.filter((c) => c.eventId === event.id);
-  const totalGoing = going.length + (youreIn ? 1 : 0);
+  const totalGoing = event.goingUserIds.length + (youreIn ? 1 : 0);
+  // people going whose names you may not see, shown only as "+N"
+  const unnamed = event.goingUserIds.length - going.length;
   const spots = spotsLeft(event, youreIn);
   const shared = facts.askToJoin ? sharedInterests(event, profile.interests) : [];
   const host = event.facilitatorId ? people.find((p) => p.id === event.facilitatorId) : undefined;
@@ -148,6 +159,15 @@ function EventPage({ event }: { event: EventItem }) {
                 <Text style={s.catPillText}>✓ {t.host_trusted}</Text>
               </View>
             )}
+            {hostRating && (
+              <View
+                style={[s.catPill, { borderColor: theme.c.border }]}
+                accessible
+                accessibilityLabel={t.a11y_host_rating(hostRating.avg, hostRating.n)}
+              >
+                <Text style={s.catPillText}>{t.host_rating(hostRating.avg, hostRating.n)}</Text>
+              </View>
+            )}
             <View style={{ marginLeft: 'auto' }}>
               <LikeSave event={event} size={22} />
             </View>
@@ -192,7 +212,11 @@ function EventPage({ event }: { event: EventItem }) {
           </View>
 
           {shared.length > 0 && !youreIn && (
-            <Text style={s.shared}>{t.shared_interests(shared.map((x) => `#${x}`).join(', '))}</Text>
+            <Text style={s.shared}>
+              {(autoAccepts(event, profile.interests) ? t.shared_interests_auto : t.shared_interests)(
+                shared.map((x) => `#${x}`).join(', '),
+              )}
+            </Text>
           )}
 
           {event.source === 'platform' && (
@@ -218,9 +242,25 @@ function EventPage({ event }: { event: EventItem }) {
               <Text style={s.payNote}>{t.request_sent_note}</Text>
             </View>
           )}
-          {youreIn && rsvp && (
+          {rateNow && (
+            <View style={{ marginTop: 16 }}>
+              <RateEvent event={event} />
+            </View>
+          )}
+          {youreIn && rsvp && !rateNow && (
             <View style={[s.rsvpBox, { marginTop: 16 }]}>
               <Text style={s.rsvpTitle}>{t.youre_going}</Text>
+              {/* who can see you're going: starts at "nobody" until you choose in the profile */}
+              <Pressable
+                accessibilityRole="link"
+                accessibilityLabel={`${t.going_seen_by[profile.showGoing]} ${t.going_seen_change}`}
+                onPress={() => router.push('/profile')}
+                style={({ pressed }) => [s.seenBy, pressed && { opacity: 0.7 }]}
+              >
+                <Text style={s.seenByText}>
+                  {t.going_seen_by[profile.showGoing]} <Text style={s.seenByLink}>{t.going_seen_change}</Text>
+                </Text>
+              </Pressable>
               {rsvp.reservationCode && (
                 <View style={s.qrBox}>
                   <View style={s.qrWrap}>
@@ -270,6 +310,11 @@ function EventPage({ event }: { event: EventItem }) {
                 {going.map((u) => (
                   <Avatar key={u.id} user={u} highlight={profile.follows.includes(u.id)} size={36} />
                 ))}
+                {unnamed > 0 && (
+                  <View style={s.moreGoing} accessibilityLabel={t.a11y_going_unnamed(unnamed)}>
+                    <Text style={s.moreGoingText}>+{unnamed}</Text>
+                  </View>
+                )}
               </View>
             </>
           )}
@@ -318,6 +363,7 @@ function EventPage({ event }: { event: EventItem }) {
               hapticSuccess();
             }}
             onCancel={() => cancel(event.id)}
+            ended={nowMs >= eventEndMs(event)}
           />
         )}
       </KeyboardAvoidingView>
@@ -403,6 +449,18 @@ const useStyles = makeStyles((t) =>
     bulletDot: { width: 7, height: 7, borderRadius: 4, marginTop: 8 },
     bullet: { color: t.c.text, fontSize: 15, lineHeight: 22, flex: 1 },
     avatars: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
+    moreGoing: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: t.c.surfaceAlt,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    moreGoingText: { color: t.c.textDim, fontSize: 13, fontWeight: '700' },
+    seenBy: { minHeight: 44, justifyContent: 'center' },
+    seenByText: { color: t.c.textDim, fontSize: 14, lineHeight: 20 },
+    seenByLink: { color: t.c.text, fontWeight: '700', textDecorationLine: 'underline' },
     rsvpBox: {
       backgroundColor: t.c.surface,
       borderColor: t.c.free,
