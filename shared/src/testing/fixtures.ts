@@ -1,4 +1,4 @@
-import type { EventItem } from '@/data/types';
+import type { EventItem } from '../types.ts';
 
 /** Wednesday 18 Nov 2026, 12:00 local time: a fixed "now" so date rules are deterministic. */
 export const NOW = new Date(2026, 10, 18, 12, 0);

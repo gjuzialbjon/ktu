@@ -1,0 +1,8 @@
+node_modules/
+dist/
+coverage/
+# local PGlite database
+.data/
+.env
+.env.*
+!.env.example

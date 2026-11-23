@@ -1,6 +1,5 @@
-import { canSeeDetails, dayPartOf, forYou, hiddenTopicOf, isIn, sharedInterests, similarEvents, visibleInFeed } from '../access';
-import type { Rsvp } from '../types';
-import { NOW, at, makeEvent } from '@/test-utils/fixtures';
+import { DEFAULT_SHOW_GOING, autoAccepts, canSeeDetails, canSeeGoing, dayPartOf, forYou, hiddenTopicOf, isIn, sharedInterests, similarEvents, visibleInFeed, type Rsvp } from '@ktu/shared';
+import { NOW, at, makeEvent } from '@ktu/shared/testing';
 
 const rsvp = (status: Rsvp['status']): Rsvp => ({ eventId: 'x', status, createdAt: NOW.toISOString() });
 const me = { interests: ['books', 'running'], follows: ['u2'] };
@@ -104,5 +103,40 @@ describe('forYou', () => {
     const b = makeEvent({ tags: ['books', 'jazz'] });
     const c = makeEvent({ tags: ['golf'] });
     expect(forYou([a, b, c], ['books'], ['jazz']).map((e) => e.id)).toEqual([b.id, a.id]);
+  });
+});
+
+describe('canSeeGoing (who sees where you go)', () => {
+  const follower = { followedByGoer: true };
+  const stranger = { followedByGoer: false };
+
+  it('starts at nobody: a person who never chose is never named', () => {
+    expect(DEFAULT_SHOW_GOING).toBe('nobody');
+    expect(canSeeGoing(undefined, follower)).toBe(false);
+    expect(canSeeGoing('nobody', follower)).toBe(false);
+  });
+  it('"people I follow" shows only to the people the goer follows', () => {
+    expect(canSeeGoing('following', follower)).toBe(true);
+    expect(canSeeGoing('following', stranger)).toBe(false);
+  });
+  it('"everyone" shows to anyone', () => {
+    expect(canSeeGoing('everyone', stranger)).toBe(true);
+  });
+  it('the event host always sees who is coming', () => {
+    expect(canSeeGoing('nobody', { followedByGoer: false, hostsEvent: true })).toBe(true);
+  });
+});
+
+describe('autoAccepts (host lets a shared interest in)', () => {
+  const auto = makeEvent({ joinMode: 'ask', acceptMode: 'interests', tags: ['books', 'discussion'] });
+  it('lets in someone who shares a tag', () => {
+    expect(autoAccepts(auto, ['books'])).toBe(true);
+  });
+  it('sends everyone else to the host', () => {
+    expect(autoAccepts(auto, ['running'])).toBe(false);
+  });
+  it('never applies when the host answers every request, or the event is open', () => {
+    expect(autoAccepts(makeEvent({ joinMode: 'ask', tags: ['books'] }), ['books'])).toBe(false);
+    expect(autoAccepts(makeEvent({ acceptMode: 'interests', tags: ['books'] }), ['books'])).toBe(false);
   });
 });

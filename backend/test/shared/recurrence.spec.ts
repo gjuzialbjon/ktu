@@ -1,5 +1,4 @@
-import { editionTitle, nextDate, nextEditions, nextRollAt, startSeries } from '../recurrence';
-import type { EventItem } from '../types';
+import { editionTitle, nextDate, nextEditions, nextRollAt, startSeries, type EventItem } from '@ktu/shared';
 
 const base = (over: Partial<EventItem> = {}): EventItem => ({
   id: 'y1',
@@ -22,6 +21,12 @@ const base = (over: Partial<EventItem> = {}): EventItem => ({
   series: { id: 'yoga', repeat: 'weekly', edition: 3, baseTitle: 'Yoga' },
   ...over,
 });
+
+/** the first item, failing the test clearly when there is none */
+function firstOf<T>(items: T[]): T {
+  expect(items.length).toBeGreaterThan(0);
+  return items[0] as T;
+}
 
 describe('nextDate', () => {
   it('adds a week, two weeks, or a month at the same local time', () => {
@@ -50,7 +55,7 @@ describe('nextEditions', () => {
   });
 
   it('creates the next edition as soon as the latest one starts', () => {
-    const [next] = nextEditions([base()], new Date(2026, 10, 20, 18, 0));
+    const next = firstOf(nextEditions([base()], new Date(2026, 10, 20, 18, 0)));
     expect(next.id).toBe('yoga-n4');
     expect(next.title).toBe(editionTitle('Yoga', 4));
     expect(next.series?.edition).toBe(4);
@@ -67,7 +72,7 @@ describe('nextEditions', () => {
   });
 
   it('catches up after a long gap, counting the editions that happened meanwhile', () => {
-    const [next] = nextEditions([base()], new Date(2026, 11, 5, 12, 0));
+    const next = firstOf(nextEditions([base()], new Date(2026, 11, 5, 12, 0)));
     // 20 Nov (#3) → 27 Nov (#4) → 4 Dec (#5) → 11 Dec (#6), the first one still ahead
     expect(next.series?.edition).toBe(6);
     expect(new Date(next.startsAt)).toEqual(new Date(2026, 11, 11, 18, 0));

@@ -1,6 +1,6 @@
-import type { CancelReason, EventItem } from './types';
+import type { CancelReason, EventItem } from './types.ts';
+import { type Rating, ratingGrade, summarizeRatings } from './ratings.ts';
 
-export type { CancelReason };
 
 /**
  * Host standing: how much feed space a host's next events get, worked out from what actually
@@ -43,6 +43,9 @@ export interface EventOutcome {
   hostNoShow?: boolean;
   /** feed views it got; an empty event that got little reach is not the host's fault */
   views?: number;
+  /** star ratings from people who went (see ratings.ts): how many, and their average */
+  ratings?: number;
+  ratingAvg?: number;
 }
 
 /** Below this many views, an empty event is not counted against a new host. */
@@ -94,6 +97,7 @@ export function gradeOutcome(o: EventOutcome, excused = false): number {
   let g = turnoutGrade(o);
   if ((o.returning ?? 0) >= 2) g += 1;
   g -= o.reportsNotAsDescribed ?? 0;
+  g += ratingGrade(o.ratings ?? 0, o.ratingAvg ?? 0);
   if (o.requests && (o.requestsIgnored ?? 0) / o.requests >= 0.5) g -= 1;
   if (o.lateEditAt) g += Math.min(0, cancelGrade(start - new Date(o.lateEditAt).getTime(), o.joined) + 1);
   return Math.max(-3, Math.min(3, g));
@@ -123,6 +127,9 @@ export interface HostStanding {
   emptyRecent: number;
   /** recent events (60 days) that took place or were cancelled */
   recent: number;
+  /** star ratings over all the host's events: how many, and their average (0 when none) */
+  ratings: number;
+  ratingAvg: number;
 }
 
 export const TRUSTED_MIN = 1.2;
@@ -166,7 +173,13 @@ export function hostStanding(hostId: string, outcomes: EventOutcome[], now: Date
   let emptyRecent = 0;
   let recent = 0;
   let lastExcuse = -Infinity;
+  let ratings = 0;
+  let starSum = 0;
   for (const o of mine) {
+    if (o.ratings && o.ratingAvg) {
+      ratings += o.ratings;
+      starSum += o.ratings * o.ratingAvg;
+    }
     const at = new Date(o.cancelledAt ?? o.startsAt).getTime();
     // weather on a bad forecast is always excused; illness/venue once per window
     let excused = false;
@@ -186,7 +199,8 @@ export function hostStanding(hostId: string, outcomes: EventOutcome[], now: Date
     }
   }
   const score = sum / (weights + PRIOR_WEIGHT);
-  const base = { hostId, score, graded: mine.length, lateCancels, emptyRecent, recent };
+  const ratingAvg = ratings ? starSum / ratings : 0;
+  const base = { hostId, score, graded: mine.length, lateCancels, emptyRecent, recent, ratings, ratingAvg };
   return { ...base, tier: tierOf(base, prev) };
 }
 
@@ -198,9 +212,10 @@ export function standingsFor(outcomes: EventOutcome[], now: Date): Record<string
 
 /**
  * The outcome of an event in the app's own data, once it has ended or was cancelled.
- * null while it is still to come. Private and platform-run events are not graded.
+ * null while it is still to come. Private and platform-run events are not graded. `ratings` are
+ * this event's ratings from people who went (a cancelled event has none).
  */
-export function outcomeOf(e: EventItem, now: Date): EventOutcome | null {
+export function outcomeOf(e: EventItem, now: Date, ratings: readonly Pick<Rating, 'stars' | 'issues'>[] = []): EventOutcome | null {
   if (e.source === 'platform' || e.visibility === 'private') return null;
   const end = e.endsAt ? new Date(e.endsAt).getTime() : new Date(e.startsAt).getTime() + 2 * H;
   if (e.status !== 'cancelled' && end > now.getTime()) return null;
@@ -214,8 +229,15 @@ export function outcomeOf(e: EventItem, now: Date): EventOutcome | null {
     cancelledAt: e.status === 'cancelled' ? (e.cancelledAt ?? e.startsAt) : undefined,
     cancelReason: e.cancelReason,
     affected: e.status === 'cancelled' ? e.goingUserIds.length : undefined,
+    ...rated(e.status === 'cancelled' ? [] : ratings),
   };
 }
+
+const rated = (ratings: readonly Pick<Rating, 'stars' | 'issues'>[]) => {
+  if (ratings.length === 0) return {};
+  const s = summarizeRatings(ratings);
+  return { ratings: s.count, ratingAvg: s.average };
+};
 
 // ---------- the feed ----------
 

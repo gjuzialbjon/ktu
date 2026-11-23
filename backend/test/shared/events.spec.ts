@@ -7,8 +7,8 @@ import {
   orderFeedEvents,
   reservationCode,
   spotsLeft,
-} from '@/data/events';
-import { at, makeEvent } from '@/test-utils/fixtures';
+} from '@ktu/shared';
+import { at, makeEvent } from '@ktu/shared/testing';
 
 describe('orderFeedEvents', () => {
   it('hides drafts and cancelled events', () => {
@@ -61,18 +61,28 @@ describe('reservationCode', () => {
 });
 
 describe('makeDraftEvent', () => {
+  const input = {
+    title: 'Chess night',
+    description: '',
+    venueName: 'Bar',
+    tags: ['chess'],
+    startsAt: at(2, 19),
+    city: 'tirana' as const,
+    neighborhood: 'blloku',
+  };
   it('creates an unpublished draft, ticketed only when priced', () => {
-    const input = {
-      title: 'Chess night',
-      description: '',
-      venueName: 'Bar',
-      tags: ['chess'],
-      startsAt: at(2, 19),
-      city: 'tirana' as const,
-      neighborhood: 'blloku',
-    };
     expect(makeDraftEvent(input, 'd1')).toMatchObject({ status: 'draft', priceType: 'free' });
     expect(makeDraftEvent({ ...input, ticketPriceLek: 500 }, 'd2')).toMatchObject({ priceType: 'ticketed' });
+  });
+  it('turns the host\'s entry choice into join and accept modes', () => {
+    const e = (entry?: 'open' | 'ask' | 'auto') => {
+      const d = makeDraftEvent({ ...input, entry }, 'd3');
+      return [d.joinMode, d.acceptMode];
+    };
+    expect(e()).toEqual([undefined, undefined]);
+    expect(e('open')).toEqual([undefined, undefined]);
+    expect(e('ask')).toEqual(['ask', undefined]);
+    expect(e('auto')).toEqual(['ask', 'interests']);
   });
 });
 

@@ -1,0 +1,27 @@
+{
+  // Type-checking only (npm run typecheck). Builds go through SWC (nest-cli.json), which
+  // compiles src/ file by file, so code shared from ../shared is never pulled into dist/.
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolvePackageJsonExports": true,
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "types": ["node", "vitest/globals"],
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": false,
+    "skipLibCheck": true,
+    // @ktu/shared (../shared) imports its own files by their .ts names; Node runs them by stripping types
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  },
+  "include": ["src", "test", "*.config.ts"]
+}

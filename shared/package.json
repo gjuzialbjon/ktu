@@ -1,0 +1,12 @@
+{
+  "name": "@ktu/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Rules and types shared by the app (tirana-events) and the API (backend). Source only: no dependencies, nothing to install; checked and tested from ../backend.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/testing/fixtures.ts"
+  }
+}

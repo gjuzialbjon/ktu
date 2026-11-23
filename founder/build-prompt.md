@@ -1,3 +1,9 @@
+> **Superseded (2026-11-23).** This was the original brief for the first build. The app has moved
+> on: features and their status are in [../docs/FEATURES.md](../docs/FEATURES.md); the backend is
+> NestJS + PostgreSQL with Clerk sign-in ([../backend/PLAN.md](../backend/PLAN.md)), not Supabase
+> with phone OTP; comments and multiple cities, listed as out of scope below, were built. Kept as a
+> record of what was asked for, not as instructions.
+
 # Build prompt — Tirana Events MVP (web + iOS + Android)
 
 > Copy everything below this line into the coding agent.

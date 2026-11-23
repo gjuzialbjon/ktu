@@ -1,4 +1,4 @@
-import type { Lang } from '@/lib/i18n';
+import type { Lang } from './lang.ts';
 
 /**
  * The cities the app covers. Adding one = adding an entry here (plus events);

@@ -1,4 +1,4 @@
-import type { EventItem, SpokenLang } from './types';
+import type { EventItem, SpokenLang } from './types.ts';
 
 /**
  * Which languages an event works in. Pure helpers shared by the feed, the filter bar,

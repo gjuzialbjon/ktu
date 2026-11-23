@@ -1,0 +1,24 @@
+{
+  // Shipped as TypeScript source: the app's bundler (Metro) and the backend (SWC, Node) compile it.
+  // Checked from ../backend (`pnpm typecheck` runs `tsc -p ../shared`), with these stricter settings.
+  // Node runs these files directly on the server by stripping types, so only syntax that can be
+  // erased is allowed (no enums, namespaces or parameter properties) and relative imports name
+  // the .ts file.
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "types": [],
+    "strict": true,
+    "noUncheckedIndexedAccess": false,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": false,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["src"]
+}

@@ -1,0 +1,5 @@
+# pnpm settings for this project only (not a monorepo: no `packages` list).
+# Install scripts are blocked unless listed here.
+allowBuilds:
+  '@swc/core': true
+  esbuild: true

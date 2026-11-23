@@ -1,4 +1,4 @@
-import type { EventItem, Profile, Rsvp } from './types';
+import type { EventItem, GoingVisibility, Profile, Rsvp } from './types.ts';
 
 /**
  * Who sees what. Pure rules, no React: the store filters the feed with them and the
@@ -34,7 +34,8 @@ export function hiddenTopicOf(e: EventItem, hidden: readonly string[] | undefine
  * Does the event belong in this person's feed?
  * Anything you already asked to join or joined: yes, always.
  * A topic you hid ("never show me chess"): no.
- * Public: yes. Private + ask: when interests overlap or someone you follow is going.
+ * Public: yes. Private + ask: when interests overlap or someone you follow is going (pass only
+ * the people whose going you may see, or the feed gives a hidden plan away).
  * Invite-only: only once you are on it.
  */
 export function visibleInFeed(
@@ -47,6 +48,29 @@ export function visibleInFeed(
   if (visibilityOf(e) === 'public') return true;
   if (joinModeOf(e) === 'invite') return false;
   return sharedInterests(e, profile.interests).length > 0 || e.goingUserIds.some((id) => profile.follows.includes(id));
+}
+
+/** Nobody sees where you go until you choose otherwise. */
+export const DEFAULT_SHOW_GOING: GoingVisibility = 'nobody';
+export const GOING_VISIBILITIES: readonly GoingVisibility[] = ['nobody', 'following', 'everyone'];
+
+/**
+ * May this viewer see that a person is going (their name and face)? Counts are never hidden.
+ * The event's host always sees who is coming to their own event; a person always sees their own
+ * plans (callers skip the check for themselves).
+ */
+export function canSeeGoing(
+  show: GoingVisibility | undefined,
+  viewer: { followedByGoer: boolean; hostsEvent?: boolean },
+): boolean {
+  if (viewer.hostsEvent) return true;
+  const v = show ?? DEFAULT_SHOW_GOING;
+  return v === 'everyone' || (v === 'following' && viewer.followedByGoer);
+}
+
+/** An ask-to-join request that needs no answer: the host chose to let people with a shared interest in. */
+export function autoAccepts(e: EventItem, interests: string[]): boolean {
+  return joinModeOf(e) === 'ask' && e.acceptMode === 'interests' && sharedInterests(e, interests).length > 0;
 }
 
 export type DayPart = 'morning' | 'afternoon' | 'evening' | 'night';

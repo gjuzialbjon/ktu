@@ -1,24 +1,4 @@
-import {
-  EventOutcome,
-  HOST_CAP,
-  HostTier,
-  MIN_FAIR_VIEWS,
-  arrangeRail,
-  arrangeSection,
-  countJoiners,
-  dedupeHostEvents,
-  eventTier,
-  gradeOutcome,
-  heldAsFlood,
-  hostStanding,
-  mustReview,
-  outcomeOf,
-  regularsOf,
-  standingsFor,
-  tierOf,
-} from '@/data/hostStanding';
-import { hostHistory } from '@/data/hostHistory';
-import type { EventItem } from '@/data/types';
+import { type EventOutcome, HOST_CAP, type HostTier, MIN_FAIR_VIEWS, arrangeRail, arrangeSection, countJoiners, dedupeHostEvents, eventTier, gradeOutcome, heldAsFlood, hostStanding, mustReview, outcomeOf, regularsOf, tierOf, type EventItem } from '@ktu/shared';
 
 const H = 3600_000;
 const DAY = 24 * H;
@@ -197,7 +177,7 @@ const ev = (id: string, host: string, hour: number, extra: Partial<EventItem> = 
 
 describe('feed arrangement', () => {
   const tiers: Record<string, HostTier> = { good: 'normal', star: 'trusted', meh: 'limited', bad: 'low', fresh: 'new' };
-  const tier = (e: EventItem) => tiers[e.organizer.id];
+  const tier = (e: EventItem): HostTier => tiers[e.organizer.id] ?? 'normal';
 
   it('keeps time order, with Limited then Low hosts at the end', () => {
     const items = [ev('a', 'bad', 1), ev('b', 'meh', 2), ev('c', 'good', 3), ev('d', 'star', 4)];
@@ -295,14 +275,3 @@ describe('anti-gaming', () => {
   });
 });
 
-describe('demo history', () => {
-  it('puts the demo hosts in every tier', () => {
-    const s = standingsFor(hostHistory(NOW), NOW);
-    expect(s.o1.tier).toBe('trusted');
-    expect(s.o4.tier).toBe('trusted');
-    expect(s.o26.tier).toBe('normal');
-    expect(s.o28.tier).toBe('limited');
-    expect(s.o7.tier).toBe('low');
-    expect(s.o33).toBeUndefined(); // new
-  });
-});

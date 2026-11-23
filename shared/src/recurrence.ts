@@ -1,4 +1,4 @@
-import type { EventItem, Repeat, Series } from './types';
+import type { EventItem, Repeat, Series } from './types.ts';
 
 /**
  * Recurring events. Pure: callers pass `now`.

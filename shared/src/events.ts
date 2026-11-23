@@ -1,6 +1,6 @@
-import type { Comment, EventItem, Repeat, Rsvp } from './types';
-import { startSeries } from './recurrence';
-import type { CityId } from './cities';
+import type { Comment, EventItem, Repeat, Rsvp } from './types.ts';
+import { startSeries } from './recurrence.ts';
+import type { CityId } from './cities.ts';
 
 /**
  * Pure domain rules for events: no React, no storage, no clock reads.
@@ -32,7 +32,16 @@ export type DraftInput = Pick<
   coverImage?: string;
   /** set when it repeats: the title becomes "… #1" and the next edition follows by itself */
   repeat?: Repeat;
+  /** how people get in (see ENTRY_CHOICES); missing = open */
+  entry?: EntryChoice;
 };
+
+/**
+ * How people get in, as the host picks it on the create form: anyone joins / they ask and the host
+ * answers / they ask and a shared interest lets them in at once.
+ */
+export type EntryChoice = 'open' | 'ask' | 'auto';
+export const ENTRY_CHOICES: readonly EntryChoice[] = ['open', 'ask', 'auto'];
 
 /** A user-submitted event. It waits as a draft until a curator publishes it. */
 export function makeDraftEvent(input: DraftInput, id: string): EventItem {
@@ -51,6 +60,8 @@ export function makeDraftEvent(input: DraftInput, id: string): EventItem {
     neighborhood: input.neighborhood,
     startsAt: input.startsAt,
     coverImage: input.coverImage,
+    joinMode: input.entry && input.entry !== 'open' ? 'ask' : undefined,
+    acceptMode: input.entry === 'auto' ? 'interests' : undefined,
     priceType: input.ticketPriceLek ? 'ticketed' : 'free',
     ticketPriceLek: input.ticketPriceLek,
     source: 'organizer',

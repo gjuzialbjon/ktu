@@ -1,5 +1,11 @@
-import type { ImageSourcePropType } from 'react-native';
-import type { AreaId, CityId } from './cities';
+import type { AreaId, CityId } from './cities.ts';
+
+/**
+ * A picture the app can show: a URL or data-URL, or a bundled asset. Bundled assets are a number
+ * on iOS/Android and { uri, width, height } on web. Kept free of React Native types so the
+ * server can use this file too; the app passes it straight to <Image source>.
+ */
+export type ImageRef = number | { uri?: string; width?: number; height?: number };
 
 export type Category =
   | 'community'
@@ -109,7 +115,7 @@ export interface EventItem {
    * A URI/data-URL string from the picker, or a bundled asset from require(), which is a number on
    * iOS/Android but an object ({ uri, width, height }) on web. Missing or broken: EventPhoto shows the category.
    */
-  coverImage?: string | ImageSourcePropType;
+  coverImage?: string | ImageRef;
   /** Attribution shown on the event page; required by most Creative Commons licenses. */
   photoCredit?: string;
   priceType: PriceType;
@@ -121,6 +127,8 @@ export interface EventItem {
   visibility?: Visibility;
   /** default open */
   joinMode?: JoinMode;
+  /** ask-to-join only: who lets people in; default 'host' (see AcceptMode) */
+  acceptMode?: AcceptMode;
   /** PublicUser id of the person who takes care of the small things on the day */
   facilitatorId?: string;
   /** a partner offer every participant gets (see data/partners) */
@@ -150,6 +158,12 @@ export interface Rsvp {
   createdAt: string; // ISO
 }
 
+/**
+ * Ask-to-join: 'host' = the host answers every request; 'interests' = people who share at least one
+ * of the event's tags get in at once, the rest wait for the host. The host picks per event.
+ */
+export type AcceptMode = 'host' | 'interests';
+
 export interface PublicUser {
   id: string;
   name: string;
@@ -158,7 +172,18 @@ export interface PublicUser {
   interests?: string[];
   /** has facilitated events; shown as a badge */
   facilitator?: boolean;
+  /** who may see the events this person is going to; missing = 'nobody' */
+  showGoing?: GoingVisibility;
+  /** demo only: whether this person follows the viewer (the server works this out per viewer) */
+  followsYou?: boolean;
 }
+
+/**
+ * Who may see the events a person is going to (their name and face on the event). Each person
+ * chooses in their profile; everyone starts at 'nobody'. Counts ("12 going") are always shown.
+ * 'following' = the people this person follows.
+ */
+export type GoingVisibility = 'nobody' | 'following' | 'everyone';
 
 export interface Profile {
   name: string;
@@ -170,4 +195,6 @@ export interface Profile {
   interests: string[];
   /** tags the user never wants to see: events carrying one stay out of the feed (never in interests too) */
   hidden: string[];
+  /** who may see the events this user is going to; starts at 'nobody' until they choose */
+  showGoing: GoingVisibility;
 }
