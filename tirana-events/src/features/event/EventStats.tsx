@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import { type EventItem, LANG_CODE, spokenLangs } from '@ktu/shared';
 import { useI18n } from '@/lib/i18n';
 import { makeStyles, radius, space } from '@/lib/theme';
@@ -108,7 +109,7 @@ const useStyles = makeStyles((t) =>
     },
     grid: { flexDirection: 'row', flexWrap: 'wrap' },
     cell: { width: '50%', paddingVertical: space.md, paddingHorizontal: space.lg, gap: 2 },
-    value: { color: t.c.text, fontFamily: t.font, fontSize: 24, lineHeight: 30, fontVariant: ['tabular-nums'] },
+    value: { color: t.c.text, fontWeight: '800', fontSize: 24, lineHeight: 30 },
     label: { color: t.c.textDim, fontSize: 13, fontWeight: '600' },
     weather: {
       flexDirection: 'row',

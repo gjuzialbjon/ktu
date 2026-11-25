@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Stack } from 'expo-router';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '@/components/Text';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
 import { THEMES, THEME_ORDER, ThemeId, makeStyles, radius, useTheme } from '@/lib/theme';
@@ -33,8 +34,7 @@ export default function Profile() {
   const themeDesc = (id: ThemeId) => t[`theme_desc_${id}` as const];
 
   return (
-    <View style={s.safe}>
-      <Stack.Screen options={{ title: t.profile }} />
+    <SafeAreaView style={s.safe} edges={['top']}>
       <ScrollView contentContainerStyle={s.content}>
         <Display size={30}>{profile.name.trim() || t.profile}</Display>
 
@@ -44,7 +44,7 @@ export default function Profile() {
           value={profile.name}
           onChangeText={setName}
           accessibilityLabel={t.your_name}
-          placeholder="…"
+          placeholder={t.your_name_ph}
           placeholderTextColor={theme.c.textDim}
         />
 
@@ -169,7 +169,7 @@ export default function Profile() {
         {/* development builds only: never reaches the store */}
         {__DEV__ && <DevTools />}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -188,8 +188,8 @@ const useStyles = makeStyles((t) =>
       fontSize: 16,
       minHeight: 48,
     },
-    themes: { flexDirection: 'row', gap: 10 },
-    themeCard: { flex: 1, borderRadius: radius.md, padding: 12, gap: 4, minHeight: 120 },
+    themes: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+    themeCard: { flexBasis: '45%', flexGrow: 1, borderRadius: radius.md, padding: 12, gap: 4, minHeight: 120 },
     swatches: { flexDirection: 'row', alignItems: 'flex-end', gap: 3, height: 32, marginBottom: 6 },
     swatch: { width: 12, borderWidth: 1 },
     row: { flexDirection: 'row' },

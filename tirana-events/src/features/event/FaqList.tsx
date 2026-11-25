@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import type { FaqItem } from '@ktu/shared';
 import { makeStyles, radius } from '@/lib/theme';
 

@@ -1,23 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  AccessibilityInfo,
-  Animated,
-  Easing,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import { AccessibilityInfo, Animated, Easing, Modal, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Text } from '@/components/Text';
 import type { EventItem } from '@ktu/shared';
 import { useI18n } from '@/lib/i18n';
 import { useEventFacts } from '@/features/event/useEventFacts';
 import { hapticTap } from '@/lib/haptics';
 import { makeStyles, radius, useTheme } from '@/lib/theme';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { Display } from '@/components/ui';
+import { CardTitle } from '@/components/ui';
 import { EventPhoto } from '@/components/EventPhoto';
 
 /** Where the die starts: the dice emoji on the "Hidh zarin" button, in window coordinates. */
@@ -219,9 +209,9 @@ export function DiceRoll({
             <EventPhoto event={event} style={s.photo} emojiSize={44} />
             <View style={s.body}>
               <Text style={s.when}>{facts.when}</Text>
-              <Display size={22} numberOfLines={2}>
+              <CardTitle size={21} numberOfLines={3}>
                 {event.title}
-              </Display>
+              </CardTitle>
               <Text style={s.venue} numberOfLines={1}>
                 {facts.where}
               </Text>

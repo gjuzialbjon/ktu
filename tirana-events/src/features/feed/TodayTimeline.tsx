@@ -1,10 +1,11 @@
 import React from 'react';
-import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
+import { LayoutChangeEvent, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import { useRouter } from 'expo-router';
 import type { EventItem } from '@ktu/shared';
 import { useStore } from '@/data/store';
 import { useI18n } from '@/lib/i18n';
-import { CATEGORY_EMOJI, makeStyles, radius, space, useTheme } from '@/lib/theme';
+import { makeStyles, radius, space, useTheme } from '@/lib/theme';
 import { firstName, joinNames } from '@/lib/format';
 import { Emoji, Sticker } from '@/components/ui';
 import { track } from '@/lib/analytics';
@@ -59,31 +60,29 @@ function TimelineRow({ event, onLayout }: { event: EventItem; onLayout: (e: Layo
         {facts.hidden ? (
           <Emoji size={16}>🔒</Emoji>
         ) : (
-          <Text style={[s.time, { fontFamily: theme.font }]}>{time(event.startsAt)}</Text>
+          <Text style={s.time}>{time(event.startsAt)}</Text>
         )}
         <View style={[s.dot, { backgroundColor: theme.cat[event.category] }]} />
       </View>
       <Pressable
         accessibilityRole="link"
-        accessibilityLabel={`${event.title}, ${facts.when}, ${facts.where}`}
+        accessibilityLabel={`${event.title}, ${facts.when}, ${facts.where}, ${t.a11y_hosted_by(event.organizer.name)}`}
         onPress={() => {
           track('event_viewed', { eventId: event.id, source: 'today_timeline', tags: event.tags });
           router.push(`/event/${event.id}`);
         }}
         style={({ pressed }) => [s.card, pressed && { transform: [{ scale: 0.985 }] }]}
       >
-        <View style={[s.bubble, { backgroundColor: theme.cat[event.category] }]}>
-          <Emoji size={16}>{CATEGORY_EMOJI[event.category]}</Emoji>
-        </View>
         <View style={s.body}>
-          <Text style={s.title} numberOfLines={1}>
+          {/* the event's name is never cut: long titles take a second line */}
+          <Text style={s.title} numberOfLines={2}>
             {event.title}
           </Text>
-          <Text style={s.where} numberOfLines={1}>
+          <Text style={s.where} numberOfLines={2}>
             {facts.where}
           </Text>
           {friends.length > 0 && (
-            <Text style={[s.friends, { color: theme.c.social }]} numberOfLines={1}>
+            <Text style={[s.friends, { color: theme.c.social }]} numberOfLines={2}>
               {t.friends_going_short(joinNames(friends.map((f) => firstName(f.name)), t.and_word), friends.length)}
             </Text>
           )}
@@ -115,7 +114,7 @@ const useStyles = makeStyles((t) =>
     },
     row: { flexDirection: 'row', alignItems: 'center' },
     timeCol: { width: TIME_W, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: 0 },
-    time: { color: t.c.text, fontSize: 15, fontVariant: ['tabular-nums'] },
+    time: { color: t.c.text, fontSize: 15, fontWeight: '800' },
     dot: { width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: t.c.surface, marginRight: -1 },
     card: {
       flex: 1,
@@ -131,7 +130,6 @@ const useStyles = makeStyles((t) =>
       borderWidth: t.outline,
       borderColor: t.c.border,
     },
-    bubble: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
     body: { flex: 1, gap: 2 },
     title: { color: t.c.text, fontSize: 15, fontWeight: '700', lineHeight: 19 },
     where: { color: t.c.textDim, fontSize: 13 },

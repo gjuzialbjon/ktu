@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import Heart from 'lucide-react-native/icons/heart';
 import Bookmark from 'lucide-react-native/icons/bookmark';
 import type { EventItem } from '@ktu/shared';
@@ -67,7 +68,7 @@ export function LikeSave({ event, size = 20 }: { event: EventItem; size?: number
 const useStyles = makeStyles((t) =>
   StyleSheet.create({
     row: { flexDirection: 'row', alignItems: 'center' },
-    btn: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, minWidth: 40, justifyContent: 'center', paddingHorizontal: 4 },
+    btn: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, minWidth: 44, justifyContent: 'center', paddingHorizontal: 4 },
     count: { color: t.c.textDim, fontSize: 13, fontWeight: '600', fontVariant: ['tabular-nums'] },
   }),
 );

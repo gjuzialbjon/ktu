@@ -9,6 +9,8 @@ import MapIcon from 'lucide-react-native/icons/map';
 import Plus from 'lucide-react-native/icons/plus';
 import Gift from 'lucide-react-native/icons/gift';
 import Ticket from 'lucide-react-native/icons/ticket';
+import UserIcon from 'lucide-react-native/icons/user';
+import { PARTNERS_LIVE } from '@/data/partners';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
 import { cityName } from '@ktu/shared';
@@ -89,11 +91,13 @@ export default function TabsLayout() {
         name="new"
         options={{ title: t.create_event, tabBarButton: () => <CreateTabButton /> }}
       />
-      <Tabs.Screen name="offers" options={{ title: t.tab_offers, tabBarIcon: tabIcon(Gift) }} />
+      {/* parked (data/partners.ts); if it comes back, decide which tab gives up its slot so "+" stays centred */}
+      <Tabs.Screen name="offers" options={{ title: t.tab_offers, tabBarIcon: tabIcon(Gift), href: PARTNERS_LIVE ? undefined : null }} />
       <Tabs.Screen
         name="my-events"
         options={{ title: t.my_events, tabBarLabel: t.tab_mine, tabBarIcon: tabIcon(Ticket) }}
       />
+      <Tabs.Screen name="profile" options={{ title: t.profile, tabBarIcon: tabIcon(UserIcon) }} />
     </Tabs>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import Check from 'lucide-react-native/icons/check';
 import { LIVE_CITIES, cityName } from '@ktu/shared';
 import { countThisWeekByCity } from './countByCity';

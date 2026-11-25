@@ -38,6 +38,8 @@ export interface Organizer {
   name: string;
   instagram?: string;
   verified: boolean;
+  /** the photo or logo the host chose for their public host profile; cards show initials without one */
+  avatarUrl?: string;
 }
 
 export interface ProgramStop {

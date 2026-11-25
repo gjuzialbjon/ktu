@@ -1,14 +1,15 @@
 import React from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
 import { EventItem, LANG_CODE, foreignLangsOf, spokenLangs } from '@ktu/shared';
-import { CATEGORY_EMOJI, makeStyles, radius, useTheme } from '@/lib/theme';
+import { makeStyles, radius, useTheme } from '@/lib/theme';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
 import { firstName, joinNames } from '@/lib/format';
 import { useEventFacts } from '@/features/event/useEventFacts';
-import { Emoji } from '@/components/ui';
+import { CardTitle, HostBadge } from '@/components/ui';
 import { track } from '@/lib/analytics';
 import { NO_BROWSER_OUTLINE, useHoverLift } from '@/hooks/useHoverLift';
 import { EventPhoto } from '@/components/EventPhoto';
@@ -22,8 +23,8 @@ import { EventPhoto } from '@/components/EventPhoto';
 export type StorySize = 'wide' | 'md' | 'sm';
 const SIZES: Record<StorySize, { w: number; h: number; title: number; when: number; lines: number }> = {
   wide: { w: 320, h: 184, title: 21, when: 13, lines: 2 },
-  md: { w: 200, h: 280, title: 19, when: 13, lines: 3 },
-  sm: { w: 150, h: 196, title: 16, when: 12, lines: 3 },
+  md: { w: 200, h: 280, title: 18, when: 13, lines: 4 },
+  sm: { w: 150, h: 196, title: 15, when: 12, lines: 4 },
 };
 
 /** Photo tile for rails — the story shape people already scroll. */
@@ -58,7 +59,7 @@ export function StoryCard({
     >
       <Pressable
         accessibilityRole="link"
-        accessibilityLabel={`${event.title}, ${when}${langs.length ? `, ${t.a11y_langs(langNames)}` : ''}`}
+        accessibilityLabel={`${event.title}, ${when}, ${t.a11y_hosted_by(event.organizer.name)}${langs.length ? `, ${t.a11y_langs(langNames)}` : ''}`}
         {...hover.handlers}
         style={s.pressable}
       >
@@ -81,8 +82,8 @@ export function StoryCard({
                 colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.88)']}
                 style={StyleSheet.absoluteFill}
               />
-              <View style={[s.bubble, size === 'sm' && s.bubbleSm, { backgroundColor: theme.cat[event.category] }]}>
-                <Emoji size={size === 'sm' ? 15 : 18}>{CATEGORY_EMOJI[event.category]}</Emoji>
+              <View style={[s.host, size === 'sm' && s.hostSm]}>
+                <HostBadge host={event.organizer} ring={theme.cat[event.category]} size={size === 'sm' ? 32 : 38} />
               </View>
               {askToJoin ? (
                 <View style={[s.badge, { backgroundColor: theme.sticker[1] }]}>
@@ -100,19 +101,18 @@ export function StoryCard({
                 </View>
               )}
               <View style={s.bottom}>
-                <Text style={[s.when, { fontSize: dims.when }]} numberOfLines={1}>
-                  {whenShort}
-                </Text>
-                <Text
-                  style={[s.title, { fontFamily: theme.font, fontSize: dims.title, lineHeight: Math.round(dims.title * 1.2) }]}
-                  numberOfLines={dims.lines}
-                  maxFontSizeMultiplier={1.3}
-                >
+                <View style={s.whenRow}>
+                  <View style={[s.dot, { backgroundColor: theme.cat[event.category] }]} />
+                  <Text style={[s.when, { fontSize: dims.when }]} numberOfLines={1}>
+                    {whenShort}
+                  </Text>
+                </View>
+                <CardTitle size={dims.title} color="#FFFFFF" numberOfLines={dims.lines}>
                   {event.title}
-                </Text>
+                </CardTitle>
                 {friends.length > 0 && (
                   <View style={[s.friends, { backgroundColor: theme.c.social }]}>
-                    <Text style={[s.friendsText, { color: theme.c.onSocial }]} numberOfLines={1}>
+                    <Text style={[s.friendsText, { color: theme.c.onSocial }]} numberOfLines={2}>
                       {t.friends_going_short(
                         joinNames(
                           friends.map((f) => firstName(f.name)),
@@ -144,21 +144,15 @@ const useStyles = makeStyles((t) =>
       borderColor: t.c.border,
     },
     clip: { flex: 1, borderRadius: radius.lg - t.outline, overflow: 'hidden' },
-    bubble: {
-      position: 'absolute',
-      top: 10,
-      left: 10,
-      width: 38,
-      height: 38,
-      borderRadius: 19,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    bubbleSm: { width: 32, height: 32, borderRadius: 16, top: 8, left: 8 },
+    host: { position: 'absolute', top: 10, left: 10 },
+    hostSm: { top: 8, left: 8 },
     badge: { position: 'absolute', top: 15, right: 10, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
     badgeText: { fontSize: 12, fontWeight: '700' },
     bottom: { position: 'absolute', left: 12, right: 12, bottom: 12, gap: 5 },
-    when: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
+    // the category's colour, now that the host has the top-left corner
+    whenRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    dot: { width: 8, height: 8, borderRadius: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.7)' },
+    when: { color: '#FFFFFF', fontSize: 13, fontWeight: '700', flexShrink: 1 },
     // which non-Albanian languages work here: a frosted tag so it reads on any photo
     langs: {
       position: 'absolute',
@@ -171,8 +165,8 @@ const useStyles = makeStyles((t) =>
       borderColor: 'rgba(255,255,255,0.6)',
     },
     langsText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
-    title: { color: '#FFFFFF', fontSize: 19, lineHeight: 23 },
-    friends: { alignSelf: 'flex-start', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 4, maxWidth: '100%' },
+    // names wrap to a second line instead of being cut; a softer corner keeps two lines tidy
+    friends: { alignSelf: 'flex-start', borderRadius: 12, paddingHorizontal: 9, paddingVertical: 4, maxWidth: '100%' },
     friendsText: { fontSize: 12, fontWeight: '700' },
   }),
 );

@@ -1,15 +1,16 @@
 import React from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
 import { EventItem, LANG_CODE, foreignLangsOf, spokenLangs } from '@ktu/shared';
-import { CATEGORY_EMOJI, makeStyles, radius, useTheme } from '@/lib/theme';
+import { makeStyles, radius, useTheme } from '@/lib/theme';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
 import { firstName, joinNames } from '@/lib/format';
 import { useEventFacts } from '@/features/event/useEventFacts';
 import { LikeSave } from '@/features/event/LikeSave';
-import { AvatarStack, Chip, Display, Emoji, Sticker } from '@/components/ui';
+import { AvatarStack, CardTitle, Chip, HostBadge, Sticker } from '@/components/ui';
 import { track } from '@/lib/analytics';
 import { NO_BROWSER_OUTLINE, useHoverLift } from '@/hooks/useHoverLift';
 import { EventPhoto } from '@/components/EventPhoto';
@@ -47,7 +48,7 @@ export function EventCard({ event, popular }: { event: EventItem; popular?: bool
     >
       <Pressable
         accessibilityRole="link"
-        accessibilityLabel={`${event.title}, ${when}, ${where}`}
+        accessibilityLabel={`${event.title}, ${when}, ${where}, ${t.a11y_hosted_by(event.organizer.name)}`}
         {...hover.handlers}
         style={s.link}
       >
@@ -70,8 +71,8 @@ export function EventCard({ event, popular }: { event: EventItem; popular?: bool
                 <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.72)']} style={s.fade} />
 
                 <View style={s.topRow}>
-                  <View style={[s.catBubble, { backgroundColor: theme.cat[event.category] }]}>
-                    <Emoji size={17}>{CATEGORY_EMOJI[event.category]}</Emoji>
+                  <View style={s.host}>
+                    <HostBadge host={event.organizer} ring={theme.cat[event.category]} />
                   </View>
                   {event.isSponsored && <Chip label={t.sponsored} tone="sponsored" />}
                   {popular && <Chip label={t.popular} tone="sponsored" />}
@@ -88,7 +89,7 @@ export function EventCard({ event, popular }: { event: EventItem; popular?: bool
                   <View style={s.friendsOnPhoto}>
                     <AvatarStack users={friends} follows={profile.follows} size={26} />
                     <View style={[s.friendsPill, { backgroundColor: theme.c.social }]}>
-                      <Text style={[s.friendsText, { color: theme.c.onSocial }]} numberOfLines={1}>
+                      <Text style={[s.friendsText, { color: theme.c.onSocial }]} numberOfLines={2}>
                         {t.friends_going_short(
                           joinNames(
                             friends.map((f) => firstName(f.name)),
@@ -111,9 +112,9 @@ export function EventCard({ event, popular }: { event: EventItem; popular?: bool
 
               <View style={s.body}>
                 <Text style={s.when}>{when}</Text>
-                <Display size={20} numberOfLines={2}>
+                <CardTitle size={19} numberOfLines={3}>
                   {event.title}
-                </Display>
+                </CardTitle>
                 <View style={s.metaRow}>
                   <View style={[s.dot, { backgroundColor: theme.cat[event.category] }]} />
                   <Text style={s.meta} numberOfLines={1}>
@@ -168,16 +169,7 @@ const useStyles = makeStyles((t) =>
     img: { width: '100%', height: 180, backgroundColor: t.c.surfaceAlt },
     fade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 90 },
     topRow: { position: 'absolute', top: 10, left: 10, right: 2, flexDirection: 'row', alignItems: 'center' },
-    catBubble: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginRight: 8,
-      borderWidth: t.outline,
-      borderColor: 'transparent',
-    },
+    host: { marginRight: 8 },
     friendsOnPhoto: {
       position: 'absolute',
       left: 12,
@@ -187,7 +179,7 @@ const useStyles = makeStyles((t) =>
       alignItems: 'center',
       gap: 8,
     },
-    friendsPill: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, flexShrink: 1 },
+    friendsPill: { borderRadius: 14, paddingHorizontal: 10, paddingVertical: 5, flexShrink: 1 },
     friendsText: { fontSize: 13, fontWeight: '700' },
     body: { flex: 1, padding: 14, gap: 6 },
     // fixed height: cards with and without a turnout row stay the same size

@@ -9,6 +9,13 @@ import type { CityId } from '@ktu/shared';
  *
  * Demo data: these businesses are made up. Real partners replace this list.
  */
+/**
+ * Partners and the stamp card are parked (PRODUCT.md, docs/FEATURES.md section 7) until a real
+ * partner signs and the discount is funded. Off: no Ofertat tab, no offer box on events.
+ * The data, the screen and the stamps stay in the code; flip this to bring them back.
+ */
+export const PARTNERS_LIVE = false;
+
 export type PartnerKind = 'books' | 'food' | 'coffee' | 'sport' | 'bar' | 'craft';
 
 export interface Offer {

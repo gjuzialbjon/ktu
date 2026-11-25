@@ -9,7 +9,7 @@ yet decided. "Built" means it works locally with demo data; anything that needs 
 
 - **Look:** morning/sunset/lake light themes, Bricolage + Caveat, handwritten stickers, the
   home sky that warms as today's events get later.
-- **Navigation:** create button in the centre of the tab bar; profile top right; weather top left.
+- **Navigation:** tab bar Tirana · Harta · + · Planet · Profili, create in the centre; weather top left.
 - **Weather:** temperature chip, tap for today (hours, rain chance, sunrise/sunset, one tip).
   Open-Meteo, free, sends only the city's centre coordinates.
 - **Feed:** the filter bar sits right under the greeting and sticks while you scroll: three

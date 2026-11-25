@@ -1,6 +1,7 @@
 import React from 'react';
 import { Rail } from '@/components/Rail';
-import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import CalendarDays from 'lucide-react-native/icons/calendar-days';
 import MapPin from 'lucide-react-native/icons/map-pin';
 import SlidersHorizontal from 'lucide-react-native/icons/sliders-horizontal';
@@ -269,7 +270,8 @@ function BarButton({
       <View style={{ flexShrink: 0 }}>
         <Icon size={17} color={fg} strokeWidth={2.2} />
       </View>
-      <Text style={[s.btnText, { color: fg }]} numberOfLines={1}>
+      {/* sized for "Where" at 320 px; the cap keeps large system text from cutting it */}
+      <Text style={[s.btnText, { color: fg }]} numberOfLines={1} maxFontSizeMultiplier={1}>
         {label}
       </Text>
       {badge > 0 && (
@@ -343,9 +345,10 @@ const useStyles = makeStyles((t) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 7,
-      minHeight: 42,
-      paddingHorizontal: space.md,
+      gap: 6,
+      minHeight: 44,
+      // tight sides: at 320 px each button is ~91 wide and "Where" needs 47 of it
+      paddingHorizontal: space.sm,
       borderRadius: 14,
       borderWidth: t.outline,
       borderColor: t.c.border,

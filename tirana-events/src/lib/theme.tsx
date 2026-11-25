@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import type { Category } from '@ktu/shared';
 import { KEYS, migrateStorage, readString, writeString } from '@/data/storage';
 
-export type ThemeId = 'agimi' | 'muzgu' | 'liqeni';
+export type ThemeId = 'agimi' | 'muzgu' | 'liqeni' | 'nata';
 
 export interface Palette {
   bg: string;
@@ -26,7 +26,7 @@ export interface Palette {
 
 export interface Theme {
   id: ThemeId;
-  /** Every theme is light on purpose: "dark" stays false, the evening is a warm sky, not black. */
+  /** Nata is the one dark theme; the other three are light, their evening a warm sky. */
   dark: boolean;
   c: Palette;
   cat: Record<Category, string>;
@@ -69,10 +69,22 @@ export function withAlpha(hex: string, alpha: number): string {
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
 }
 
-/** Two families only: Bricolage Grotesque for headings, Caveat for the handwritten accents. */
+/**
+ * Young Serif for headings (one weight; its figures are old-style, so times, prices and
+ * stats use the body face); Onest for everything else, set by components/Text; Caveat for
+ * the few handwritten notes.
+ */
 export const FONTS = {
-  heading: 'BricolageGrotesque_800ExtraBold',
+  heading: 'YoungSerif_400Regular',
   hand: 'Caveat_700Bold',
+} as const;
+
+/** Onest by weight; components/Text picks the file from a style's fontWeight. */
+export const BODY_FONT = {
+  regular: 'Onest_400Regular',
+  medium: 'Onest_500Medium',
+  semibold: 'Onest_600SemiBold',
+  bold: 'Onest_700Bold',
 } as const;
 
 export const THEMES: Record<ThemeId, Theme> = {
@@ -195,11 +207,53 @@ export const THEMES: Record<ThemeId, Theme> = {
     map: { ground: '#F4FAF6', park: '#CBE6D3', water: '#A9D3EC', road: '#C3D9CB', label: '#46604F' },
     band: { blocks: ['#BFD9C9', '#A9CDB8', '#CFE3D7', '#B5D3E3'], window: '#FFFFFF', windowOff: '#E3F0E8', sun: '#FFC94D', water: '#7FB6D9' },
   },
+
+  // Night out: dark violet city, lit windows. Yellow drives actions, pink is only for people.
+  nata: {
+    id: 'nata',
+    dark: true,
+    font: FONTS.heading,
+    hand: FONTS.hand,
+    outline: 1,
+    c: {
+      bg: '#140F24',
+      surface: '#1D1733',
+      surfaceAlt: '#272043',
+      border: '#382E5A',
+      text: '#FBF8FF',
+      textDim: '#B8AED6',
+      social: '#FF5C97',
+      onSocial: '#140F24',
+      primary: '#FFD25A',
+      onPrimary: '#140F24',
+      free: '#3DDC97',
+      onFree: '#0B2A1D',
+      sponsored: '#3B3150',
+      onSponsored: '#FFD25A',
+      danger: '#FF6B6B',
+    },
+    cat: {
+      community: '#7FB3FF',
+      music: '#B98BFF',
+      nightlife: '#6FD3FF',
+      culture: '#FFB86B',
+      sports: '#A6E05E',
+      business: '#9FB4CC',
+      food: '#E9C46A',
+      outdoors: '#5EE0B0',
+    },
+    // later in the evening the violet deepens towards plum
+    sky: { day: ['#140F24', '#17112A'], evening: ['#1D1232', '#26133A'] },
+    // stickers stay light paper with dark ink, like the lit windows
+    sticker: ['#FFD25A', '#FF9EC0', '#8FEBC4', '#B9C8FF'],
+    map: { ground: '#1D1733', park: '#1E3A33', water: '#173450', road: '#382E5A', label: '#B8AED6' },
+    band: { blocks: ['#231B3D', '#2A2149', '#1F1836', '#30265A'], window: '#FFD25A', windowOff: '#2F2650', sun: '#FFF3C4' },
+  },
 };
 
-/** Agimi (early morning) leads; Muzgu and Liqeni are alternatives. Older saved ids fall back here. */
+/** Agimi (early morning) leads; Muzgu, Liqeni and Nata are alternatives. Older saved ids fall back here. */
 export const DEFAULT_THEME: ThemeId = 'agimi';
-export const THEME_ORDER: ThemeId[] = ['agimi', 'muzgu', 'liqeni'];
+export const THEME_ORDER: ThemeId[] = ['agimi', 'muzgu', 'liqeni', 'nata'];
 
 interface ThemeCtx extends Theme {
   setThemeId: (id: ThemeId) => void;
@@ -210,7 +264,7 @@ const Ctx = createContext<ThemeCtx | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [id, setId] = useState<ThemeId>(DEFAULT_THEME);
-  // Hold the first paint until the saved theme is known, so a Muzgu or Liqeni
+  // Hold the first paint until the saved theme is known, so a Muzgu, Liqeni or Nata
   // user never sees a flash of the default palette.
   const [ready, setReady] = useState(false);
 

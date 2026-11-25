@@ -1,7 +1,7 @@
 import React from 'react';
 import { Circle, Path, Rect, Text as SvgText } from 'react-native-svg';
 import type { City } from '@ktu/shared';
-import type { Theme } from '@/lib/theme';
+import { BODY_FONT, type Theme } from '@/lib/theme';
 import { MAP_H as H, MAP_W as W } from './project';
 
 /**
@@ -26,7 +26,7 @@ export function MapBackdrop({
     <>
       <Rect x={0} y={0} width={W} height={H} fill={m.ground} />
       {city.id === 'tirana' ? <Tirana theme={theme} roadW={roadW} /> : <Generic city={city} theme={theme} roadW={roadW} />}
-      <SvgText x={W - 14} y={24} fontSize={12} fill={m.label} textAnchor="end" fontWeight="bold">
+      <SvgText x={W - 14} y={24} fontSize={12} fill={m.label} textAnchor="end" fontFamily={BODY_FONT.semibold}>
         {cityLabel}
       </SvgText>
       {waterLabel && city.water && (
@@ -66,13 +66,13 @@ function Tirana({ theme, roadW }: { theme: Theme; roadW: number }) {
         opacity={0.7}
       />
       <Circle cx={196} cy={150} r={13} fill={m.ground} stroke={m.road} strokeWidth={2.5} />
-      <SvgText x={196} y={131} fontSize={9} fill={m.label} textAnchor="middle" fontWeight="bold">
+      <SvgText x={196} y={131} fontSize={9} fill={m.label} textAnchor="middle" fontFamily={BODY_FONT.semibold}>
         Skënderbej
       </SvgText>
-      <SvgText x={212} y={300} fontSize={9} fill={m.label} textAnchor="middle" fontWeight="bold">
+      <SvgText x={212} y={300} fontSize={9} fill={m.label} textAnchor="middle" fontFamily={BODY_FONT.semibold}>
         Parku i Madh
       </SvgText>
-      <SvgText x={322} y={300} fontSize={9} fill={m.label} textAnchor="middle" fontWeight="bold">
+      <SvgText x={322} y={300} fontSize={9} fill={m.label} textAnchor="middle" fontFamily={BODY_FONT.semibold}>
         Dajti →
       </SvgText>
     </>

@@ -12,7 +12,7 @@ const CARD_GAP = 12; // StoryCard's own right margin
 /** it moves on by itself every few seconds, until you touch it */
 const AUTO_MS = 4000;
 const DOT = 8;
-const DOT_SLOT = 18;
+const DOT_SLOT = 24;
 /** a column at least this wide shows the picks side by side instead of one at a time */
 const GRID_2 = 600;
 const GRID_3 = 900;

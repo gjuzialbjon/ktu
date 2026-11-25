@@ -1,6 +1,7 @@
 import React from 'react';
 import { Rail } from '@/components/Rail';
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Text } from '@/components/Text';
 import type { EventItem } from '@ktu/shared';
 import { makeStyles, space } from '@/lib/theme';
 import { useI18n } from '@/lib/i18n';
@@ -79,7 +80,7 @@ const useStyles = makeStyles((t) =>
   StyleSheet.create({
     wrap: { gap: 2 },
     head: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-    seeAll: { marginLeft: 'auto', minHeight: 32, justifyContent: 'center', paddingLeft: space.sm },
+    seeAll: { marginLeft: 'auto', minHeight: 44, justifyContent: 'center', paddingLeft: space.sm },
     seeAllText: { color: t.c.social, fontSize: 14, fontWeight: '700', fontVariant: ['tabular-nums'] },
     pill: {
       minWidth: 24,

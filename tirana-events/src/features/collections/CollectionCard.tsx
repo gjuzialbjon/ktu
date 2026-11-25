@@ -1,12 +1,12 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import type { EventItem } from '@ktu/shared';
 import type { Collection } from '@/data/collections';
 import { useI18n } from '@/lib/i18n';
 import { makeStyles, radius, useTheme } from '@/lib/theme';
-import { Emoji, Sticker } from '@/components/ui';
+import { CardTitle, Emoji, Sticker } from '@/components/ui';
 import { EventPhoto } from '@/components/EventPhoto';
 import { track } from '@/lib/analytics';
 
@@ -38,9 +38,9 @@ export function CollectionCard({ collection, items, cover }: { collection: Colle
         <Sticker tone={0} tilt={4} size={18} style={s.count}>
           {t.collection_count(items.length)}
         </Sticker>
-        <Text style={[s.title, { fontFamily: theme.font }]} numberOfLines={2} maxFontSizeMultiplier={1.3}>
+        <CardTitle size={19} color="#FFFFFF" numberOfLines={2} style={s.title}>
           {title}
-        </Text>
+        </CardTitle>
       </View>
     </Pressable>
   );
@@ -60,6 +60,6 @@ const useStyles = makeStyles((t) =>
     clip: { flex: 1, borderRadius: radius.lg - t.outline, overflow: 'hidden' },
     emoji: { position: 'absolute', top: 10, left: 10, width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
     count: { position: 'absolute', top: 12, right: 10 },
-    title: { position: 'absolute', left: 14, right: 14, bottom: 12, color: '#FFFFFF', fontSize: 20, lineHeight: 24 },
+    title: { position: 'absolute', left: 14, right: 14, bottom: 12 },
   }),
 );

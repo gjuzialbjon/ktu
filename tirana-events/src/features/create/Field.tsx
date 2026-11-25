@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, TextInput } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Text, TextInput } from '@/components/Text';
 import { makeStyles, radius, useTheme } from '@/lib/theme';
 
 /** Labelled text input with a required mark and an inline error that never shifts the text. */

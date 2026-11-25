@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import type { EventItem } from '@ktu/shared';
 import { useI18n } from '@/lib/i18n';
 import { makeStyles, space, useTheme } from '@/lib/theme';
@@ -60,7 +61,7 @@ const useStyles = makeStyles((t) =>
     // centred under the marks: time column + gap + half a mark
     line: { position: 'absolute', left: TIME_W + space.md + MARK / 2 - 1.5, top: MARK / 2, bottom: MARK / 2, width: 3, borderRadius: 2 },
     row: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: MARK },
-    time: { width: TIME_W, color: t.c.text, fontSize: 15, fontWeight: '800', fontVariant: ['tabular-nums'] },
+    time: { width: TIME_W, color: t.c.text, fontSize: 15, fontWeight: '800' },
     mark: {
       width: MARK,
       height: MARK,

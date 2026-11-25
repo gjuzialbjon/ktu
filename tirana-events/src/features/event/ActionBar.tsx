@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Share2 from 'lucide-react-native/icons/share-2';
 import { type EventItem, type Rsvp, isIn, joinModeOf } from '@ktu/shared';

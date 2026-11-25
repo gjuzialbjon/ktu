@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import type { ErrorBoundaryProps } from 'expo-router';
 import { DEFAULT_THEME, THEMES } from '@/lib/theme';
 import { createLogger } from '@/lib/log';

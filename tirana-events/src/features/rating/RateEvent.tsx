@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '@/components/Text';
 import { RATING_ISSUES, NOTE_MAX, type EventItem, type RatingIssue } from '@ktu/shared';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';

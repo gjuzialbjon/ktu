@@ -42,7 +42,7 @@ beyond tags, organizer analytics.
 ```
 src/
   app/          routes only (Expo Router). Thin screens that compose features.
-                (tabs)/ feed · map · [+ create] · perks · plans; profile (top right), event/[id], create (modal)
+                (tabs)/ feed · map · [+ create] · plans · profile (perks hidden), event/[id], create (modal)
   features/     one folder per area; pure logic sits next to the UI that uses it
     feed/       buildFeed.ts (pure: sections, filters, popular, category rails), useFeedFilters, FilterBar,
                 TodayTimeline, EventRail, sky.ts + SkyBackdrop (the background warms as today's events get later)
@@ -74,8 +74,8 @@ Rules of thumb:
 
 ## Look and feel
 
-- **Light, always.** Three themes, none dark: Agimi (early morning, default), Muzgu (sunset), Liqeni (lake). Evening is a warmer sky, not black.
-- **Two typefaces.** Bricolage Grotesque for headings; Caveat (handwritten) only on a few key words of app copy, usually as a `Sticker`. Never on event copy. Body text uses the phone's own font for readability.
+- **Four themes:** Agimi (early morning, default), Muzgu (sunset) and Liqeni (lake) are light, their evening a warmer sky; Nata (night out) is the one dark theme: violet city, lit windows, yellow actions, pink for people.
+- **Three faces, three jobs.** Young Serif for headings; Onest for all other text, numbers included (`components/Text` picks the weight file; import `Text` and `TextInput` from there, not from react-native); Caveat (handwritten) only on a few key words of app copy, usually as a `Sticker`, never on event copy.
 - **One orchestrated moment per screen**, interruptible, and reduced-motion aware (the greeting sticker on home, the dice roll). Routine taps respond within 90–480 ms.
 - **The sky.** On home, the background follows today's events from early to late as you scroll (`features/feed/sky.ts`). Keep it subtle.
 

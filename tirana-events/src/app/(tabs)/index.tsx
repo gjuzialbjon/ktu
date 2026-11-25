@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { Rail } from '@/components/Rail';
 
-import { Animated, Platform, Pressable, RefreshControl, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Animated, Platform, Pressable, RefreshControl, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Text } from '@/components/Text';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useI18n } from '@/lib/i18n';
@@ -242,9 +243,9 @@ export default function Home() {
     scrollRef.current?.scrollTo({ y: 0, animated: !reduceMotion });
   };
 
-  // the question always fits on one line: size it from the column width (~0.56em per glyph in
-  // the heading face), between a readable floor and the design size
-  const heroSize = Math.max(15, Math.min(wide ? 40 : 22, Math.floor((Math.min(viewportW, maxW) - space.lg * 2) / (t.hero_q.length * 0.56))));
+  // the question always fits on one line: size it from the column width (~0.54em per glyph in
+  // Young Serif), between a readable floor and the design size
+  const heroSize = Math.max(15, Math.min(wide ? 40 : 28, Math.floor((Math.min(viewportW, maxW) - space.lg * 2) / (t.hero_q.length * 0.54))));
 
   // one orchestrated moment: the greeting sticker is pressed on when home first appears
   const [stick] = useState(() => new Animated.Value(0));
@@ -361,8 +362,9 @@ export default function Home() {
               {t.hero_q}
             </Display>
             <View style={s.metaRow}>
-              <Text style={s.sub} numberOfLines={1}>
-                {/* narrow phones: just the count, so the line never gets cut off */}
+              <Text style={s.sub} numberOfLines={2}>
+                {/* wraps to a second line instead of cutting off; two 20px lines fit inside the
+                    44px dice button, so the row keeps its height. Narrow phones: just the count */}
                 {viewportW < 360 ? t.city_week(feed.weekCount) : t.feed_subtitle(feed.weekCount)}
               </Text>
               <Pressable
@@ -614,7 +616,7 @@ const useStyles = makeStyles((t) =>
     },
     cityText: { color: t.c.text, fontSize: 15, fontWeight: '700', flexShrink: 1 },
     hero: { marginTop: space.sm },
-    sub: { color: t.c.textDim, fontSize: 14, flexShrink: 1 },
+    sub: { color: t.c.textDim, fontSize: 14, lineHeight: 20, flexShrink: 1 },
     surprise: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44 },
     surpriseText: { color: t.c.text, fontSize: 15, fontWeight: '700', textDecorationLine: 'underline' },
 

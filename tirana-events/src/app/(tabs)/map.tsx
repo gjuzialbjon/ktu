@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Text } from '@/components/Text';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Svg, { Circle, G, Text as SvgText } from 'react-native-svg';
@@ -8,7 +9,7 @@ import { useStore } from '@/data/store';
 import { CATEGORY_EMOJI, makeStyles, radius, useTheme } from '@/lib/theme';
 import { Category, EventItem, CITIES, cityName, canSeeDetails } from '@ktu/shared';
 import { track } from '@/lib/analytics';
-import { Display, Emoji } from '@/components/ui';
+import { CardTitle, Display, Emoji } from '@/components/ui';
 import { useNow } from '@/hooks/useNow';
 import { MAP_H, MAP_W, project } from '@/features/map/project';
 import { MapBackdrop } from '@/features/map/MapBackdrop';
@@ -148,7 +149,7 @@ function MapPreviewCard({ event, onOpen }: { event: EventItem; onOpen: () => voi
         <Emoji size={18}>{CATEGORY_EMOJI[event.category]}</Emoji>
         <Text style={s.previewWhen}>{when}</Text>
       </View>
-      <Display size={19}>{event.title}</Display>
+      <CardTitle size={18}>{event.title}</CardTitle>
       <Text style={s.previewMeta}>
         {where}. {event.priceType === 'free' ? t.free : `${event.ticketPriceLek} Lekë`}
       </Text>

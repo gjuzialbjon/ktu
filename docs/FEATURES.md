@@ -313,8 +313,8 @@ its section here in the same commit.
 - **Backend:** `follows` table; people search or invite.
 
 ### 6.2 Profile ✅
-- **What:** your name, interests (used for "Mbase të pëlqen" and private events), hidden topics,
-  language (Shqip/English), theme (Agimi, Muzgu, Liqeni; all light).
+- **What:** a tab of its own (last in the bar): your name, interests (used for "Mbase të pëlqen" and private events), hidden topics,
+  language (Shqip/English), theme (Agimi, Muzgu, Liqeni, Nata; Nata is the dark one).
 - **Backend:** `users` with `interests[]`, `hidden[]`, `lang`, `city`. Theme stays on the phone.
 
 ### 6.3 Accounts ⏳
@@ -337,13 +337,14 @@ its section here in the same commit.
   who let you see it.
 ---
 
-## 7. Partners and perks 🚩 (recommended off)
+## 7. Partners and perks 🚩
 
 - **What:** the "Ofertat" tab: a partner map, offers ("15% off your second coffee after"), and a
   stamp card: check in at 5 different partners → 20% off at any of them.
 - 🧪 **Simulated:** 8 made-up partners; check-in is a button (the real one scans a code at the counter).
-- **Status note:** still shown in the app, but the board asked to put it behind a flag like the
-  other cities until a partner signs and the discount is funded.
+- **Status:** off since 2026-11-24 (`PARTNERS_LIVE` in `partners.ts`): no Ofertat tab, no offer box
+  on events. Profile took the tab's slot so "+" stays centred; when partners return, decide which
+  tab gives way. Back on when a partner signs and the discount is funded.
 - **Code:** `tirana-events/src/data/partners.ts`, `src/app/(tabs)/offers.tsx`.
 
 ## 8. Cities 🚩

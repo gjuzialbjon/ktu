@@ -1,9 +1,10 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import Svg, { Path } from 'react-native-svg';
 import { makeStyles, radius, useTheme } from '@/lib/theme';
 import { initials } from '@/lib/format';
-import { PublicUser } from '@ktu/shared';
+import { Organizer, PublicUser } from '@ktu/shared';
 import { useI18n } from '@/lib/i18n';
 
 /** Decorative emoji: hidden from screen readers so labels read cleanly. */
@@ -58,6 +59,45 @@ export function Display({
       maxFontSizeMultiplier={1.4}
       style={[
         { fontFamily: t.font, fontSize: size, lineHeight: Math.round(size * 1.15), color: color ?? t.c.text },
+        style,
+      ]}
+    >
+      {children}
+    </Text>
+  );
+}
+
+/**
+ * The name of an event or list on a card: Onest bold, set a touch tight. Young Serif is a
+ * display face and turns clumsy stacked two or three lines deep in a narrow card, so it stays
+ * on section and page headings (`Display`).
+ */
+export function CardTitle({
+  children,
+  size,
+  color,
+  numberOfLines,
+  style,
+}: {
+  children: React.ReactNode;
+  size: number;
+  color?: string;
+  numberOfLines?: number;
+  style?: object;
+}) {
+  const t = useTheme();
+  return (
+    <Text
+      numberOfLines={numberOfLines}
+      maxFontSizeMultiplier={1.3}
+      style={[
+        {
+          fontWeight: '800',
+          fontSize: size,
+          lineHeight: Math.round(size * 1.2),
+          letterSpacing: -0.3,
+          color: color ?? t.c.text,
+        },
         style,
       ]}
     >
@@ -240,6 +280,42 @@ export function Avatar({ user, highlight, size = 30 }: { user: PublicUser; highl
   );
 }
 
+/**
+ * Who runs the event, top-left on every event card: their photo or logo, or their initials.
+ * A rounded square, never a circle, so it can't be mistaken for a friend who is going (people
+ * are round). The ring takes the category colour, so the kind of event still shows at a glance.
+ * Decorative for screen readers: each card names the host in its own label.
+ */
+export function HostBadge({ host, ring, size = 36 }: { host: Organizer; ring: string; size?: number }) {
+  const t = useTheme();
+  return (
+    <View
+      accessible={false}
+      importantForAccessibility="no-hide-descendants"
+      accessibilityElementsHidden
+      style={{
+        width: size,
+        height: size,
+        borderRadius: Math.round(size * 0.3),
+        borderWidth: 2.5,
+        borderColor: ring,
+        backgroundColor: t.c.surface,
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+      }}
+    >
+      {host.avatarUrl ? (
+        <Image source={{ uri: host.avatarUrl }} style={{ width: '100%', height: '100%' }} />
+      ) : (
+        <Text maxFontSizeMultiplier={1} style={{ color: t.c.text, fontSize: Math.round(size * 0.36), fontWeight: '800' }}>
+          {initials(host.name)}
+        </Text>
+      )}
+    </View>
+  );
+}
+
 export function AvatarStack({ users, follows, size = 28 }: { users: PublicUser[]; follows: string[]; size?: number }) {
   const sorted = [...users].sort((a, b) => Number(follows.includes(b.id)) - Number(follows.includes(a.id)));
   return (
@@ -293,7 +369,7 @@ const useStyles = makeStyles((t) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      minHeight: 40,
+      minHeight: 44,
       paddingHorizontal: 14,
       borderRadius: 999,
       borderWidth: t.outline,

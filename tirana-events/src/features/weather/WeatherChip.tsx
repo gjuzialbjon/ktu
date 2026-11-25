@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import { CityId, cityName } from '@ktu/shared';
 import { useI18n } from '@/lib/i18n';
 import { makeStyles, radius, space, useTheme } from '@/lib/theme';
@@ -8,6 +9,9 @@ import { Sheet } from '@/components/Sheet';
 import { track } from '@/lib/analytics';
 import { useWeather } from './useWeather';
 import { Weather, WeatherKind, tipFor, weatherEmoji } from './weather';
+
+/** Fixed, so the temperature arriving late never moves anything; TopBar balances against it. */
+export const WEATHER_CHIP_W = 84;
 
 const KIND_KEY = {
   clear: 'wx_clear',
@@ -116,7 +120,7 @@ const useStyles = makeStyles((t) =>
       minHeight: 44,
       // fixed, not min: the chip must not grow when the forecast arrives ("–" → "-12°"),
       // or the greeting next to it moves
-      width: 84,
+      width: WEATHER_CHIP_W,
       justifyContent: 'center',
       paddingHorizontal: space.sm,
       borderRadius: 999,
@@ -124,9 +128,9 @@ const useStyles = makeStyles((t) =>
       borderWidth: t.outline,
       borderColor: t.c.border,
     },
-    temp: { color: t.c.text, fontSize: 16, fontWeight: '700', fontVariant: ['tabular-nums'] },
+    temp: { color: t.c.text, fontSize: 16, fontWeight: '700' },
     nowRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-    big: { color: t.c.text, fontFamily: t.font, fontSize: 40, lineHeight: 44 },
+    big: { color: t.c.text, fontWeight: '800', fontSize: 40, lineHeight: 44 },
     dim: { color: t.c.textDim, fontSize: 14 },
     hiLo: { color: t.c.text, fontSize: 15, fontWeight: '700' },
     tip: { backgroundColor: t.sticker[0], borderRadius: radius.md, padding: space.md },

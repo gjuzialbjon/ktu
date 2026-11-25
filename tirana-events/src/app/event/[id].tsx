@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Rail } from '@/components/Rail';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
@@ -13,7 +14,7 @@ import { firstName, joinNames } from '@/lib/format';
 import { HideTopicsSheet } from '@/features/profile/HideTopicsSheet';
 import { EventStats } from '@/features/event/EventStats';
 import { Program } from '@/features/event/Program';
-import { findOffer, findPartner } from '@/data/partners';
+import { PARTNERS_LIVE, findOffer, findPartner } from '@/data/partners';
 import { useEventFacts } from '@/features/event/useEventFacts';
 import { LikeSave } from '@/features/event/LikeSave';
 import { StoryCard } from '@/components/StoryCard';
@@ -88,7 +89,7 @@ function EventPage({ event }: { event: EventItem }) {
   const spots = spotsLeft(event, youreIn);
   const shared = facts.askToJoin ? sharedInterests(event, profile.interests) : [];
   const host = event.facilitatorId ? people.find((p) => p.id === event.facilitatorId) : undefined;
-  const offer = findOffer(event.offerId);
+  const offer = PARTNERS_LIVE ? findOffer(event.offerId) : undefined;
   const partner = offer ? findPartner(offer.partnerId) : undefined;
   // "similar" never suggests a topic you hid
   const similar = similarEvents(
@@ -376,15 +377,15 @@ function Row({ label, value, link, onLink }: { label: string; value: string; lin
   return (
     <View style={s.row}>
       {label ? <Text style={s.rowLabel}>{label}</Text> : null}
-      <Text style={s.rowValue}>
-        {value}
+      <View style={s.rowBody}>
+        <Text style={s.rowValue}>{value}</Text>
+        {/* its own line: a full 44px target, not a few words inside the address */}
         {link ? (
-          <Text style={s.rowLink} onPress={onLink} accessibilityRole="link">
-            {'  '}
-            {link}
-          </Text>
+          <Pressable accessibilityRole="link" onPress={onLink} style={s.rowLinkHit}>
+            <Text style={s.rowLink}>{link}</Text>
+          </Pressable>
         ) : null}
-      </Text>
+      </View>
     </View>
   );
 }
@@ -440,8 +441,10 @@ const useStyles = makeStyles((t) =>
     },
     row: { flexDirection: 'row', gap: 8 },
     rowLabel: { color: t.c.textDim, width: 96, fontSize: 14 },
-    rowValue: { color: t.c.text, flex: 1, fontSize: 14 },
-    rowLink: { color: t.c.text, fontWeight: '700', textDecorationLine: 'underline' },
+    rowBody: { flex: 1 },
+    rowValue: { color: t.c.text, fontSize: 14 },
+    rowLinkHit: { alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center' },
+    rowLink: { color: t.c.text, fontSize: 14, fontWeight: '700', textDecorationLine: 'underline' },
     section: { marginTop: 26, marginBottom: 10 },
     boxTitle: { color: t.c.text, fontSize: 15, fontWeight: '700' },
     desc: { color: t.c.text, fontSize: 16, lineHeight: 24, opacity: 0.9 },

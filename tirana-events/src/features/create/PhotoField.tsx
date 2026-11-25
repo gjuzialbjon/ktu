@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import * as ImagePicker from 'expo-image-picker';
 import { useI18n } from '@/lib/i18n';
 import { createLogger } from '@/lib/log';
