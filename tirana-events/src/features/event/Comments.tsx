@@ -88,7 +88,7 @@ const useStyles = makeStyles((t) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    initials: { color: t.c.textDim, fontSize: 10, fontWeight: '800' },
+    initials: { color: t.c.textDim, fontSize: 10, fontWeight: '600' },
     author: { color: t.c.text, fontSize: 14, fontWeight: '700' },
     orgBadge: { backgroundColor: t.c.text, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
     orgBadgeText: { color: t.c.bg, fontSize: 11, fontWeight: '700' },
@@ -113,6 +113,6 @@ const useStyles = makeStyles((t) =>
       minHeight: 48,
       justifyContent: 'center',
     },
-    sendText: { color: t.c.onPrimary, fontWeight: '800', fontSize: 15 },
+    sendText: { color: t.c.onPrimary, fontWeight: '600', fontSize: 15 },
   }),
 );

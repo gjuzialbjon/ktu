@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text } from '@/components/Text';
 import type { ColorValue } from 'react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Tabs, useRouter } from 'expo-router';
@@ -23,7 +24,7 @@ type IconComponent = typeof Building2;
 function tabIcon(Icon: IconComponent) {
   function TabBarIcon({ color, focused }: { color: ColorValue; focused: boolean }) {
     // our tint colors are plain strings; ColorValue also admits platform color objects
-    return <Icon color={typeof color === 'string' ? color : undefined} size={24} strokeWidth={focused ? 2.4 : 1.8} />;
+    return <Icon color={typeof color === 'string' ? color : undefined} size={24} strokeWidth={2} />;
   }
   return TabBarIcon;
 }
@@ -57,7 +58,7 @@ function CreateTabButton() {
           { backgroundColor: theme.c.primary, transform: [{ scale: pressed ? 0.94 : 1 }, { rotate: '-4deg' }] },
         ]}
       >
-        <Plus color={theme.c.onPrimary} size={28} strokeWidth={2.6} />
+        <Plus color={theme.c.onPrimary} size={28} strokeWidth={2} />
       </Pressable>
     </View>
   );
@@ -81,7 +82,8 @@ export default function TabsLayout() {
         tabBarActiveTintColor: theme.c.text,
         tabBarInactiveTintColor: theme.c.textDim,
         // fixed lineHeight: the label box never depends on font metrics, and large text cannot grow the bar
-        tabBarLabelStyle: { fontWeight: '700', fontSize: 11, lineHeight: 14, marginTop: 2 },
+        // our own label: the library's clamps to one line with an ellipsis; this one wraps
+        tabBarLabel: ({ color, children }) => <TabLabel color={color}>{children}</TabLabel>,
         tabBarAllowFontScaling: false,
       }}
     >
@@ -95,7 +97,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="offers" options={{ title: t.tab_offers, tabBarIcon: tabIcon(Gift), href: PARTNERS_LIVE ? undefined : null }} />
       <Tabs.Screen
         name="my-events"
-        options={{ title: t.my_events, tabBarLabel: t.tab_mine, tabBarIcon: tabIcon(Ticket) }}
+        options={{ title: t.my_events, tabBarLabel: ({ color }) => <TabLabel color={color}>{t.tab_mine}</TabLabel>, tabBarIcon: tabIcon(Ticket) }}
       />
       <Tabs.Screen name="profile" options={{ title: t.profile, tabBarIcon: tabIcon(UserIcon) }} />
     </Tabs>
@@ -113,3 +115,15 @@ const styles = StyleSheet.create({
     boxShadow: '0 4px 10px rgba(40,30,60,0.22)',
   },
 });
+
+/** The library's own label clamps to one line with an ellipsis; this one wraps instead. */
+function TabLabel({ color, children }: { color: ColorValue; children: React.ReactNode }) {
+  return (
+    <Text
+      maxFontSizeMultiplier={1}
+      style={{ color, fontWeight: '600', fontSize: 11, lineHeight: 14, marginTop: 2, textAlign: 'center' }}
+    >
+      {children}
+    </Text>
+  );
+}

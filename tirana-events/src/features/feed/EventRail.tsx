@@ -5,7 +5,7 @@ import { Text } from '@/components/Text';
 import type { EventItem } from '@ktu/shared';
 import { makeStyles, space } from '@/lib/theme';
 import { useI18n } from '@/lib/i18n';
-import { Display, Emoji } from '@/components/ui';
+import { Display } from '@/components/ui';
 import { StoryCard, StorySize } from '@/components/StoryCard';
 
 const CARD_GAP = 12; // StoryCard's own right margin
@@ -15,7 +15,7 @@ const PEEK = 44;
 /** A titled, horizontally scrolling row of event cards (highlights, for-you, per category, similar). */
 export function EventRail({
   title,
-  emoji,
+  dot,
   note,
   events,
   source,
@@ -24,7 +24,8 @@ export function EventRail({
   onSeeAll,
 }: {
   title: string;
-  emoji?: string;
+  /** a category's colour before the title */
+  dot?: string;
   /** one quiet line under the title, e.g. why these were picked */
   note?: string;
   events: EventItem[];
@@ -45,7 +46,7 @@ export function EventRail({
   return (
     <View style={s.wrap}>
       <View style={s.head}>
-        {emoji ? <Emoji size={18}>{emoji}</Emoji> : null}
+        {dot ? <View style={[s.dot, { backgroundColor: dot }]} /> : null}
         <Display size={19} style={{ flexShrink: 1 }}>
           {title}
         </Display>
@@ -80,6 +81,7 @@ const useStyles = makeStyles((t) =>
   StyleSheet.create({
     wrap: { gap: 2 },
     head: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+    dot: { width: 12, height: 12, borderRadius: 6 },
     seeAll: { marginLeft: 'auto', minHeight: 44, justifyContent: 'center', paddingLeft: space.sm },
     seeAllText: { color: t.c.social, fontSize: 14, fontWeight: '700', fontVariant: ['tabular-nums'] },
     pill: {

@@ -4,6 +4,7 @@ import { Text } from '@/components/Text';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
 import { makeStyles, space } from '@/lib/theme';
+import EyeOff from 'lucide-react-native/icons/eye-off';
 import { Button, Chip, Display } from '@/components/ui';
 import { Sheet } from '@/components/Sheet';
 
@@ -26,8 +27,8 @@ export function HideTopicsSheet({ visible, onClose, tags }: { visible: boolean; 
           return (
             <Chip
               key={tag}
-              emoji={hidden ? '🙈' : undefined}
-              label={`#${tag}`}
+              icon={hidden ? EyeOff : undefined}
+              label={t.tag(tag)}
               active={hidden}
               onPress={() => toggleHidden(tag)}
             />

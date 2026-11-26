@@ -6,6 +6,8 @@ import { makeStyles, radius, useTheme } from '@/lib/theme';
 import { initials } from '@/lib/format';
 import { Organizer, PublicUser } from '@ktu/shared';
 import { useI18n } from '@/lib/i18n';
+import type { LucideIcon } from 'lucide-react-native';
+import { Icon } from '@/components/icons';
 
 /** Decorative emoji: hidden from screen readers so labels read cleanly. */
 export function Emoji({ children, size = 16 }: { children: string; size?: number }) {
@@ -42,20 +44,17 @@ export function Display({
   children,
   size = 24,
   color,
-  numberOfLines,
   style,
 }: {
   children: React.ReactNode;
   size?: number;
   color?: string;
-  numberOfLines?: number;
   style?: object;
 }) {
   const t = useTheme();
   return (
     <Text
       accessibilityRole="header"
-      numberOfLines={numberOfLines}
       maxFontSizeMultiplier={1.4}
       style={[
         { fontFamily: t.font, fontSize: size, lineHeight: Math.round(size * 1.15), color: color ?? t.c.text },
@@ -68,7 +67,7 @@ export function Display({
 }
 
 /**
- * The name of an event or list on a card: Onest bold, set a touch tight. Young Serif is a
+ * The name of an event or list on a card: Onest semibold at normal tracking. Young Serif is a
  * display face and turns clumsy stacked two or three lines deep in a narrow card, so it stays
  * on section and page headings (`Display`).
  */
@@ -76,26 +75,22 @@ export function CardTitle({
   children,
   size,
   color,
-  numberOfLines,
   style,
 }: {
   children: React.ReactNode;
   size: number;
   color?: string;
-  numberOfLines?: number;
   style?: object;
 }) {
   const t = useTheme();
   return (
     <Text
-      numberOfLines={numberOfLines}
       maxFontSizeMultiplier={1.3}
       style={[
         {
-          fontWeight: '800',
+          fontWeight: '600',
           fontSize: size,
           lineHeight: Math.round(size * 1.2),
-          letterSpacing: -0.3,
           color: color ?? t.c.text,
         },
         style,
@@ -129,6 +124,32 @@ export function Hand({
     >
       {children}
     </Text>
+  );
+}
+
+/**
+ * A small printed label on a card ("Me kërkesë"): the paper colour of a sticker, but upright
+ * and in the interface face. Stickers in handwriting stay for one personal note per screen.
+ */
+export function Badge({ label, tone = 1, style }: { label: string; tone?: number; style?: object }) {
+  const t = useTheme();
+  return (
+    <View
+      style={[
+        {
+          alignSelf: 'flex-start',
+          backgroundColor: t.sticker[tone % t.sticker.length],
+          // the same 24px pill as the other labels it sits beside (price, "sponsored")
+          minHeight: 24,
+          justifyContent: 'center',
+          paddingHorizontal: 8,
+          borderRadius: 999,
+        },
+        style,
+      ]}
+    >
+      <Text style={{ color: '#2A2233', fontSize: 12, fontWeight: '600' }}>{label}</Text>
+    </View>
   );
 }
 
@@ -178,20 +199,24 @@ export function Chip({
   active,
   onPress,
   tone = 'default',
-  emoji,
+  icon,
   accessibilityLabel,
 }: {
   label: string;
   active?: boolean;
   onPress?: () => void;
   tone?: 'default' | 'sponsored' | 'free';
-  emoji?: string;
+  /** a line icon before the label, in the label's colour */
+  icon?: LucideIcon;
   accessibilityLabel?: string;
 }) {
   const t = useTheme();
   const s = useStyles();
   const bg = tone === 'sponsored' ? t.c.sponsored : tone === 'free' ? t.c.free : active ? t.c.text : t.c.surface;
   const fg = tone === 'sponsored' ? t.c.onSponsored : tone === 'free' ? t.c.onFree : active ? t.c.bg : t.c.text;
+  // a chip you can't tap (price, "sponsored" on a photo) is a label, not a button: no
+  // touch target to keep, so it drops to the height of the other labels beside it
+  const isLabel = !onPress;
   return (
     <Pressable
       onPress={onPress}
@@ -199,16 +224,20 @@ export function Chip({
       accessibilityRole={onPress ? 'button' : 'text'}
       accessibilityState={onPress ? { selected: !!active } : undefined}
       accessibilityLabel={accessibilityLabel ?? label}
-      hitSlop={6}
+      // 36 drawn + 4 above and below = the 44 px touch target, without a button-sized pill
+      hitSlop={isLabel ? undefined : { top: 4, bottom: 4 }}
       android_ripple={{ color: t.dark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.10)', foreground: true }}
       style={({ pressed }) => [
         s.chip,
+        isLabel && s.chipLabel,
         { backgroundColor: bg, borderColor: active || tone !== 'default' ? bg : t.c.border },
         pressed && { opacity: 0.8 },
       ]}
     >
-      {emoji ? <Emoji size={14}>{emoji}</Emoji> : null}
-      <Text style={[s.chipText, { color: fg }]}>{label}</Text>
+      {icon ? <Icon as={icon} size={isLabel ? 14 : 16} color={fg} /> : null}
+      <Text style={[s.chipText, isLabel && s.chipLabelText, { color: fg }]} maxFontSizeMultiplier={1.3}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -236,7 +265,7 @@ export function TagRow({
             disabled={!onTagPress}
             onPress={() => onTagPress?.(tag)}
             accessibilityRole={onTagPress ? 'link' : 'text'}
-            accessibilityLabel={onTagPress ? tr.a11y_tag(tag) : `#${tag}`}
+            accessibilityLabel={onTagPress ? tr.a11y_tag(tr.tag(tag)) : tr.tag(tag)}
             // the visual pill is small; the touch area reaches ~44px
             hitSlop={{ top: 11, bottom: 11, left: 4, right: 4 }}
             style={({ pressed }) => [
@@ -245,7 +274,7 @@ export function TagRow({
               onTagPress && pressed && { opacity: 0.7 },
             ]}
           >
-            <Text style={[s.tagText, active && { color: t.c.bg }]}>#{tag}</Text>
+            <Text style={[s.tagText, active && { color: t.c.bg }]}>{tr.tag(tag)}</Text>
           </Pressable>
         );
       })}
@@ -281,12 +310,12 @@ export function Avatar({ user, highlight, size = 30 }: { user: PublicUser; highl
 }
 
 /**
- * Who runs the event, top-left on every event card: their photo or logo, or their initials.
- * A rounded square, never a circle, so it can't be mistaken for a friend who is going (people
- * are round). The ring takes the category colour, so the kind of event still shows at a glance.
- * Decorative for screen readers: each card names the host in its own label.
+ * Who runs the event, top-left on every event card: their photo or logo, or their initials, in a
+ * white circle. Friends who are going are told apart by place and frame: they sit bottom-left with
+ * a coloured ring and a "… vjen" pill. `ring` adds a coloured frame where one is wanted; on photos
+ * it is left off, like the labels beside it. Decorative for screen readers: each card names the host.
  */
-export function HostBadge({ host, ring, size = 36 }: { host: Organizer; ring: string; size?: number }) {
+export function HostBadge({ host, ring, size = 28 }: { host: Organizer; ring?: string; size?: number }) {
   const t = useTheme();
   return (
     <View
@@ -296,8 +325,10 @@ export function HostBadge({ host, ring, size = 36 }: { host: Organizer; ring: st
       style={{
         width: size,
         height: size,
-        borderRadius: Math.round(size * 0.3),
-        borderWidth: 2.5,
+        // a circle, like every other face in the app (avatars, friends)
+        borderRadius: size / 2,
+        // a thinner ring on the small badges, so the colour frames the face instead of eating it
+        borderWidth: ring ? (size > 28 ? 2.5 : 2) : 0,
         borderColor: ring,
         backgroundColor: t.c.surface,
         alignItems: 'center',
@@ -308,7 +339,7 @@ export function HostBadge({ host, ring, size = 36 }: { host: Organizer; ring: st
       {host.avatarUrl ? (
         <Image source={{ uri: host.avatarUrl }} style={{ width: '100%', height: '100%' }} />
       ) : (
-        <Text maxFontSizeMultiplier={1} style={{ color: t.c.text, fontSize: Math.round(size * 0.36), fontWeight: '800' }}>
+        <Text maxFontSizeMultiplier={1} style={{ color: t.c.text, fontSize: Math.max(10, Math.round(size * 0.38)), fontWeight: '600' }}>
           {initials(host.name)}
         </Text>
       )}
@@ -369,14 +400,16 @@ const useStyles = makeStyles((t) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      minHeight: 44,
-      paddingHorizontal: 14,
+      minHeight: 36,
+      paddingHorizontal: 12,
       borderRadius: 999,
       borderWidth: t.outline,
       marginRight: 8,
       overflow: 'hidden',
     },
-    chipText: { fontSize: 14, fontWeight: '600' },
+    chipText: { fontSize: 14, fontWeight: '500' },
+    chipLabel: { minHeight: 24, paddingHorizontal: 8, gap: 4, marginRight: 0 },
+    chipLabelText: { fontSize: 12, fontWeight: '600' },
     tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
     tag: {
       backgroundColor: t.c.surfaceAlt,

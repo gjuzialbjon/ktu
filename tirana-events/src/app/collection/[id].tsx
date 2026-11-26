@@ -8,7 +8,8 @@ import { useStore } from '@/data/store';
 import { collectionEvents, findCollection, liveCollections } from '@/data/collections';
 import { makeStyles, radius, space, useTheme } from '@/lib/theme';
 import { useNow } from '@/hooks/useNow';
-import { Display, Emoji, Sticker } from '@/components/ui';
+import { Display, Sticker } from '@/components/ui';
+import { COLLECTION_ICON, Icon } from '@/components/icons';
 import { EventPhoto } from '@/components/EventPhoto';
 import { EventCard } from '@/components/EventCard';
 
@@ -52,10 +53,10 @@ export default function CollectionScreen() {
       <Stack.Screen options={{ title }} />
       <ScrollView contentContainerStyle={s.content}>
         <View style={s.cover}>
-          {cover ? <EventPhoto event={cover} style={StyleSheet.absoluteFill} emojiSize={64} emojiPlacement="watermark" /> : null}
+          {cover ? <EventPhoto event={cover} style={StyleSheet.absoluteFill} iconSize={64} iconPlacement="watermark" /> : null}
           <LinearGradient colors={['rgba(0,0,0,0.05)', 'rgba(0,0,0,0.82)']} style={StyleSheet.absoluteFill} />
           <View style={[s.emoji, { backgroundColor: theme.c.surface }]}>
-            <Emoji size={22}>{collection.emoji}</Emoji>
+            <Icon as={COLLECTION_ICON[collection.icon]} size={22} color={theme.c.text} />
           </View>
           <View style={s.coverText}>
             <Display size={28} style={{ color: '#FFFFFF' }}>

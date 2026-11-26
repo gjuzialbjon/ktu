@@ -3,13 +3,14 @@ import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 're
 import { Text } from '@/components/Text';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import Svg, { Circle, G, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, G } from 'react-native-svg';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
-import { CATEGORY_EMOJI, makeStyles, radius, useTheme } from '@/lib/theme';
+import { makeStyles, radius, useTheme } from '@/lib/theme';
+import { CATEGORY_ICON, Icon } from '@/components/icons';
 import { Category, EventItem, CITIES, cityName, canSeeDetails } from '@ktu/shared';
 import { track } from '@/lib/analytics';
-import { CardTitle, Display, Emoji } from '@/components/ui';
+import { CardTitle, Display } from '@/components/ui';
 import { useNow } from '@/hooks/useNow';
 import { MAP_H, MAP_W, project } from '@/features/map/project';
 import { MapBackdrop } from '@/features/map/MapBackdrop';
@@ -84,9 +85,6 @@ export default function MapScreen() {
                     stroke={m.ground}
                     strokeWidth={2.5}
                   />
-                  <SvgText x={x} y={y + 3.5} fontSize={isSel ? 11 : 9} textAnchor="middle">
-                    {CATEGORY_EMOJI[event.category]}
-                  </SvgText>
                 </G>
               );
             })}
@@ -121,7 +119,7 @@ export default function MapScreen() {
         )}
 
         <View style={s.legend}>
-          {(Object.keys(CATEGORY_EMOJI) as Category[]).map((cat) => (
+          {(Object.keys(CATEGORY_ICON) as Category[]).map((cat) => (
             <View key={cat} style={s.legendItem}>
               <View style={[s.legendDot, { backgroundColor: theme.cat[cat] }]} />
               <Text style={s.legendText}>{t[`cat_${cat}` as const]}</Text>
@@ -146,7 +144,7 @@ function MapPreviewCard({ event, onOpen }: { event: EventItem; onOpen: () => voi
       onPress={onOpen}
     >
       <View style={s.previewHead}>
-        <Emoji size={18}>{CATEGORY_EMOJI[event.category]}</Emoji>
+        <Icon as={CATEGORY_ICON[event.category]} size={18} color={theme.c.text} />
         <Text style={s.previewWhen}>{when}</Text>
       </View>
       <CardTitle size={18}>{event.title}</CardTitle>

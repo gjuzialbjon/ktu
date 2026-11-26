@@ -1,11 +1,11 @@
-import { AreaId, CITIES, CityId, type DraftInput, type EntryChoice, type Repeat, type SpokenLang, normalizeLangs } from '@ktu/shared';
+import { AreaId, type Audience, CITIES, CityId, type DraftInput, type EntryChoice, type ProgramStop, type Repeat, type SpokenLang, normalizeLangs } from '@ktu/shared';
 
 /**
  * Rules for the "make an event" form. Pure: returns i18n keys, not sentences,
  * so the rules are testable without a language and the screen picks the words.
  */
-export type DraftField = 'title' | 'venue' | 'hood' | 'date' | 'tags' | 'price';
-export type DraftErrorKey = 'err_required' | 'err_title_short' | 'err_date_past' | 'err_tags' | 'err_price';
+export type DraftField = 'title' | 'venue' | 'hood' | 'date' | 'tags' | 'price' | 'program';
+export type DraftErrorKey = 'err_required' | 'err_title_short' | 'err_date_past' | 'err_tags' | 'err_price' | 'err_program';
 export type DraftErrors = Partial<Record<DraftField, DraftErrorKey>>;
 
 export interface DraftForm {
@@ -25,9 +25,27 @@ export interface DraftForm {
   repeat: Repeat | null;
   /** how people get in: anyone / ask the host / ask, and a shared interest lets them in */
   entry: EntryChoice;
+  /** 'women' is only offered to a host who is a woman (the store checks again on submit) */
+  audience: Audience;
+  /** optional programme rows as typed; empty rows are ignored */
+  program: ProgramStop[];
+}
+
+/**
+ * The rows a host filled in, in time order (a stable sort, so two stops at the same minute keep
+ * the order they were written). A programme needs a start and an end, so one row alone is an error.
+ */
+export function cleanProgram(rows: ProgramStop[]): { stops: ProgramStop[]; ok: boolean } {
+  const stops = rows
+    .map((r) => ({ min: r.min, text: r.text.trim() }))
+    .filter((r) => r.text.length > 0)
+    .sort((a, b) => a.min - b.min);
+  return { stops, ok: stops.length !== 1 };
 }
 
 export const TITLE_MIN = 5;
+/** Titles show in full on every card (nothing is cut), so the form keeps them card-sized. */
+export const TITLE_MAX = 70;
 export const TAGS_MAX = 6;
 
 /** "Yoga, Outdoor  Fun" → ["yoga", "outdoor-fun"] */
@@ -66,6 +84,9 @@ export function validateDraft(form: DraftForm, now: Date): ValidationResult {
     else ticketPriceLek = n;
   }
 
+  const program = cleanProgram(form.program);
+  if (!program.ok) errors.program = 'err_program';
+
   if (Object.keys(errors).length > 0 || !form.hood || !form.when) return { ok: false, errors };
   return {
     ok: true,
@@ -82,6 +103,8 @@ export function validateDraft(form: DraftForm, now: Date): ValidationResult {
       coverImage: form.photo ?? undefined,
       repeat: form.repeat ?? undefined,
       entry: form.entry,
+      audience: form.audience === 'women' ? 'women' : undefined,
+      program: program.stops.length > 0 ? program.stops : undefined,
     },
   };
 }

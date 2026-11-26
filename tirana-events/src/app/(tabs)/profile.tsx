@@ -1,3 +1,4 @@
+import EyeOff from 'lucide-react-native/icons/eye-off';
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Text, TextInput } from '@/components/Text';
@@ -7,14 +8,14 @@ import { useStore } from '@/data/store';
 import { THEMES, THEME_ORDER, ThemeId, makeStyles, radius, useTheme } from '@/lib/theme';
 import { Avatar, Chip, Display } from '@/components/ui';
 import { DevTools } from '@/features/dev/DevTools';
-import { CAN_PICK_CITY, GOING_VISIBILITIES, LIVE_CITIES, cityName } from '@ktu/shared';
+import { CAN_PICK_CITY, GENDERS, GOING_VISIBILITIES, LIVE_CITIES, cityName } from '@ktu/shared';
 import { HideTopicsSheet } from '@/features/profile/HideTopicsSheet';
 
 export default function Profile() {
   const { t, lang, setLang } = useI18n();
   const theme = useTheme();
   const s = useStyles();
-  const { events, people, profile, toggleFollow, setName, setShowGoing, setCity, toggleInterest, toggleHidden } = useStore();
+  const { events, people, profile, toggleFollow, setName, setShowGoing, setGender, setCity, toggleInterest, toggleHidden } = useStore();
   const [hideOpen, setHideOpen] = useState(false);
   // every tag in use, most common first, plus anything the user picked that is no longer in use
   const tagChoices = useMemo(() => {
@@ -70,7 +71,7 @@ export default function Profile() {
         <View style={s.wrapRow}>
           {tagChoices.map((tag) => (
             <View key={tag} style={{ marginBottom: 8 }}>
-              <Chip label={`#${tag}`} active={profile.interests.includes(tag)} onPress={() => toggleInterest(tag)} />
+              <Chip label={t.tag(tag)} active={profile.interests.includes(tag)} onPress={() => toggleInterest(tag)} />
             </View>
           ))}
         </View>
@@ -82,10 +83,10 @@ export default function Profile() {
           {profile.hidden.map((tag) => (
             <View key={tag} style={{ marginBottom: 8 }}>
               <Chip
-                emoji="🙈"
-                label={`#${tag}  ✕`}
+                icon={EyeOff}
+                label={`${t.tag(tag)}  ✕`}
                 active
-                accessibilityLabel={t.a11y_unhide(tag)}
+                accessibilityLabel={t.a11y_unhide(t.tag(tag))}
                 onPress={() => toggleHidden(tag)}
               />
             </View>
@@ -103,6 +104,17 @@ export default function Profile() {
           {GOING_VISIBILITIES.map((v) => (
             <View key={v} style={{ marginBottom: 8 }}>
               <Chip label={t.going_vis[v]} active={profile.showGoing === v} onPress={() => setShowGoing(v)} />
+            </View>
+          ))}
+        </View>
+
+        {/* private: decides only whether women-only events reach this person; never shown or tracked */}
+        <Text style={s.label}>{t.gender_title}</Text>
+        <Text style={s.hint}>{t.gender_hint}</Text>
+        <View style={s.wrapRow} accessibilityRole="radiogroup">
+          {GENDERS.map((g) => (
+            <View key={g} style={{ marginBottom: 8 }}>
+              <Chip label={t.gender_name[g]} active={profile.gender === g} onPress={() => setGender(g)} />
             </View>
           ))}
         </View>

@@ -8,8 +8,14 @@ import QRCode from 'react-native-qrcode-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
-import { MIN_RATINGS_SHOWN, autoAccepts, canRate, eventEndMs, spotsLeft, hiddenTopicOf, isIn, sharedInterests, similarEvents, type EventItem } from '@ktu/shared';
-import { CATEGORY_EMOJI, makeStyles, radius, space, useTheme } from '@/lib/theme';
+import { MIN_RATINGS_SHOWN, autoAccepts, isWomenOnly, canRate, eventEndMs, spotsLeft, hiddenTopicOf, isIn, sharedInterests, similarEvents, type EventItem } from '@ktu/shared';
+import { makeStyles, radius, space, useTheme } from '@/lib/theme';
+import Venus from 'lucide-react-native/icons/venus';
+import Sprout from 'lucide-react-native/icons/sprout';
+import Repeat from 'lucide-react-native/icons/repeat';
+import BadgeCheck from 'lucide-react-native/icons/badge-check';
+import { CATEGORY_ICON, Icon } from '@/components/icons';
+import { HOST_RATINGS_PUBLIC } from '@/data/flags';
 import { firstName, joinNames } from '@/lib/format';
 import { HideTopicsSheet } from '@/features/profile/HideTopicsSheet';
 import { EventStats } from '@/features/event/EventStats';
@@ -19,7 +25,7 @@ import { useEventFacts } from '@/features/event/useEventFacts';
 import { LikeSave } from '@/features/event/LikeSave';
 import { StoryCard } from '@/components/StoryCard';
 import { useNow } from '@/hooks/useNow';
-import { Avatar, Button, Chip, Display, Emoji, Hand, Sticker, TagRow } from '@/components/ui';
+import { Avatar, Button, Chip, Display, Hand, HostBadge, Sticker, TagRow } from '@/components/ui';
 import { EventPhoto } from '@/components/EventPhoto';
 import { track } from '@/lib/analytics';
 import { hapticSuccess } from '@/lib/haptics';
@@ -76,7 +82,7 @@ function EventPage({ event }: { event: EventItem }) {
   // badge, a weak record sinks the host in the feed rather than being shown on the page
   const hostStanding = event.source !== 'platform' ? standings[event.organizer.id] : undefined;
   const hostRating =
-    hostStanding && hostStanding.ratings >= MIN_RATINGS_SHOWN && hostStanding.ratingAvg >= 4
+    HOST_RATINGS_PUBLIC && hostStanding && hostStanding.ratings >= MIN_RATINGS_SHOWN && hostStanding.ratingAvg >= 4
       ? { avg: hostStanding.ratingAvg.toFixed(1).replace('.', lang === 'sq' ? ',' : '.'), n: hostStanding.ratings }
       : null;
   const { when, hidden } = facts;
@@ -110,11 +116,12 @@ function EventPage({ event }: { event: EventItem }) {
           keyboardDismissMode="interactive"
         >
           <View>
-            <EventPhoto event={event} style={s.img} emojiSize={64} />
-            <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.55)']} style={s.fade} />
+            <EventPhoto event={event} style={s.img} iconSize={64} />
+            {/* the shade is for photos; a flat poster colour needs none (it would show an edge) */}
+            {event.coverImage ? <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.55)']} style={s.fade} /> : null}
             <View style={s.badges}>
-              <View style={[s.catBubble, { backgroundColor: theme.cat[event.category] }]}>
-                <Emoji size={19}>{CATEGORY_EMOJI[event.category]}</Emoji>
+              <View style={s.hostBadge}>
+                <HostBadge host={event.organizer} size={32} />
               </View>
               {event.isSponsored && <Chip label={t.sponsored} tone="sponsored" />}
               {facts.askToJoin && (
@@ -136,12 +143,19 @@ function EventPage({ event }: { event: EventItem }) {
           {/* trust line, like a route's "Expert ★4.8": what it is, who it suits, and your like/save */}
           <View style={s.trustRow}>
             <View style={[s.catPill, { borderColor: theme.cat[event.category] }]}>
-              <Emoji size={14}>{CATEGORY_EMOJI[event.category]}</Emoji>
+              <Icon as={CATEGORY_ICON[event.category]} size={16} color={theme.c.text} />
               <Text style={s.catPillText}>{t[`cat_${event.category}` as const]}</Text>
             </View>
+            {isWomenOnly(event) && (
+              <View style={[s.catPill, { borderColor: theme.sticker[3], backgroundColor: theme.sticker[3] }]}>
+                <Icon as={Venus} size={16} color="#2A2233" />
+                <Text style={[s.catPillText, { color: '#2A2233' }]}>{t.badge_women}</Text>
+              </View>
+            )}
             {event.tags.includes('beginner-friendly') && (
               <View style={[s.catPill, { borderColor: theme.c.free, backgroundColor: theme.c.free }]}>
-                <Text style={[s.catPillText, { color: theme.c.onFree }]}>🌱 {t.level_beginner}</Text>
+                <Icon as={Sprout} size={16} color={theme.c.onFree} />
+                <Text style={[s.catPillText, { color: theme.c.onFree }]}>{t.level_beginner}</Text>
               </View>
             )}
             {/* a series that keeps coming back: say how often, and that this is one of many */}
@@ -151,13 +165,15 @@ function EventPage({ event }: { event: EventItem }) {
                 accessible
                 accessibilityLabel={t.a11y_series(t.repeat_name[event.series.repeat], event.series.edition)}
               >
-                <Text style={s.catPillText}>🔁 {t.repeat_name[event.series.repeat]}</Text>
+                <Icon as={Repeat} size={16} color={theme.c.text} />
+                <Text style={s.catPillText}>{t.repeat_name[event.series.repeat]}</Text>
               </View>
             )}
             {/* only ever a positive mark: a weaker standing is never shown to attendees */}
             {event.source !== 'platform' && standings[event.organizer.id]?.tier === 'trusted' && (
               <View style={[s.catPill, { borderColor: theme.c.border }]}>
-                <Text style={s.catPillText}>✓ {t.host_trusted}</Text>
+                <Icon as={BadgeCheck} size={16} color={theme.c.text} />
+                <Text style={s.catPillText}>{t.host_trusted}</Text>
               </View>
             )}
             {hostRating && (
@@ -208,14 +224,14 @@ function EventPage({ event }: { event: EventItem }) {
               onLink={hidden ? undefined : () => openInMaps(event)}
             />
             <Row label={t.organizer} value={event.organizer.name + (event.organizer.verified ? ' ✓' : '')} />
-            {host && <Row label={t.host} value={`${host.name} ✦`} />}
-            {hidden && <Text style={s.hiddenNote}>🔒 {t.hidden_note}</Text>}
+            {host && <Row label={t.host} value={host.name} />}
+            {hidden && <Text style={s.hiddenNote}>{t.hidden_note}</Text>}
           </View>
 
           {shared.length > 0 && !youreIn && (
             <Text style={s.shared}>
               {(autoAccepts(event, profile.interests) ? t.shared_interests_auto : t.shared_interests)(
-                shared.map((x) => `#${x}`).join(', '),
+                shared.map((x) => t.tag(x)).join(', '),
               )}
             </Text>
           )}
@@ -231,7 +247,7 @@ function EventPage({ event }: { event: EventItem }) {
             <View style={s.offerBox}>
               <Hand size={22}>{t.offer_title}</Hand>
               <Text style={s.offerText}>
-                🎁 {offer.text[lang]} {t.offer_at(partner.name)}
+                {offer.text[lang]} {t.offer_at(partner.name)}
               </Text>
             </View>
           )}
@@ -343,7 +359,7 @@ function EventPage({ event }: { event: EventItem }) {
               hitSlop={8}
               style={({ pressed }) => [s.hideLink, pressed && { opacity: 0.6 }]}
             >
-              <Text style={s.hideLinkText}>🙈 {t.hide_like_this}</Text>
+              <Text style={s.hideLinkText}>{t.hide_like_this}</Text>
             </Pressable>
           )}
           <HideTopicsSheet visible={hideOpen} onClose={() => setHideOpen(false)} tags={event.tags} />
@@ -397,13 +413,13 @@ const useStyles = makeStyles((t) =>
     catPill: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 5,
-      minHeight: 30,
-      paddingHorizontal: 10,
+      gap: 6,
+      minHeight: 32,
+      paddingHorizontal: 12,
       borderRadius: 999,
       borderWidth: 2,
     },
-    catPillText: { color: t.c.text, fontSize: 13, fontWeight: '700' },
+    catPillText: { color: t.c.text, fontSize: 13, fontWeight: '500' },
     hideLink: { alignSelf: 'center', minHeight: 44, justifyContent: 'center', marginTop: 24 },
     hideLinkText: { color: t.c.textDim, fontSize: 14, fontWeight: '600', textDecorationLine: 'underline' },
     missing: { flex: 1, alignItems: 'flex-start', justifyContent: 'center', gap: 14, padding: 24, backgroundColor: t.c.bg },
@@ -411,15 +427,8 @@ const useStyles = makeStyles((t) =>
     content: { padding: 16, paddingBottom: 64, maxWidth: 680, width: '100%', alignSelf: 'center' },
     img: { width: '100%', height: 250, borderRadius: radius.lg, backgroundColor: t.c.surfaceAlt },
     fade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 120, borderRadius: radius.lg },
-    badges: { position: 'absolute', top: 12, left: 12, right: 4, flexDirection: 'row', alignItems: 'center' },
-    catBubble: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginRight: 8,
-    },
+    badges: { position: 'absolute', top: 12, left: 12, right: 12, flexDirection: 'row', alignItems: 'center', gap: 6 },
+    hostBadge: { marginRight: 2 },
     credit: { color: t.c.textDim, fontSize: 11, marginTop: 6 },
     whenTop: { color: t.c.textDim, fontSize: 15, fontWeight: '700', marginTop: 16, marginBottom: 4 },
     friendsPill: {
@@ -498,7 +507,7 @@ const useStyles = makeStyles((t) =>
     rsvpTitle: { color: t.c.text, fontWeight: '700', fontSize: 17 },
     qrBox: { alignItems: 'center', gap: 8, paddingVertical: 4 },
     qrWrap: { backgroundColor: '#FFFFFF', padding: 10, borderRadius: radius.sm },
-    code: { color: t.c.text, fontSize: 20, fontWeight: '800', letterSpacing: 2 },
+    code: { color: t.c.text, fontSize: 20, fontWeight: '600', letterSpacing: 2 },
     payNote: { color: t.c.textDim, fontSize: 14, textAlign: 'center' },
   }),
 );

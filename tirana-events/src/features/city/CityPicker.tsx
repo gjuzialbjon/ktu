@@ -45,7 +45,7 @@ export function CityPicker({ visible, onClose }: { visible: boolean; onClose: ()
                   <Text style={s.name}>{cityName(c, lang)}</Text>
                   <Text style={s.count}>{t.city_week(counts[c])}</Text>
                 </View>
-                {active && <Check color={theme.c.text} size={22} strokeWidth={2.4} />}
+                {active && <Check color={theme.c.text} size={22} strokeWidth={2} />}
               </Pressable>
             );
           })}

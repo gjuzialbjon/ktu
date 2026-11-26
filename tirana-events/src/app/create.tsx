@@ -5,14 +5,18 @@ import { Stack, useRouter } from 'expo-router';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
 import { makeStyles } from '@/lib/theme';
-import { CAN_PICK_CITY, CITIES, LIVE_CITIES, CityId, areaName, cityName, ALL_LANGS, ENTRY_CHOICES, REPEATS } from '@ktu/shared';
+import { CAN_PICK_CITY, CITIES, LIVE_CITIES, CityId, areaName, cityName, ALL_LANGS, ENTRY_CHOICES, REPEATS, canHostWomenOnly, type Audience } from '@ktu/shared';
+import Repeat from 'lucide-react-native/icons/repeat';
 import { Button, Chip } from '@/components/ui';
 import { DateTimeField } from '@/components/DateTimeField';
 import { Field, FieldError, FieldLabel } from '@/features/create/Field';
 import { PhotoField } from '@/features/create/PhotoField';
-import { DraftErrors, DraftField, DraftForm, validateDraft } from '@/features/create/validateDraft';
+import { ProgramField } from '@/features/create/ProgramField';
+import { DraftErrors, DraftField, DraftForm, TITLE_MAX, validateDraft } from '@/features/create/validateDraft';
 
 type FormState = Omit<DraftForm, 'city'>;
+
+const AUDIENCES: readonly Audience[] = ['all', 'women'];
 
 const EMPTY_FORM: FormState = {
   title: '',
@@ -26,6 +30,8 @@ const EMPTY_FORM: FormState = {
   langs: ['sq'],
   repeat: null,
   entry: 'open',
+  audience: 'all',
+  program: [],
 };
 
 /** Which error a form field clears when the user edits it. */
@@ -36,6 +42,7 @@ const ERROR_FOR: Partial<Record<keyof FormState, DraftField>> = {
   when: 'date',
   tags: 'tags',
   price: 'price',
+  program: 'program',
 };
 
 function notify(msg: string) {
@@ -93,7 +100,7 @@ export default function CreateEvent() {
 
         <PhotoField photo={form.photo} onChange={(v) => update('photo', v)} />
 
-        <Field label={t.ev_title} value={form.title} onChange={(v) => update('title', v)} required error={err('title')} />
+        <Field label={t.ev_title} value={form.title} onChange={(v) => update('title', v)} required error={err('title')} maxLength={TITLE_MAX} />
         <Field label={t.ev_desc} value={form.description} onChange={(v) => update('description', v)} multiline />
         <Field label={t.ev_venue} value={form.venue} onChange={(v) => update('venue', v)} required error={err('venue')} />
 
@@ -128,6 +135,7 @@ export default function CreateEvent() {
           errorDate={err('date')}
           requiredMark
         />
+        <ProgramField rows={form.program} onChange={(v) => update('program', v)} error={err('program')} />
         <Field
           label={t.ev_tags}
           value={form.tags}
@@ -164,7 +172,7 @@ export default function CreateEvent() {
           </View>
           {REPEATS.map((r) => (
             <View key={r} style={{ marginBottom: 8 }}>
-              <Chip emoji="🔁" label={t.repeat_name[r]} active={form.repeat === r} onPress={() => update('repeat', r)} />
+              <Chip icon={Repeat} label={t.repeat_name[r]} active={form.repeat === r} onPress={() => update('repeat', r)} />
             </View>
           ))}
         </View>
@@ -179,6 +187,26 @@ export default function CreateEvent() {
             </View>
           ))}
         </View>
+
+        {canHostWomenOnly(profile.gender) ? (
+          <>
+            <FieldLabel label={t.ev_audience} />
+            <Text style={s.fieldHint}>{t.ev_audience_hint[form.audience]}</Text>
+            <View style={s.hoodRow} accessibilityRole="radiogroup">
+              {AUDIENCES.map((a) => (
+                <View key={a} style={{ marginBottom: 8 }}>
+                  <Chip label={t.ev_audience_name[a]} active={form.audience === a} onPress={() => update('audience', a)} />
+                </View>
+              ))}
+            </View>
+          </>
+        ) : profile.gender == null || profile.gender === 'unsaid' ? (
+          // only a woman can open a women-only space; someone who has not said learns where to
+          <>
+            <FieldLabel label={t.ev_audience} />
+            <Text style={[s.fieldHint, { marginBottom: 16 }]}>{t.ev_audience_need_profile}</Text>
+          </>
+        ) : null}
 
         <Field
           label={t.ev_price}

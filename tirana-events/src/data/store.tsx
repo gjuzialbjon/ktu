@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { type Comment, type EventItem, type GoingVisibility, type Profile, type PublicUser, type Rsvp, DraftInput, eventsForCity, makeComment, makeDraftEvent, makeRsvp, orderFeedEvents, CityId, DEFAULT_CITY, isLiveCity, DEMO_APPROVE_AFTER_MS, hiddenTopicOf, visibleInFeed, nextEditions, nextRollAt, HostStanding, HostTier, eventTier, outcomeOf, standingsFor, canSeeGoing, DEFAULT_SHOW_GOING, GOING_VISIBILITIES, autoAccepts, makeRating, type Rating, type RatingIssue } from '@ktu/shared';
+import { type Comment, type EventItem, type GoingVisibility, type Profile, type PublicUser, type Rsvp, DraftInput, eventsForCity, makeComment, makeDraftEvent, makeRsvp, orderFeedEvents, CityId, DEFAULT_CITY, isLiveCity, DEMO_APPROVE_AFTER_MS, hiddenTopicOf, visibleInFeed, nextEditions, nextRollAt, HostStanding, HostTier, eventTier, outcomeOf, standingsFor, canSeeGoing, DEFAULT_SHOW_GOING, GOING_VISIBILITIES, autoAccepts, makeRating, type Rating, type RatingIssue, canKnowAbout, canHostWomenOnly, GENDERS, type Gender } from '@ktu/shared';
 import { DEMO_RSVPS, SEED_COMMENTS, SEED_EVENTS, SEED_PEOPLE } from './seed';
 import { hostHistory } from './hostHistory';
 import { KEYS, asArray, asRecord, clearStorage, migrateStorage, readJson, writeJson } from './storage';
@@ -34,6 +34,8 @@ interface StoreCtx {
   setName: (name: string) => void;
   /** who may see the events you are going to */
   setShowGoing: (v: GoingVisibility) => void;
+  /** private; decides only whether women-only events reach this person */
+  setGender: (g: Gender) => void;
   setCity: (city: CityId, source: 'home' | 'profile') => void;
   toggleInterest: (tag: string) => void;
   /** "never show me this topic"; removes it from interests */
@@ -90,6 +92,7 @@ const asProfile = (x: unknown): Profile | null => {
     hidden: Array.isArray(p.hidden) ? p.hidden.filter((x) => typeof x === 'string') : [],
     // profiles saved before the setting existed start at "nobody", like everyone else
     showGoing: GOING_VISIBILITIES.includes(p.showGoing as GoingVisibility) ? (p.showGoing as GoingVisibility) : DEFAULT_SHOW_GOING,
+    gender: GENDERS.includes(p.gender as Gender) ? (p.gender as Gender) : undefined,
   };
 };
 
@@ -171,7 +174,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const timer = setTimeout(() => setClock(Date.now()), Math.min(Math.max(due - Date.now(), 0) + 50, 3600_000));
     return () => clearTimeout(timer);
   }, [allEvents, clock]);
-  const events = useMemo(() => orderFeedEvents(allEvents), [allEvents]);
+  // What this person may know exists. Women-only events leave here for anyone who is not a woman,
+  // so no screen (feed, map, dice, friends, search, an event link) can show one. Drafts on this
+  // device are your own. The server will apply the same rule (canKnowAbout) to every response.
+  const knownEvents = useMemo(
+    () => allEvents.filter((e) => canKnowAbout(e, profile.gender, rsvps[e.id], e.status === 'draft')),
+    [allEvents, profile.gender, rsvps],
+  );
+  const events = useMemo(() => orderFeedEvents(knownEvents), [knownEvents]);
   // host standing: the demo history plus every event that has ended or was cancelled since.
   // Recomputed when `clock` moves (an edition starting), which is often enough for a ranking.
   const standings = useMemo(() => {
@@ -198,17 +208,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   // friends who share their plans count
   const feedProfile = useMemo(() => ({ ...profile, follows: friendsShown }), [profile, friendsShown]);
   const cityEvents = useMemo(
-    () => eventsForCity(allEvents, profile.city).filter((e) => visibleInFeed(e, feedProfile, rsvps[e.id])),
-    [allEvents, profile.city, feedProfile, rsvps],
+    () => eventsForCity(knownEvents, profile.city).filter((e) => visibleInFeed(e, feedProfile, rsvps[e.id])),
+    [knownEvents, profile.city, feedProfile, rsvps],
   );
   const hiddenEvents = useMemo(
     () =>
       profile.hidden.length === 0
         ? []
-        : eventsForCity(allEvents, profile.city).filter(
+        : eventsForCity(knownEvents, profile.city).filter(
             (e) => !rsvps[e.id] && hiddenTopicOf(e, profile.hidden) && visibleInFeed(e, { ...feedProfile, hidden: [] }, undefined),
           ),
-    [allEvents, profile, feedProfile, rsvps],
+    [knownEvents, profile, feedProfile, rsvps],
   );
 
   // Demo host: a pending request is accepted a few seconds after it was sent (also on the
@@ -278,6 +288,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       return { ...p, showGoing: v };
     });
   }, []);
+
+  // not tracked: gender is personal, and nothing in analytics needs it
+  const setGender = useCallback((gender: Gender) => setProfile((p) => ({ ...p, gender })), []);
 
   const setCity = useCallback((city: CityId, source: 'home' | 'profile') => {
     if (!isLiveCity(city)) return;
@@ -359,10 +372,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     [profile.name],
   );
 
-  const submitDraft = useCallback((input: DraftInput) => {
-    setDrafts((d) => [...d, makeDraftEvent(input, 'd' + Date.now())]);
-    track('event_draft_submitted', { tags: input.tags });
-  }, []);
+  const submitDraft = useCallback(
+    (input: DraftInput) => {
+      // women-only is a woman host's choice; anyone else's draft goes out for everyone
+      const safe = input.audience === 'women' && !canHostWomenOnly(profile.gender) ? { ...input, audience: undefined } : input;
+      setDrafts((d) => [...d, makeDraftEvent(safe, 'd' + Date.now())]);
+      track('event_draft_submitted', { tags: input.tags });
+    },
+    [profile.gender],
+  );
 
   const resetLocalData = useCallback(async () => {
     await clearStorage();
@@ -394,6 +412,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       toggleFollow,
       setName,
       setShowGoing,
+      setGender,
       setCity,
       toggleInterest,
       toggleHidden,
@@ -418,6 +437,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       goersOf,
       friendsShown,
       setShowGoing,
+      setGender,
       standings,
       tierOf,
       myDrafts,

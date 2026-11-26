@@ -3,14 +3,14 @@ import { Animated, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
-import { EventItem, LANG_CODE, foreignLangsOf, spokenLangs } from '@ktu/shared';
+import { EventItem, LANG_CODE, foreignLangsOf, isWomenOnly, spokenLangs } from '@ktu/shared';
 import { makeStyles, radius, useTheme } from '@/lib/theme';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
 import { firstName, joinNames } from '@/lib/format';
 import { useEventFacts } from '@/features/event/useEventFacts';
 import { LikeSave } from '@/features/event/LikeSave';
-import { AvatarStack, CardTitle, Chip, HostBadge, Sticker } from '@/components/ui';
+import { AvatarStack, Badge, CardTitle, Chip, HostBadge } from '@/components/ui';
 import { track } from '@/lib/analytics';
 import { NO_BROWSER_OUTLINE, useHoverLift } from '@/hooks/useHoverLift';
 import { EventPhoto } from '@/components/EventPhoto';
@@ -48,7 +48,7 @@ export function EventCard({ event, popular }: { event: EventItem; popular?: bool
     >
       <Pressable
         accessibilityRole="link"
-        accessibilityLabel={`${event.title}, ${when}, ${where}, ${t.a11y_hosted_by(event.organizer.name)}`}
+        accessibilityLabel={`${event.title}, ${when}, ${where}, ${t.a11y_hosted_by(event.organizer.name)}${isWomenOnly(event) ? `, ${t.a11y_women_only}` : ''}`}
         {...hover.handlers}
         style={s.link}
       >
@@ -65,19 +65,20 @@ export function EventCard({ event, popular }: { event: EventItem; popular?: bool
           >
             <View style={s.clip}>
               <View style={s.photo}>
-                <Animated.View style={{ transform: [{ scale: hover.photoScale }] }}>
+                <View>
                   <EventPhoto event={event} style={s.img} />
-                </Animated.View>
+                </View>
                 <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.72)']} style={s.fade} />
 
                 <View style={s.topRow}>
                   <View style={s.host}>
-                    <HostBadge host={event.organizer} ring={theme.cat[event.category]} />
+                    <HostBadge host={event.organizer} />
                   </View>
                   {event.isSponsored && <Chip label={t.sponsored} tone="sponsored" />}
                   {popular && <Chip label={t.popular} tone="sponsored" />}
-                  {event.source === 'platform' && <Chip label={`✨ ${t.badge_platform}`} />}
-                  {askToJoin && <Sticker tone={1} tilt={-4} size={17}>{isPrivate ? t.badge_private : t.badge_ask}</Sticker>}
+                  {event.source === 'platform' && <Chip label={t.badge_platform} />}
+                  {isWomenOnly(event) && <Badge label={t.badge_women} tone={3} style={{ alignSelf: 'center' }} />}
+                  {askToJoin && <Badge label={isPrivate ? t.badge_private : t.badge_ask} style={{ alignSelf: 'center' }} />}
                   <View style={{ flex: 1 }} />
                   <Chip
                     label={event.priceType === 'free' ? t.free : `${event.ticketPriceLek} L`}
@@ -88,8 +89,9 @@ export function EventCard({ event, popular }: { event: EventItem; popular?: bool
                 {friends.length > 0 && !joined && (
                   <View style={s.friendsOnPhoto}>
                     <AvatarStack users={friends} follows={profile.follows} size={26} />
-                    <View style={[s.friendsPill, { backgroundColor: theme.c.social }]}>
-                      <Text style={[s.friendsText, { color: theme.c.onSocial }]} numberOfLines={2}>
+                    {/* dark glass over the photo: the faces are the colour, the pill stays quiet */}
+                    <View style={[s.friendsPill, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+                      <Text style={[s.friendsText, { color: '#FFFFFF' }]}>
                         {t.friends_going_short(
                           joinNames(
                             friends.map((f) => firstName(f.name)),
@@ -112,12 +114,12 @@ export function EventCard({ event, popular }: { event: EventItem; popular?: bool
 
               <View style={s.body}>
                 <Text style={s.when}>{when}</Text>
-                <CardTitle size={19} numberOfLines={3}>
+                <CardTitle size={19}>
                   {event.title}
                 </CardTitle>
                 <View style={s.metaRow}>
                   <View style={[s.dot, { backgroundColor: theme.cat[event.category] }]} />
-                  <Text style={s.meta} numberOfLines={1}>
+                  <Text style={s.meta}>
                     {where}
                   </Text>
                   {langCodes && (
@@ -152,10 +154,11 @@ export function EventCard({ event, popular }: { event: EventItem; popular?: bool
 const useStyles = makeStyles((t) =>
   StyleSheet.create({
     // flex: 1 down the chain lets a card fill the row height its grid cell stretches to
-    pressable: { marginBottom: 18, flex: 1 },
+    pressable: { marginBottom: 20, flex: 1 },
     // Link asChild needs one flat style; the card draws its own focus ring
     link: { flex: 1, ...NO_BROWSER_OUTLINE },
-    likeSave: { position: 'absolute', right: 8, bottom: 4 },
+    // 44px buttons whose icons sit 16px in from the edge, like the text, centred on the footer
+    likeSave: { position: 'absolute', right: 4, bottom: 4 },
     card: {
       backgroundColor: t.c.surface,
       borderRadius: radius.lg,
@@ -168,24 +171,27 @@ const useStyles = makeStyles((t) =>
     photo: { overflow: 'hidden' },
     img: { width: '100%', height: 180, backgroundColor: t.c.surfaceAlt },
     fade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 90 },
-    topRow: { position: 'absolute', top: 10, left: 10, right: 2, flexDirection: 'row', alignItems: 'center' },
-    host: { marginRight: 8 },
+    // one 6px step between every label; 8 after the host so the face reads apart from them
+    // wraps to a second line rather than squeezing a label when a card carries several
+    topRow: { position: 'absolute', top: 12, left: 12, right: 12, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 },
+    host: { marginRight: 2 },
     friendsOnPhoto: {
       position: 'absolute',
       left: 12,
       right: 12,
-      bottom: 10,
+      bottom: 12,
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
     },
-    friendsPill: { borderRadius: 14, paddingHorizontal: 10, paddingVertical: 5, flexShrink: 1 },
+    friendsPill: { borderRadius: 14, paddingHorizontal: 12, paddingVertical: 4, flexShrink: 1 },
     friendsText: { fontSize: 13, fontWeight: '700' },
-    body: { flex: 1, padding: 14, gap: 6 },
+    // the bottom padding belongs to the footer: its 44px row is the like/save touch height
+    body: { flex: 1, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 4, gap: 8 },
     // fixed height: cards with and without a turnout row stay the same size
-    footer: { marginTop: 'auto', paddingTop: 6, height: 38, justifyContent: 'center' },
+    footer: { marginTop: 'auto', height: 44, justifyContent: 'center' },
     when: { color: t.c.text, fontSize: 14, fontWeight: '700' },
-    metaRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+    metaRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     dot: { width: 8, height: 8, borderRadius: 4 },
     meta: { color: t.c.textDim, fontSize: 14, flexShrink: 1 },
     langs: {

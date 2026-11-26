@@ -1,5 +1,6 @@
 import { type EventItem, speaks } from '@ktu/shared';
 import type { Lang } from '@/lib/i18n';
+import type { CollectionIconName } from '@/components/icons';
 import { bucketOf, matchesWhen } from '@/lib/format';
 
 /**
@@ -9,7 +10,7 @@ import { bucketOf, matchesWhen } from '@/lib/format';
  */
 export interface Collection {
   id: string;
-  emoji: string;
+  icon: CollectionIconName;
   title: Record<Lang, string>;
   blurb: Record<Lang, string>;
   match: (e: EventItem, now: Date) => boolean;
@@ -22,7 +23,7 @@ const hasTag = (e: EventItem, ...tags: string[]) => e.tags.some((t) => tags.incl
 export const COLLECTIONS: Collection[] = [
   {
     id: 'sapo-erdhe',
-    emoji: '🧳',
+    icon: 'luggage',
     title: { sq: 'Sapo erdhe në Tiranë', en: 'New in Tirana' },
     blurb: {
       sq: 'Vende ku flitet edhe anglisht dhe ku njerëzit janë mësuar me fytyra të reja.',
@@ -32,7 +33,7 @@ export const COLLECTIONS: Collection[] = [
   },
   {
     id: 'vjen-vete',
-    emoji: '🙋',
+    icon: 'hand',
     title: { sq: "Vjen vetëm? S'ka gjë", en: "Coming alone? That's fine" },
     blurb: {
       sq: 'Grupe të vogla dhe një mikpritës që të prezanton. Askush nuk rri mënjanë.',
@@ -42,7 +43,7 @@ export const COLLECTIONS: Collection[] = [
   },
   {
     id: 'jashte',
-    emoji: '🌿',
+    icon: 'leaf',
     title: { sq: 'Jashtë, në ajër të pastër', en: 'Out in the fresh air' },
     blurb: {
       sq: 'Liqeni, Dajti, rrugët e qytetit. Gjëra që bëhen në këmbë.',
@@ -52,7 +53,7 @@ export const COLLECTIONS: Collection[] = [
   },
   {
     id: 'pa-para',
-    emoji: '🪙',
+    icon: 'coins',
     title: { sq: 'Fundjave pa para', en: 'A weekend for free' },
     blurb: {
       sq: 'Të shtunën dhe të dielën, pa biletë. Paguan vetëm atë që porosit.',
@@ -62,7 +63,7 @@ export const COLLECTIONS: Collection[] = [
   },
   {
     id: 'nate',
-    emoji: '🌙',
+    icon: 'moon',
     title: { sq: 'Nata e gjate', en: 'The long night' },
     blurb: {
       sq: 'Për kur s\'do të kthehesh herët në shtëpi.',

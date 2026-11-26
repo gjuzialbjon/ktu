@@ -8,7 +8,8 @@ import { Display } from '@/components/ui';
 import { formatDuration, programStops } from './stats';
 
 const MARK = 30;
-const TIME_W = 52;
+// fits "+7h 45m", the longest offset a host can set, on one line
+const TIME_W = 72;
 const hhmm = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 
 /**
@@ -61,7 +62,7 @@ const useStyles = makeStyles((t) =>
     // centred under the marks: time column + gap + half a mark
     line: { position: 'absolute', left: TIME_W + space.md + MARK / 2 - 1.5, top: MARK / 2, bottom: MARK / 2, width: 3, borderRadius: 2 },
     row: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: MARK },
-    time: { width: TIME_W, color: t.c.text, fontSize: 15, fontWeight: '800' },
+    time: { width: TIME_W, color: t.c.text, fontSize: 15, fontWeight: '600' },
     mark: {
       width: MARK,
       height: MARK,
@@ -70,7 +71,7 @@ const useStyles = makeStyles((t) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    markText: { fontSize: 13, fontWeight: '800' },
+    markText: { fontSize: 13, fontWeight: '600' },
     text: { flex: 1, color: t.c.text, fontSize: 15, lineHeight: 21 },
   }),
 );

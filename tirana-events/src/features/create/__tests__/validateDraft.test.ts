@@ -14,6 +14,8 @@ const valid: DraftForm = {
   langs: ['sq'],
   repeat: null,
   entry: 'open',
+  program: [],
+  audience: 'all',
 };
 
 describe('validateDraft', () => {
@@ -66,5 +68,38 @@ describe('validateDraft', () => {
 describe('parseTags', () => {
   it('lowercases, hyphenates and drops blanks', () => {
     expect(parseTags(' Live Music,,  JAZZ ,')).toEqual(['live-music', 'jazz']);
+  });
+});
+
+describe('programme', () => {
+  it('is left out when no row is filled', () => {
+    const r = validateDraft({ ...valid, program: [{ min: 0, text: '  ' }, { min: 60, text: '' }] }, NOW);
+    expect(r.ok && r.value.program).toBeUndefined();
+  });
+
+  it('drops empty rows, trims and sorts the rest by time', () => {
+    const r = validateDraft(
+      {
+        ...valid,
+        program: [
+          { min: 120, text: ' Mbyllja ' },
+          { min: 0, text: 'Takohemi te dera' },
+          { min: 30, text: '' },
+          { min: 45, text: 'Darka' },
+        ],
+      },
+      NOW,
+    );
+    expect(r.ok && r.value.program).toEqual([
+      { min: 0, text: 'Takohemi te dera' },
+      { min: 45, text: 'Darka' },
+      { min: 120, text: 'Mbyllja' },
+    ]);
+  });
+
+  it('needs a start and an end: one filled row is an error', () => {
+    const r = validateDraft({ ...valid, program: [{ min: 0, text: 'Takohemi' }, { min: 60, text: '' }] }, NOW);
+    expect(r.ok).toBe(false);
+    expect(!r.ok && r.errors.program).toBe('err_program');
   });
 });

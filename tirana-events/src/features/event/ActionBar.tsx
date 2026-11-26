@@ -56,12 +56,12 @@ export function ActionBar({
           <Share2 color={theme.c.text} size={22} strokeWidth={2} />
         </Pressable>
         {ended ? (
-          <Text style={s.status} numberOfLines={2}>
+          <Text style={s.status}>
             {isIn(rsvp) ? t.you_were_there : t.event_ended}
           </Text>
         ) : rsvp ? (
           <>
-            <Text style={s.status} numberOfLines={2}>
+            <Text style={s.status}>
               {isIn(rsvp) ? t.youre_going : `${t.requested} ⏳`}
             </Text>
             <Pressable
@@ -69,14 +69,14 @@ export function ActionBar({
               onPress={onCancel}
               style={({ pressed }) => [s.ghost, pressed && { opacity: 0.7 }]}
             >
-              <Text style={s.ghostText} numberOfLines={1}>
+              <Text style={s.ghostText}>
                 {isIn(rsvp) ? t.cancel_rsvp : t.withdraw}
               </Text>
             </Pressable>
           </>
         ) : (
           <>
-            <Text style={s.price} numberOfLines={2}>
+            <Text style={s.price}>
               {price}
             </Text>
             <View style={s.cta}>

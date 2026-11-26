@@ -115,7 +115,7 @@ export function DateTimeField({
             },
             style: { ...domInputStyle(t), borderColor: errorDate ? t.c.danger : t.c.border },
           })}
-          {errorDate ? <Text style={styles.errorText}>⚠ {errorDate}</Text> : null}
+          {errorDate ? <Text style={styles.errorText}>{errorDate}</Text> : null}
         </View>
         <View style={styles.col}>
           {label(timeLabel)}
@@ -131,7 +131,7 @@ export function DateTimeField({
             },
             style: { ...domInputStyle(t), borderColor: errorTime ? t.c.danger : t.c.border },
           })}
-          {errorTime ? <Text style={styles.errorText}>⚠ {errorTime}</Text> : null}
+          {errorTime ? <Text style={styles.errorText}>{errorTime}</Text> : null}
         </View>
       </View>
     );
@@ -225,14 +225,14 @@ const useStyles = makeStyles((t) =>
   rowWrap: { flexDirection: 'row', gap: 12 },
   col: { flex: 1 },
   label: {
-    color: t.c.textDim,
-    fontSize: 13,
-    fontWeight: '700',
-    marginTop: 14,
-    marginBottom: 6,
-    textTransform: 'uppercase',
+    // the same label as every other field in the form (see Field): sentence case, no caps
+    color: t.c.text,
+    fontSize: 14,
+    fontWeight: '500',
+    marginTop: 16,
+    marginBottom: 8,
   },
-  req: { color: t.c.danger, fontSize: 13, fontWeight: '900' },
+  req: { color: t.c.danger, fontSize: 13, fontWeight: '600' },
   iosBox: {
     backgroundColor: t.c.surface,
     borderColor: t.c.border,

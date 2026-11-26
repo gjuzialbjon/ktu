@@ -7,11 +7,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/data/store';
-import { CATEGORY_EMOJI, makeStyles, radius, space, useTheme } from '@/lib/theme';
+import { makeStyles, radius, space, useTheme } from '@/lib/theme';
 import { EventCard } from '@/components/EventCard';
 import { FriendsStrip } from '@/components/FriendsStrip';
 import { CityBand } from '@/components/CityBand';
-import { Chevron, Display, Emoji, Hand, Sticker } from '@/components/ui';
+import { Chevron, Display, Sticker } from '@/components/ui';
+import Dices from 'lucide-react-native/icons/dices';
+import { Icon } from '@/components/icons';
 import { TopBar } from '@/components/TopBar';
 import { track } from '@/lib/analytics';
 import { useNow } from '@/hooks/useNow';
@@ -232,7 +234,6 @@ export default function Home() {
     <EventRail
       key={l}
       title={LANG_ROW_TITLE[l]}
-      emoji="🗣️"
       events={items}
       source={`rail_lang_${l}`}
       onSeeAll={() => seeLanguage(l)}
@@ -267,7 +268,7 @@ export default function Home() {
     track('surprise_me', { eventId: pick.id, tags: pick.tags });
     const start = (origin: DiceOrigin) => setRoll({ event: pick, origin, key: Date.now() });
     if (diceRef.current) {
-      // the 🎲 glyph sits at the button's left edge, vertically centred
+      // the dice icon sits at the button's left edge, vertically centred
       diceRef.current.measureInWindow((x, y, _w, h) => start({ x: x + 8, y: y + h / 2 }));
     } else {
       start({ x: 0, y: 0 });
@@ -331,8 +332,8 @@ export default function Home() {
                     hitSlop={6}
                     style={({ pressed }) => [s.cityPill, pressed && { opacity: 0.8 }]}
                   >
-                    <MapPin color={theme.c.text} size={16} strokeWidth={2.2} />
-                    <Text style={s.cityText} numberOfLines={1}>
+                    <MapPin color={theme.c.text} size={16} strokeWidth={2} />
+                    <Text style={s.cityText}>
                       {cityName(profile.city, lang)}
                     </Text>
                     <Chevron open={false} color={theme.c.text} />
@@ -352,17 +353,17 @@ export default function Home() {
                 >
                   <Sticker tone={0} tilt={-3} size={19}>
                     {greetWord}
-                    {name ? `, ${name}` : ''} 👋
+                    {name ? `, ${name}` : ''}
                   </Sticker>
                 </Animated.View>
               )}
             </TopBar>
 
-            <Display size={heroSize} numberOfLines={1} style={s.hero}>
+            <Display size={heroSize} style={s.hero}>
               {t.hero_q}
             </Display>
             <View style={s.metaRow}>
-              <Text style={s.sub} numberOfLines={2}>
+              <Text style={s.sub}>
                 {/* wraps to a second line instead of cutting off; two 20px lines fit inside the
                     44px dice button, so the row keeps its height. Narrow phones: just the count */}
                 {viewportW < 360 ? t.city_week(feed.weekCount) : t.feed_subtitle(feed.weekCount)}
@@ -376,7 +377,7 @@ export default function Home() {
                 hitSlop={8}
                 style={({ pressed }) => [s.surprise, pressed && { opacity: 0.75 }]}
               >
-                <Emoji size={15}>🎲</Emoji>
+                <Icon as={Dices} size={18} color={theme.c.text} />
                 <Text style={s.surpriseText}>{t.surprise}</Text>
               </Pressable>
             </View>
@@ -423,9 +424,8 @@ export default function Home() {
             >
               <View style={s.todayHead}>
                 <Display size={wide ? 26 : 19}>{todayTitle}</Display>
-                <Hand size={18} color={theme.c.textDim}>
-                  {feed.today.length > TODAY_MAX ? t.today_top_note : t.today_note} ↓
-                </Hand>
+                {/* quiet print, not handwriting: the greeting sticker is this screen's one note */}
+                <Text style={s.headNote}>{feed.today.length > TODAY_MAX ? t.today_top_note : t.today_note}</Text>
               </View>
               <View
                 onLayout={(e) => {
@@ -472,17 +472,15 @@ export default function Home() {
               )}
               {rails.length > 0 && (
                 <View style={s.vibeHead}>
+                  {/* no "swipe sideways" hint: the next card peeking in already says it */}
                   <Display size={wide ? 26 : 22}>{t.by_vibe}</Display>
-                  <Hand size={18} color={theme.c.textDim}>
-                    {t.vibe_note} →
-                  </Hand>
                 </View>
               )}
               {rails.map(({ cat, items }) => (
                 <EventRail
                   key={cat}
                   title={t[`cat_${cat}` as const]}
-                  emoji={CATEGORY_EMOJI[cat]}
+                  dot={theme.cat[cat]}
                   events={items}
                   source={`rail_${cat}`}
                   onSeeAll={() => seeCategory(cat)}
@@ -551,7 +549,7 @@ export default function Home() {
             )}
             {hiddenCount > 0 && (
               <View style={s.hiddenNote}>
-                <Text style={s.hiddenText}>🙈 {t.hidden_count(hiddenCount)} </Text>
+                <Text style={s.hiddenText}>{t.hidden_count(hiddenCount)} </Text>
                 <Pressable accessibilityRole="link" onPress={() => router.push('/profile')} hitSlop={8}>
                   <Text style={s.hiddenLink}>{t.hidden_edit}</Text>
                 </Pressable>
@@ -569,7 +567,7 @@ export default function Home() {
           hitSlop={6}
           style={({ pressed }) => [s.toTop, pressed && { transform: [{ scale: 0.92 }] }]}
         >
-          <ArrowUp color={theme.c.text} size={22} strokeWidth={2.4} />
+          <ArrowUp color={theme.c.text} size={22} strokeWidth={2} />
         </Pressable>
       )}
       {roll && <DiceRoll key={roll.key} event={roll.event} origin={roll.origin} onOpen={openRolled} />}
@@ -646,6 +644,7 @@ const useStyles = makeStyles((t) =>
     },
     todayAllText: { color: t.c.social, fontSize: 15, fontWeight: '700', fontVariant: ['tabular-nums'] },
     todayHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: space.md, flexWrap: 'wrap' },
+    headNote: { color: t.c.textDim, fontSize: 13 },
     sectionHead: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
     grid: { flexDirection: 'row', flexWrap: 'wrap' },
 

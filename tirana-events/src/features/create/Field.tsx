@@ -13,6 +13,7 @@ export function Field({
   required,
   error,
   placeholder,
+  maxLength,
 }: {
   label: string;
   value: string;
@@ -22,6 +23,7 @@ export function Field({
   required?: boolean;
   error?: string;
   placeholder?: string;
+  maxLength?: number;
 }) {
   const theme = useTheme();
   const s = useFieldStyles();
@@ -35,6 +37,7 @@ export function Field({
         multiline={multiline}
         keyboardType={keyboard}
         placeholder={placeholder}
+        maxLength={maxLength}
         placeholderTextColor={theme.c.textDim}
         accessibilityLabel={required ? `${label}, *` : label}
       />
@@ -60,8 +63,8 @@ export function FieldError({ error }: { error?: string }) {
 
 export const useFieldStyles = makeStyles((t) =>
   StyleSheet.create({
-    label: { color: t.c.text, fontSize: 14, fontWeight: '700', marginTop: 16, marginBottom: 7 },
-    req: { color: t.c.danger, fontSize: 14, fontWeight: '800' },
+    label: { color: t.c.text, fontSize: 14, fontWeight: '500', marginTop: 16, marginBottom: 8 },
+    req: { color: t.c.danger, fontSize: 14, fontWeight: '600' },
     input: {
       backgroundColor: t.c.surface,
       borderColor: t.c.border,

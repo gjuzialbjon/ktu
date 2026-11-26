@@ -6,11 +6,13 @@ import CalendarDays from 'lucide-react-native/icons/calendar-days';
 import MapPin from 'lucide-react-native/icons/map-pin';
 import SlidersHorizontal from 'lucide-react-native/icons/sliders-horizontal';
 import Check from 'lucide-react-native/icons/check';
+import Languages from 'lucide-react-native/icons/languages';
 import { type Category, type SpokenLang, CITIES, CityId, areaName, cityName } from '@ktu/shared';
 import type { WhenFilter } from '@/lib/format';
 import { useI18n } from '@/lib/i18n';
-import { CATEGORY_EMOJI, makeStyles, radius, space, useTheme } from '@/lib/theme';
+import { makeStyles, radius, space, useTheme } from '@/lib/theme';
 import { Button, Chip, Display } from '@/components/ui';
+import { CATEGORY_ICON } from '@/components/icons';
 import { Sheet } from '@/components/Sheet';
 import { extraFilterCount } from './buildFeed';
 import type { FeedFiltersState } from './useFeedFilters';
@@ -100,7 +102,7 @@ export function FilterBar({
           {/* what you picked, in full words, each one tap to clear */}
           {filters.when !== 'all' && (
             <Chip
-              emoji="📅"
+              icon={CalendarDays}
               label={`${whenLabel(filters.when)}  ✕`}
               active
               accessibilityLabel={t.a11y_clear_filter(whenLabel(filters.when))}
@@ -109,7 +111,7 @@ export function FilterBar({
           )}
           {filters.hood && (
             <Chip
-              emoji="📍"
+              icon={MapPin}
               label={`${hoodLabel}  ✕`}
               active
               accessibilityLabel={t.a11y_clear_filter(hoodLabel)}
@@ -126,7 +128,7 @@ export function FilterBar({
           )}
           {filters.lang && (
             <Chip
-              emoji="🗣️"
+              icon={Languages}
               label={`${t.lang_name[filters.lang]}  ✕`}
               active
               accessibilityLabel={t.a11y_clear_filter(t.lang_name[filters.lang])}
@@ -135,9 +137,9 @@ export function FilterBar({
           )}
           {filters.tag && (
             <Chip
-              label={`#${filters.tag}  ✕`}
+              label={`${t.tag(filters.tag)}  ✕`}
               active
-              accessibilityLabel={t.a11y_clear_tag(filters.tag)}
+              accessibilityLabel={t.a11y_clear_tag(t.tag(filters.tag))}
               onPress={state.clearTag}
             />
           )}
@@ -145,7 +147,7 @@ export function FilterBar({
           {CATEGORIES.map((c) => (
             <Chip
               key={c}
-              emoji={CATEGORY_EMOJI[c]}
+              icon={CATEGORY_ICON[c]}
               label={t[`cat_${c}` as const]}
               active={filters.cat === c}
               onPress={() => state.setCat(filters.cat === c ? null : c)}
@@ -206,7 +208,6 @@ export function FilterBar({
               {langs.map((l) => (
                 <Chip
                   key={l}
-                  emoji="🗣️"
                   label={t.lang_name[l]}
                   active={filters.lang === l}
                   onPress={() => state.setLang(filters.lang === l ? null : l)}
@@ -261,6 +262,7 @@ function BarButton({
       accessibilityRole="button"
       accessibilityLabel={a11yLabel ?? (badge > 0 ? `${label} (${badge})` : label)}
       onPress={onPress}
+      hitSlop={{ top: 2, bottom: 2 }}
       style={({ pressed }) => [
         s.btn,
         active && { backgroundColor: theme.c.text, borderColor: theme.c.text },
@@ -268,10 +270,10 @@ function BarButton({
       ]}
     >
       <View style={{ flexShrink: 0 }}>
-        <Icon size={17} color={fg} strokeWidth={2.2} />
+        <Icon size={18} color={fg} strokeWidth={2} />
       </View>
       {/* sized for "Where" at 320 px; the cap keeps large system text from cutting it */}
-      <Text style={[s.btnText, { color: fg }]} numberOfLines={1} maxFontSizeMultiplier={1}>
+      <Text style={[s.btnText, { color: fg }]} maxFontSizeMultiplier={1}>
         {label}
       </Text>
       {badge > 0 && (
@@ -304,7 +306,7 @@ function OptionRow({
       onPress={onPress}
       style={({ pressed }) => [s.option, pressed && { backgroundColor: theme.c.surfaceAlt }]}
     >
-      <Text style={[s.optionText, selected && { fontWeight: '800' }]}>{label}</Text>
+      <Text style={[s.optionText, selected && { fontWeight: '600' }]}>{label}</Text>
       <View
         style={[
           s.tick,
@@ -312,7 +314,7 @@ function OptionRow({
           selected ? { backgroundColor: theme.c.text, borderColor: theme.c.text } : null,
         ]}
       >
-        {selected && <Check size={15} color={theme.c.bg} strokeWidth={3} />}
+        {selected && <Check size={15} color={theme.c.bg} strokeWidth={2.5} />}
       </View>
     </Pressable>
   );
@@ -346,15 +348,16 @@ const useStyles = makeStyles((t) =>
       alignItems: 'center',
       justifyContent: 'center',
       gap: 6,
-      minHeight: 44,
+      // 40 drawn + 2 above and below: the touch target stays 44, the bar sits closer to the chips
+      minHeight: 40,
       // tight sides: at 320 px each button is ~91 wide and "Where" needs 47 of it
       paddingHorizontal: space.sm,
-      borderRadius: 14,
+      borderRadius: 12,
       borderWidth: t.outline,
       borderColor: t.c.border,
       backgroundColor: t.c.surface,
     },
-    btnText: { fontSize: 15, fontWeight: '700' },
+    btnText: { fontSize: 15, fontWeight: '500' },
     // over the top-right corner, so a count appearing does not widen the button
     badge: {
       position: 'absolute',
@@ -368,7 +371,7 @@ const useStyles = makeStyles((t) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    badgeText: { fontSize: 12, fontWeight: '800', fontVariant: ['tabular-nums'] },
+    badgeText: { fontSize: 12, fontWeight: '600', fontVariant: ['tabular-nums'] },
     // vertical padding gives the chips' hit slop room inside the scroller
     catScroll: { marginHorizontal: -space.lg },
     // chips bring their own 8px right margin: no extra gap, so they read as one row

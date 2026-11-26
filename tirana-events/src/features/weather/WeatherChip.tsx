@@ -4,11 +4,12 @@ import { Text } from '@/components/Text';
 import { CityId, cityName } from '@ktu/shared';
 import { useI18n } from '@/lib/i18n';
 import { makeStyles, radius, space, useTheme } from '@/lib/theme';
-import { Display, Emoji } from '@/components/ui';
+import { Display } from '@/components/ui';
+import { WeatherIcon } from '@/components/icons';
 import { Sheet } from '@/components/Sheet';
 import { track } from '@/lib/analytics';
 import { useWeather } from './useWeather';
-import { Weather, WeatherKind, tipFor, weatherEmoji } from './weather';
+import { Weather, WeatherKind, tipFor } from './weather';
 
 /** Fixed, so the temperature arriving late never moves anything; TopBar balances against it. */
 export const WEATHER_CHIP_W = 84;
@@ -52,7 +53,7 @@ export function WeatherChip({ city }: { city: CityId }) {
         hitSlop={6}
         style={({ pressed }) => [s.chip, pressed && { opacity: 0.8 }]}
       >
-        <Emoji size={18}>{w ? weatherEmoji(w.kind, w.isDay) : '·'}</Emoji>
+        <WeatherIcon kind={w?.kind} isDay={w?.isDay} size={18} color={theme.c.text} />
         <Text style={s.temp}>{w ? `${w.temp}°` : '–'}</Text>
       </Pressable>
 
@@ -67,11 +68,12 @@ export function WeatherChip({ city }: { city: CityId }) {
 
 function WeatherDetails({ w }: { w: Weather }) {
   const { t } = useI18n();
+  const theme = useTheme();
   const s = useStyles();
   return (
     <View style={{ gap: space.md }}>
       <View style={s.nowRow}>
-        <Emoji size={44}>{weatherEmoji(w.kind, w.isDay)}</Emoji>
+        <WeatherIcon kind={w.kind} isDay={w.isDay} size={40} color={theme.c.text} />
         <View style={{ flex: 1 }}>
           <Text style={s.big}>{w.temp}°</Text>
           <Text style={s.dim}>
@@ -95,7 +97,7 @@ function WeatherDetails({ w }: { w: Weather }) {
         {w.hours.map((h) => (
           <View key={h.time} style={s.hour}>
             <Text style={s.hourTime}>{h.time}</Text>
-            <Emoji size={20}>{weatherEmoji(h.kind, true)}</Emoji>
+            <WeatherIcon kind={h.kind} size={20} color={theme.c.textDim} />
             <Text style={s.hourTemp}>{h.temp}°</Text>
             {h.rainChance >= 20 ? <Text style={s.hourRain}>{h.rainChance}%</Text> : <Text style={s.hourRain}> </Text>}
           </View>
@@ -103,9 +105,9 @@ function WeatherDetails({ w }: { w: Weather }) {
       </ScrollView>
 
       <View style={s.factRow}>
-        {w.sunrise ? <Text style={s.fact}>🌅 {t.weather_sunrise(w.sunrise)}</Text> : null}
-        {w.sunset ? <Text style={s.fact}>🌇 {t.weather_sunset(w.sunset)}</Text> : null}
-        <Text style={s.fact}>💨 {t.weather_wind(w.windKmh)}</Text>
+        {w.sunrise ? <Text style={s.fact}>{t.weather_sunrise(w.sunrise)}</Text> : null}
+        {w.sunset ? <Text style={s.fact}>{t.weather_sunset(w.sunset)}</Text> : null}
+        <Text style={s.fact}>{t.weather_wind(w.windKmh)}</Text>
       </View>
     </View>
   );
@@ -130,7 +132,7 @@ const useStyles = makeStyles((t) =>
     },
     temp: { color: t.c.text, fontSize: 16, fontWeight: '700' },
     nowRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-    big: { color: t.c.text, fontWeight: '800', fontSize: 40, lineHeight: 44 },
+    big: { color: t.c.text, fontWeight: '600', fontSize: 40, lineHeight: 44 },
     dim: { color: t.c.textDim, fontSize: 14 },
     hiLo: { color: t.c.text, fontSize: 15, fontWeight: '700' },
     tip: { backgroundColor: t.sticker[0], borderRadius: radius.md, padding: space.md },

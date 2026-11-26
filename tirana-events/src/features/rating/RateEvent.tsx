@@ -33,7 +33,7 @@ export function RateEvent({ event, showTitle = false }: { event: EventItem; show
   if (!editing && mine) {
     return (
       <View style={s.box}>
-        {showTitle && <Text style={s.event} numberOfLines={2}>{event.title}</Text>}
+        {showTitle && <Text style={s.event}>{event.title}</Text>}
         <View style={s.doneRow}>
           <Text style={s.doneStars} accessibilityLabel={t.a11y_stars(mine.stars)}>
             {'★'.repeat(mine.stars)}
@@ -51,7 +51,7 @@ export function RateEvent({ event, showTitle = false }: { event: EventItem; show
   return (
     <View style={s.box}>
       {/* in a list the section heading asks the question; each card names its event */}
-      {showTitle ? <Text style={s.event} numberOfLines={2}>{event.title}</Text> : <Text style={s.title}>{t.rate_title}</Text>}
+      {showTitle ? <Text style={s.event}>{event.title}</Text> : <Text style={s.title}>{t.rate_title}</Text>}
       <Text style={s.hint}>{t.rate_hint}</Text>
       <View style={s.starsRow} accessibilityRole="radiogroup">
         {[1, 2, 3, 4, 5].map((n) => (
@@ -105,7 +105,7 @@ const useStyles = makeStyles((t) =>
       padding: 16,
       gap: 10,
     },
-    title: { color: t.c.text, fontSize: 18, fontWeight: '800' },
+    title: { color: t.c.text, fontSize: 18, fontWeight: '600' },
     event: { color: t.c.text, fontSize: 17, fontWeight: '700' },
     hint: { color: t.c.textDim, fontSize: 14, lineHeight: 20 },
     starsRow: { flexDirection: 'row', gap: 4 },

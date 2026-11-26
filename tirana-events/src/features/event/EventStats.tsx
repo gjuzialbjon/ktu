@@ -3,10 +3,9 @@ import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { type EventItem, LANG_CODE, spokenLangs } from '@ktu/shared';
 import { useI18n } from '@/lib/i18n';
-import { makeStyles, radius, space } from '@/lib/theme';
-import { Emoji } from '@/components/ui';
+import { makeStyles, radius, space, useTheme } from '@/lib/theme';
+import { WeatherIcon } from '@/components/icons';
 import { useWeather } from '@/features/weather/useWeather';
-import { weatherEmoji } from '@/features/weather/weather';
 import { durationMin, formatDuration, weatherAt } from './stats';
 
 /** Same rule as the cards: a turnout this small is left out. */
@@ -38,7 +37,8 @@ export function EventStats({
   const start = new Date(event.startsAt);
   const lasts = durationMin(event);
 
-  const starts = { value: hidden ? '🔒' : hhmm(start), label: t.stat_starts };
+  // the time's shape without the time: it opens once the host says yes
+  const starts = { value: hidden ? '··:··' : hhmm(start), label: t.stat_starts };
   // a small turnout reads as "nobody is going", so below MIN_GOING_SHOWN the start time takes its place
   const turnout =
     spots != null
@@ -64,10 +64,10 @@ export function EventStats({
       <View style={s.grid}>
         {cells.map((c) => (
           <View key={c.label} style={s.cell} accessible accessibilityLabel={`${c.label}: ${c.value}`}>
-            <Text style={s.value} numberOfLines={1}>
+            <Text style={s.value}>
               {c.value}
             </Text>
-            <Text style={s.label} numberOfLines={1}>
+            <Text style={s.label}>
               {c.label}
             </Text>
           </View>
@@ -81,6 +81,7 @@ export function EventStats({
 /** Fixed height whatever the state (loading, ok, unavailable). */
 function WeatherStrip({ event, time, nowMs }: { event: EventItem; time: string; nowMs: number }) {
   const { t } = useI18n();
+  const theme = useTheme();
   const s = useStyles();
   const state = useWeather(event.city);
   const hour = state.status === 'ok' ? weatherAt(state.data, event.startsAt, new Date(nowMs)) : undefined;
@@ -89,7 +90,7 @@ function WeatherStrip({ event, time, nowMs }: { event: EventItem; time: string; 
   const isDay = hour && sun?.sunrise && sun.sunset ? hour.time >= sun.sunrise && hour.time < sun.sunset : true;
   return (
     <View style={s.weather}>
-      <Emoji size={20}>{hour ? weatherEmoji(hour.kind, isDay) : '·'}</Emoji>
+      <WeatherIcon kind={hour?.kind} isDay={isDay} size={20} color={theme.c.text} />
       <Text style={s.weatherTemp}>{hour ? `${hour.temp}°` : '–'}</Text>
       {hour && hour.rainChance >= 20 ? <Text style={s.weatherRain}>{t.weather_rain_short(hour.rainChance)}</Text> : null}
       <Text style={s.weatherLabel}>{t.weather_at(time)}</Text>
@@ -109,19 +110,21 @@ const useStyles = makeStyles((t) =>
     },
     grid: { flexDirection: 'row', flexWrap: 'wrap' },
     cell: { width: '50%', paddingVertical: space.md, paddingHorizontal: space.lg, gap: 2 },
-    value: { color: t.c.text, fontWeight: '800', fontSize: 24, lineHeight: 30 },
+    value: { color: t.c.text, fontWeight: '600', fontSize: 24, lineHeight: 30 },
     label: { color: t.c.textDim, fontSize: 13, fontWeight: '600' },
     weather: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: space.sm,
-      height: 48,
+      minHeight: 48, // a floor for every state; a long label wraps instead of being cut
+      paddingVertical: space.sm,
+      flexWrap: 'wrap',
       paddingHorizontal: space.lg,
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: t.c.border,
       backgroundColor: t.c.surfaceAlt,
     },
-    weatherTemp: { color: t.c.text, fontSize: 17, fontWeight: '800', fontVariant: ['tabular-nums'], minWidth: 36 },
+    weatherTemp: { color: t.c.text, fontSize: 17, fontWeight: '600', fontVariant: ['tabular-nums'], minWidth: 36 },
     weatherRain: { color: t.c.social, fontSize: 13, fontWeight: '700' },
     weatherLabel: { color: t.c.textDim, fontSize: 13, fontWeight: '600', marginLeft: 'auto' },
   }),

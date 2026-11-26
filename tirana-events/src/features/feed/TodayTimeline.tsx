@@ -2,12 +2,14 @@ import React from 'react';
 import { LayoutChangeEvent, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { useRouter } from 'expo-router';
-import type { EventItem } from '@ktu/shared';
+import { type EventItem, isWomenOnly } from '@ktu/shared';
 import { useStore } from '@/data/store';
 import { useI18n } from '@/lib/i18n';
 import { makeStyles, radius, space, useTheme } from '@/lib/theme';
 import { firstName, joinNames } from '@/lib/format';
-import { Emoji, Sticker } from '@/components/ui';
+import { Badge } from '@/components/ui';
+import Lock from 'lucide-react-native/icons/lock';
+import { Icon } from '@/components/icons';
 import { track } from '@/lib/analytics';
 import { useEventFacts } from '@/features/event/useEventFacts';
 
@@ -58,7 +60,7 @@ function TimelineRow({ event, onLayout }: { event: EventItem; onLayout: (e: Layo
     <View style={s.row} onLayout={onLayout}>
       <View style={s.timeCol}>
         {facts.hidden ? (
-          <Emoji size={16}>🔒</Emoji>
+          <Icon as={Lock} size={16} color={theme.c.textDim} />
         ) : (
           <Text style={s.time}>{time(event.startsAt)}</Text>
         )}
@@ -66,7 +68,7 @@ function TimelineRow({ event, onLayout }: { event: EventItem; onLayout: (e: Layo
       </View>
       <Pressable
         accessibilityRole="link"
-        accessibilityLabel={`${event.title}, ${facts.when}, ${facts.where}, ${t.a11y_hosted_by(event.organizer.name)}`}
+        accessibilityLabel={`${event.title}, ${facts.when}, ${facts.where}, ${t.a11y_hosted_by(event.organizer.name)}${isWomenOnly(event) ? `, ${t.a11y_women_only}` : ''}`}
         onPress={() => {
           track('event_viewed', { eventId: event.id, source: 'today_timeline', tags: event.tags });
           router.push(`/event/${event.id}`);
@@ -75,23 +77,24 @@ function TimelineRow({ event, onLayout }: { event: EventItem; onLayout: (e: Layo
       >
         <View style={s.body}>
           {/* the event's name is never cut: long titles take a second line */}
-          <Text style={s.title} numberOfLines={2}>
+          <Text style={s.title}>
             {event.title}
           </Text>
-          <Text style={s.where} numberOfLines={2}>
+          <Text style={s.where}>
             {facts.where}
           </Text>
           {friends.length > 0 && (
-            <Text style={[s.friends, { color: theme.c.social }]} numberOfLines={2}>
+            <Text style={[s.friends, { color: theme.c.social }]}>
               {t.friends_going_short(joinNames(friends.map((f) => firstName(f.name)), t.and_word), friends.length)}
             </Text>
           )}
         </View>
-        {facts.askToJoin && (
-          <Sticker tone={1} tilt={4} size={15} style={s.sticker}>
-            {facts.isPrivate ? t.badge_private : t.badge_ask}
-          </Sticker>
-        )}
+        {/* one label fits the corner: women-only matters most, then how to get in */}
+        {isWomenOnly(event) ? (
+          <Badge label={t.badge_women} tone={3} style={s.sticker} />
+        ) : facts.askToJoin ? (
+          <Badge label={facts.isPrivate ? t.badge_private : t.badge_ask} style={s.sticker} />
+        ) : null}
       </Pressable>
     </View>
   );
@@ -114,7 +117,7 @@ const useStyles = makeStyles((t) =>
     },
     row: { flexDirection: 'row', alignItems: 'center' },
     timeCol: { width: TIME_W, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: 0 },
-    time: { color: t.c.text, fontSize: 15, fontWeight: '800' },
+    time: { color: t.c.text, fontSize: 15, fontWeight: '600' },
     dot: { width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: t.c.surface, marginRight: -1 },
     card: {
       flex: 1,
@@ -122,9 +125,9 @@ const useStyles = makeStyles((t) =>
       alignItems: 'center',
       gap: space.md,
       marginLeft: space.md,
-      paddingVertical: 10,
-      paddingHorizontal: space.md,
-      minHeight: 62,
+      paddingVertical: space.md,
+      paddingHorizontal: space.lg,
+      minHeight: 64,
       borderRadius: radius.md,
       backgroundColor: t.c.surface,
       borderWidth: t.outline,

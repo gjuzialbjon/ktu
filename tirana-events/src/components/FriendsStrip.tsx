@@ -77,14 +77,14 @@ function CrewItem({ person, event }: { person: PublicUser; event: EventItem }) {
       }}
       style={({ pressed }) => [s.item, pressed && { transform: [{ scale: 0.97 }] }]}
     >
-      <Avatar user={person} highlight size={58} />
-      <Text style={s.name} numberOfLines={1}>
+      <Avatar user={person} highlight size={48} />
+      <Text style={s.name}>
         {firstName(person.name)}
       </Text>
-      <Text style={s.event} numberOfLines={2}>
+      <Text style={s.event}>
         {event.title}
       </Text>
-      <Text style={s.when} numberOfLines={1}>
+      <Text style={s.when}>
         {when}
       </Text>
     </Pressable>
@@ -93,8 +93,10 @@ function CrewItem({ person, event }: { person: PublicUser; event: EventItem }) {
 
 const useStyles = makeStyles((t) =>
   StyleSheet.create({
-    wrap: { gap: 12, marginBottom: 24 },
-    row: { gap: 10, paddingRight: 8 },
+    // no bottom margin of its own: the home column spaces sections, like every other rail
+    wrap: { gap: 12 },
+    // stretch: cards in the row share the tallest one's height
+    row: { gap: 12, paddingRight: 8, alignItems: 'stretch' },
     item: {
       width: 128,
       backgroundColor: t.c.surface,
@@ -105,9 +107,10 @@ const useStyles = makeStyles((t) =>
       gap: 4,
       alignItems: 'flex-start',
     },
-    name: { color: t.c.text, fontSize: 15, fontWeight: '700', marginTop: 6 },
-    event: { color: t.c.textDim, fontSize: 13, lineHeight: 17, minHeight: 34 },
-    when: { color: t.c.text, fontSize: 12, fontWeight: '700' },
+    name: { color: t.c.text, fontSize: 15, fontWeight: '700', marginTop: 4 },
+    event: { color: t.c.textDim, fontSize: 13, lineHeight: 17 },
+    // pinned to the bottom, so the times line up across cards whose titles wrap differently
+    when: { color: t.c.text, fontSize: 12, fontWeight: '700', marginTop: 'auto' },
     empty: {
       backgroundColor: t.c.surface,
       borderColor: t.c.border,

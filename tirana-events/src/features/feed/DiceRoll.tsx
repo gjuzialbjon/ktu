@@ -206,13 +206,13 @@ export function DiceRoll({
         >
           <Text style={s.says}>{t.dice_says}</Text>
           <View style={s.card}>
-            <EventPhoto event={event} style={s.photo} emojiSize={44} />
+            <EventPhoto event={event} style={s.photo} iconSize={44} />
             <View style={s.body}>
               <Text style={s.when}>{facts.when}</Text>
-              <CardTitle size={21} numberOfLines={3}>
+              <CardTitle size={21}>
                 {event.title}
               </CardTitle>
-              <Text style={s.venue} numberOfLines={1}>
+              <Text style={s.venue}>
                 {facts.where}
               </Text>
             </View>

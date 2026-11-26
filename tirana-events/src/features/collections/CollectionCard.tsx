@@ -6,7 +6,9 @@ import type { EventItem } from '@ktu/shared';
 import type { Collection } from '@/data/collections';
 import { useI18n } from '@/lib/i18n';
 import { makeStyles, radius, useTheme } from '@/lib/theme';
-import { CardTitle, Emoji, Sticker } from '@/components/ui';
+import { Text } from '@/components/Text';
+import { CardTitle } from '@/components/ui';
+import { COLLECTION_ICON, Icon } from '@/components/icons';
 import { EventPhoto } from '@/components/EventPhoto';
 import { track } from '@/lib/analytics';
 
@@ -30,17 +32,17 @@ export function CollectionCard({ collection, items, cover }: { collection: Colle
       style={({ pressed }) => [s.card, pressed && { transform: [{ scale: 0.98 }] }]}
     >
       <View style={s.clip}>
-        <EventPhoto event={cover} style={StyleSheet.absoluteFill} emojiSize={48} emojiPlacement="watermark" />
+        <EventPhoto event={cover} style={StyleSheet.absoluteFill} iconSize={48} iconPlacement="watermark" />
         <LinearGradient colors={['rgba(0,0,0,0.05)', 'rgba(0,0,0,0.8)']} style={StyleSheet.absoluteFill} />
         <View style={[s.emoji, { backgroundColor: theme.c.surface }]}>
-          <Emoji size={18}>{collection.emoji}</Emoji>
+          <Icon as={COLLECTION_ICON[collection.icon]} size={18} color={theme.c.text} />
         </View>
-        <Sticker tone={0} tilt={4} size={18} style={s.count}>
-          {t.collection_count(items.length)}
-        </Sticker>
-        <CardTitle size={19} color="#FFFFFF" numberOfLines={2} style={s.title}>
-          {title}
-        </CardTitle>
+        <View style={s.bottom}>
+          <Text style={s.count}>{t.collection_count(items.length)}</Text>
+          <CardTitle size={19} color="#FFFFFF">
+            {title}
+          </CardTitle>
+        </View>
       </View>
     </Pressable>
   );
@@ -50,16 +52,17 @@ const useStyles = makeStyles((t) =>
   StyleSheet.create({
     card: {
       width: COLLECTION_CARD.w,
-      height: COLLECTION_CARD.h,
+      minHeight: COLLECTION_CARD.h, // grows for a long name instead of cutting it
       marginRight: 12,
       borderRadius: radius.lg,
       borderWidth: t.outline,
       borderColor: t.c.border,
       backgroundColor: t.c.surfaceAlt,
     },
-    clip: { flex: 1, borderRadius: radius.lg - t.outline, overflow: 'hidden' },
-    emoji: { position: 'absolute', top: 10, left: 10, width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-    count: { position: 'absolute', top: 12, right: 10 },
-    title: { position: 'absolute', left: 14, right: 14, bottom: 12 },
+    clip: { flexGrow: 1, justifyContent: 'flex-end', borderRadius: radius.lg - t.outline, overflow: 'hidden' },
+    emoji: { position: 'absolute', top: 12, left: 12, width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+    // in the flow, clear of the icon above, so the card grows around the text
+    bottom: { marginTop: 56, paddingHorizontal: 16, paddingBottom: 12, gap: 4 },
+    count: { color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: '500' },
   }),
 );

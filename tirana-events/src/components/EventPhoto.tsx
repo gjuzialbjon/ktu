@@ -1,44 +1,46 @@
 import React, { useState } from 'react';
 import { Image, ImageSourcePropType, ImageStyle, StyleProp, View, ViewStyle } from 'react-native';
 import { EventItem } from '@ktu/shared';
-import { CATEGORY_EMOJI, useTheme } from '@/lib/theme';
-import { Emoji } from '@/components/ui';
+import { useTheme } from '@/lib/theme';
+import { CATEGORY_ICON } from '@/components/icons';
 
 /**
  * An event's cover. Bundled assets and picker URIs both work; when there is no
- * photo, or it fails to load, the slot shows the category's color and emoji so
- * a card never looks broken.
+ * photo, or it fails to load, the slot becomes a flat poster in the category's colour
+ * with the category's line icon printed large and faint, so a card never looks broken
+ * and never borrows a glossy emoji as its picture.
  */
 export function EventPhoto({
   event,
   style,
-  emojiSize = 44,
-  emojiPlacement = 'center',
+  iconSize = 44,
+  iconPlacement = 'center',
 }: {
   event: EventItem;
   style?: StyleProp<ImageStyle>;
-  emojiSize?: number;
+  iconSize?: number;
   /** watermark: upper right and faded, for tiles whose text sits over the photo */
-  emojiPlacement?: 'center' | 'watermark';
+  iconPlacement?: 'center' | 'watermark';
 }) {
   const t = useTheme();
   const src = event.coverImage;
   // remember which source failed, so a new photo for the same card gets a fresh try
   const [failedSrc, setFailedSrc] = useState<string | ImageSourcePropType | null>(null);
 
+  const CatIcon = CATEGORY_ICON[event.category];
   if (src == null || failedSrc === src) {
     return (
       <View
         style={[
           style as StyleProp<ViewStyle>,
           { backgroundColor: t.cat[event.category] },
-          emojiPlacement === 'center'
+          iconPlacement === 'center'
             ? { alignItems: 'center', justifyContent: 'center' }
             : { alignItems: 'flex-end', justifyContent: 'flex-start', paddingTop: '22%', paddingRight: '9%' },
         ]}
       >
-        <View style={emojiPlacement === 'watermark' ? { opacity: 0.55, transform: [{ rotate: '-8deg' }] } : null}>
-          <Emoji size={emojiSize}>{CATEGORY_EMOJI[event.category]}</Emoji>
+        <View accessible={false} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+          <CatIcon size={Math.round(iconSize * 1.4)} color="rgba(255,255,255,0.42)" strokeWidth={1.5} />
         </View>
       </View>
     );

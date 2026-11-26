@@ -4,8 +4,9 @@ import { Text } from '@/components/Text';
 import * as ImagePicker from 'expo-image-picker';
 import { useI18n } from '@/lib/i18n';
 import { createLogger } from '@/lib/log';
-import { makeStyles, radius } from '@/lib/theme';
-import { Emoji } from '@/components/ui';
+import { makeStyles, radius, useTheme } from '@/lib/theme';
+import Camera from 'lucide-react-native/icons/camera';
+import { Icon } from '@/components/icons';
 import { FieldLabel } from './Field';
 
 const log = createLogger('create');
@@ -14,6 +15,7 @@ const log = createLogger('create');
 export function PhotoField({ photo, onChange }: { photo: string | null; onChange: (uri: string | null) => void }) {
   const { t } = useI18n();
   const s = useStyles();
+  const theme = useTheme();
 
   const pick = async () => {
     try {
@@ -45,7 +47,7 @@ export function PhotoField({ photo, onChange }: { photo: string | null; onChange
           <Image source={{ uri: photo }} style={s.photo} />
         ) : (
           <View style={s.empty}>
-            <Emoji size={22}>📷</Emoji>
+            <Icon as={Camera} size={24} color={theme.c.textDim} />
             <Text style={s.hint}>{t.ev_photo_hint}</Text>
           </View>
         )}

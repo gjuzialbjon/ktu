@@ -1011,6 +1011,39 @@ export const SEED_EVENTS: EventItem[] = [
     organizer: { id: 'o2', name: 'Klubi i Shahut Tirana', verified: false },
     goingUserIds: ['u1', 'u3', 'u5'],
   },
+  // women-only: only a profile that says "Grua" ever receives it (see canKnowAbout)
+  {
+    id: 'e36',
+    title: 'Ecje mbrëmjeje vetëm për gra: Liqeni',
+    description:
+      'Një xhiro e qetë rreth Liqenit, vetëm gra. Për ato që sapo kanë ardhur në qytet ose duan shoqëri për të ecur në mbrëmje. Ritëm bisede, askush nuk mbetet pas.',
+    category: 'outdoors',
+    languages: ['sq', 'en'],
+    tags: ['walk', 'outdoor', 'meet-people', 'newcomers'],
+    program: [
+      { min: 0, text: 'Takohemi te Diga' },
+      { min: 10, text: 'Xhiro rreth liqenit, me ritëm bisede' },
+      { min: 75, text: 'Një çaj bashkë, kush do' },
+    ],
+    goodToKnow: ['Këpucë të rehatshme', 'Kthehemi bashkë deri te Diga'],
+    venueName: 'Hyrja e Liqenit, te Diga',
+    address: 'Parku i Liqenit',
+    city: 'tirana',
+    neighborhood: 'liqeni',
+    lat: 41.3135,
+    lng: 19.8195,
+    startsAt: at(2, 19, 0),
+    priceType: 'free',
+    capacity: 15,
+    source: 'platform',
+    audience: 'women',
+    facilitatorId: 'u2',
+    status: 'published',
+    isSponsored: false,
+    likeCount: 19,
+    organizer: { id: 'te', name: 'Tirana Events', verified: true },
+    goingUserIds: ['u2', 'u4', 'u8'],
+  },
 ];
 
 /** Demo only: a first run starts as if you went to last night's chess evening (e35), so there is something to rate. */

@@ -65,7 +65,7 @@ export function Rail({
         ]}
         pointerEvents={show ? 'auto' : 'none'}
       >
-        <Icon size={compact ? 18 : 22} color={theme.c.text} strokeWidth={2.4} />
+        <Icon size={compact ? 18 : 22} color={theme.c.text} strokeWidth={2} />
       </Pressable>
     );
   };

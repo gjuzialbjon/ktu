@@ -38,8 +38,8 @@ export function useHoverLift() {
     }).start();
   }, [active, reduce, progress]);
 
-  const translateY = progress.interpolate({ inputRange: [0, 1], outputRange: [0, reduce ? 0 : -5] });
-  const photoScale = progress.interpolate({ inputRange: [0, 1], outputRange: [1, reduce ? 1 : 1.06] });
+  // a small lift and a deeper shadow; the photo itself stays still (no zoom on hover)
+  const translateY = progress.interpolate({ inputRange: [0, 1], outputRange: [0, reduce ? 0 : -3] });
 
   // Offset + soft blur, tinted from the theme's ink rather than flat black on light themes.
   const shadow = active
@@ -67,7 +67,6 @@ export function useHoverLift() {
       onBlur: () => setFocused(false),
     },
     translateY,
-    photoScale,
     shadow,
     focusRing,
   };
